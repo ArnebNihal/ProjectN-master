@@ -299,6 +299,7 @@ namespace BlockRotator
                         isRmb = true;
                     else
                         path = Path.Combine(testPath, "RDB", availableBlocks[type][selected] + ".RDB.json");
+                    Debug.Log("Deserializing block " + path);
                     block = JsonConvert.DeserializeObject<DFBlock>(File.ReadAllText(path));
 
                     convBlock = ConvertBlock(block);
@@ -365,7 +366,9 @@ namespace BlockRotator
                 else
                     path = Path.Combine(testPath, "RDB", "converted", blockName + ".RDB.json");
 
-                block = JsonConvert.DeserializeObject<DFBlockRotation>(File.ReadAllText(path));                
+                block = JsonConvert.DeserializeObject<DFBlockRotation>(File.ReadAllText(path));
+                if (isRmb)
+                    block.Name = blockName + ".RMB";
 
                 convBlock = ConvertBlock(block);
 

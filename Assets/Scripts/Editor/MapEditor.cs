@@ -165,8 +165,8 @@ namespace MapEditor
 
         public string worldSavePath;
         public string sourceFilesPath;
-        public const string testPath = "/home/arneb/Games/daggerfall/DaggerfallGameFiles/arena2/Maps/";
-        public const string arena2Path = "/home/arneb/Games/daggerfall/DaggerfallGameFiles/arena2";
+        public const string testPath = "D:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps/";
+        public const string arena2Path = "D:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/";
         public int lastDungeonType = -1;
         public int availableBlocks = 0;
         public int availableDBlocks = 0;
@@ -1683,7 +1683,7 @@ namespace MapEditor
         protected void CreateLargeHeightmap()
         {
             int heightmapVariation;
-            const string tilesPath = "/home/arneb/Games/daggerfall/DaggerfallGameFiles/arena2/Maps/Tiles";
+            const string tilesPath = "D:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps/Tiles";
 
             // Texture2D textureTiles = new Texture2D(MapsFile.TileDim, MapsFile.TileDim);
             // ImageConversion.LoadImage(textureTiles, File.ReadAllBytes(Path.Combine(testPath, "Woods.png")));
@@ -3500,8 +3500,8 @@ namespace MapEditor
         public static Worldmap[] WholeWM;
         public static Dictionary<ulong, MapSummary> mapDict;
         public static List<ulong> locationIdList;
-        public static string tilesPath = "/home/arneb/Games/daggerfall/DaggerfallGameFiles/arena2/Maps/Tiles";
-        public static string locationsPath = "/home/arneb/Games/daggerfall/DaggerfallGameFiles/arena2/Maps/Locations";
+        public static string tilesPath = "D:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps/Tiles";
+        public static string locationsPath = "D:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps/Locations";
 
         static Worldmaps()
         {
