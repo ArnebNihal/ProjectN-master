@@ -24,7 +24,7 @@ namespace BlockRotator
 
         public static string[] blockPrefixes = {
             "TVR", "GEN", "RES", "WEA", "ARM", "ALC", "BAN", "BOO",
-            "CLO", "FUR", "GEM", "LIB", "PAW", "TEM", "PAL", "FAR", 
+            "CLO", "FUR", "GEM", "LIB", "PAW", "TEM", "PAL", "FAR",
             "DUN", "CAS", "CAR", "MAN", "SHR", "RUI", "SHC", "GRV",
             "FIL", "KRA", "KDR", "KOW", "KMO", "KCA", "KFL", "KHO",
             "KRO", "KWH", "KSC", "KHA", "MAG", "THI", "DAR", "FIG",
@@ -37,9 +37,10 @@ namespace BlockRotator
         };
 
         public static string[] rmbBlockClimate = {
-            "AA", "AL", "AM", "AS",     // High Rock
-            "BA", "BL", "BM", "BS",     // Hammerfell
-            "GA", "GL", "GM", "GS"      // To reassign, since it's a copy/paste of the "B" group
+            "ZA", "ZL", "ZM", "ZS", "ZN",     // Good for every region
+            "AA", "AL", "AM", "AS", "AN",     // High Rock
+            "BA", "BL", "BM", "BS", "BN",     // Hammerfell
+            "GA", "GL", "GM", "GS", "GN"      // To reassign, since it's a copy/paste of the "B" group
         };
 
         public static string[] deityCode = {
@@ -54,7 +55,7 @@ namespace BlockRotator
             DFLocation.BuildingTypes.Bank,
             DFLocation.BuildingTypes.Bookseller,
             DFLocation.BuildingTypes.ClothingStore,
-            // DFLocation.BuildingTypes.FurnitureStore,
+            DFLocation.BuildingTypes.FurnitureStore,
             DFLocation.BuildingTypes.GemStore,
             DFLocation.BuildingTypes.GeneralStore,
             DFLocation.BuildingTypes.Library,
@@ -105,22 +106,43 @@ namespace BlockRotator
                 }
                 else
                 {
+                    bool genericTemDone = false;
                     for (int j = 0; j < rmbBlockClimate.Length; j++)
                     {
                         int counter = 0;
-                        if (blockPrefixes[i].Equals("TEM"))
+                        if (blockPrefixes[i].Equals("TEM") && !genericTemDone)
+                        {
+                            for (int q = 0; q < 4; q++)
+                            {
+                                counter = 0;
+                                string blockName = ElaborateBlockName(blockPrefixes[i], q.ToString(), rmbBlockClimate[j], "Z", counter);
+                                while (File.Exists(Path.Combine(testPath, "RMB", blockName + ".RMB.json")))
+                                {
+                                    blockList.Add(blockName);
+                                    counter++;
+                                    blockName = ElaborateBlockName(blockPrefixes[i], q.ToString(), rmbBlockClimate[j], "Z", counter);
+                                }
+                            }
+                        }
+                    }
+                    genericTemDone = true;
+
+                    for (int l = 0; l < rmbBlockClimate.Length; l++)
+                    {
+                        int counter = 0;
+                        if (blockPrefixes[i].Equals("TEM") && genericTemDone)
                         {
                             for (int p = 0; p < 4; p++)
                             {
                                 for (int k = 0; k < deityCode.Length; k++)
                                 {
                                     counter = 0;
-                                    string blockName = ElaborateBlockName(blockPrefixes[i], p.ToString(), rmbBlockClimate[j], deityCode[k], counter);
+                                    string blockName = ElaborateBlockName(blockPrefixes[i], p.ToString(), rmbBlockClimate[l], deityCode[k], counter);
                                     while (File.Exists(Path.Combine(testPath, "RMB", blockName + ".RMB.json")))
                                     {
                                         blockList.Add(blockName);
                                         counter++;
-                                        blockName = ElaborateBlockName(blockPrefixes[i], p.ToString(), rmbBlockClimate[j], deityCode[k], counter);
+                                        blockName = ElaborateBlockName(blockPrefixes[i], p.ToString(), rmbBlockClimate[l], deityCode[k], counter);
                                     }
                                 }
                             }
@@ -129,12 +151,12 @@ namespace BlockRotator
                         {
                             for (int o = 0; o < 4; o++)
                             {
-                                string blockName = ElaborateBlockName(blockPrefixes[i], o.ToString(), rmbBlockClimate[j], "Z", counter);
+                                string blockName = ElaborateBlockName(blockPrefixes[i], o.ToString(), rmbBlockClimate[l], "Z", counter);
                                 while (File.Exists(Path.Combine(testPath, "RMB", blockName + ".RMB.json")))
                                 {
                                     blockList.Add(blockName);
                                     counter++;
-                                    blockName = ElaborateBlockName(blockPrefixes[i], o.ToString(), rmbBlockClimate[j], "Z", counter);
+                                    blockName = ElaborateBlockName(blockPrefixes[i], o.ToString(), rmbBlockClimate[l], "Z", counter);
                                 }
                             }
                         }
@@ -146,17 +168,17 @@ namespace BlockRotator
 
         void OnGUI()
         {
-            typeToggle = EditorGUILayout.BeginToggleGroup("Choose Block Type", typeToggle);  
-             
-            blockType = EditorGUILayout.Popup("Block Type: ", blockType, blockPrefixes, GUILayout.MaxWidth(600.0f));            
-            blockToggle = EditorGUILayout.BeginToggleGroup("Choose Specific Block", blockToggle);   
+            typeToggle = EditorGUILayout.BeginToggleGroup("Choose Block Type", typeToggle);
+
+            blockType = EditorGUILayout.Popup("Block Type: ", blockType, blockPrefixes, GUILayout.MaxWidth(600.0f));
+            blockToggle = EditorGUILayout.BeginToggleGroup("Choose Specific Block", blockToggle);
             selectedBlock = EditorGUILayout.Popup("Selected: ", selectedBlock, availableBlocks[blockType], GUILayout.MaxWidth(600.0f));
             EditorGUILayout.EndToggleGroup();
             EditorGUILayout.EndToggleGroup();
 
             rotationToggle = EditorGUILayout.BeginToggleGroup("Choose Rotation", rotationToggle);
             selectedRotation = EditorGUILayout.Popup("Rotation: ", selectedRotation, rotationNames, GUILayout.MaxWidth(600.0f));
-            EditorGUILayout.EndToggleGroup();           
+            EditorGUILayout.EndToggleGroup();
 
             if (GUILayout.Button("ROTATE", GUILayout.MaxWidth(200.0f)))
             {
@@ -191,7 +213,7 @@ namespace BlockRotator
 
         public static string ElaborateBlockName(string prefix, string rotation, string climate, string deity, int progressive)
         {
-            if (prefix.Equals("TEM"))
+            if (prefix.Equals("TEM") && !deity.Equals("Z"))
                 return prefix + rotation + climate + deity + progressive.ToString();
             else if (prefix.Equals("N") || prefix.Equals("W") || prefix.Equals("B") || prefix.Equals("S") || prefix.Equals("M"))
                 return prefix + progressive.ToString("0000000");
@@ -212,13 +234,13 @@ namespace BlockRotator
                             for (int k = 0; k < 3; k++)
                             {
                                 RotateBlock(availableBlocks[i][j], k);
-                            }                                
+                            }
                         }
                         else
                         {
                             RotateBlock(availableBlocks[i][j], selectedRotation);
-                        }                        
-                    }                        
+                        }
+                    }
                 }
             }
             else
@@ -311,7 +333,7 @@ namespace BlockRotator
                     var jsonBlock = JsonConvert.SerializeObject(convBlock, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
                     File.WriteAllText(path, jsonBlock);
                 }
-            }            
+            }
         }
 
         public static void ConvertToPN()
@@ -614,6 +636,32 @@ namespace BlockRotator
             return convBlock;
         }
 
+        public static float GetScale(DFBlock.RmbBlock3dObjectRecord objectRecord)
+        {
+            float scale = 1.0f;
+
+            if (objectRecord.ZScale != 0.0f && objectRecord.ZScale != 1.0f)
+                scale = objectRecord.ZScale;
+            if (objectRecord.YScale != 0.0f && objectRecord.YScale != 1.0f)
+                scale = objectRecord.YScale;
+            if (objectRecord.XScale != 0.0f && objectRecord.XScale != 1.0f)
+                scale = objectRecord.XScale;
+            return scale;
+        }
+
+        public static float GetScale(DFBlockRotation.RmbBlock3dObjectRecord objectRecord)
+        {
+            float scale = 1.0f;
+
+            if (objectRecord.ZScale != 0.0f && objectRecord.ZScale != 1.0f)
+                scale = objectRecord.ZScale;
+            if (objectRecord.YScale != 0.0f && objectRecord.YScale != 1.0f)
+                scale = objectRecord.YScale;
+            if (objectRecord.XScale != 0.0f && objectRecord.XScale != 1.0f)
+                scale = objectRecord.XScale;
+            return scale;
+        }
+
         public static DFBlock.RmbBlockDesc GetRmbBDForRmb(DFBlockRotation.RmbBlockDesc block)
         {
             DFBlock.RmbBlockDesc convBlock = new DFBlock.RmbBlockDesc();
@@ -642,7 +690,7 @@ namespace BlockRotator
             }
 
             convBlock.FldHeader.BlockDataSizes = block.FldHeader.BlockDataSizes;
-            
+
             convBlock.FldHeader.GroundData.Header = block.FldHeader.GroundData.Header;
             convBlock.FldHeader.GroundData.GroundTiles = null;
             convBlock.FldHeader.GroundData.GroundTiles1d = new DFBlock.RmbGroundTiles[16 * 16];
@@ -653,7 +701,7 @@ namespace BlockRotator
                 convBlock.FldHeader.GroundData.GroundTiles1d[a].IsRotated = block.FldHeader.GroundData.GroundTiles[a].IsRotated;
                 convBlock.FldHeader.GroundData.GroundTiles1d[a].IsFlipped = block.FldHeader.GroundData.GroundTiles[a].IsFlipped;
             }
-                
+
             convBlock.FldHeader.GroundData.GroundScenery = null;
             convBlock.FldHeader.GroundData.GroundScenery1d = new DFBlock.RmbGroundScenery[16 * 16];
             for (int b = 0; b < block.FldHeader.GroundData.GroundScenery.Length; b++)
@@ -687,6 +735,9 @@ namespace BlockRotator
                     convBlock.SubRecords[k].Exterior.Block3dObjectRecords[l].XPos = block.SubRecords[k].Exterior.Block3dObjectRecords[l].XPos;
                     convBlock.SubRecords[k].Exterior.Block3dObjectRecords[l].YPos = block.SubRecords[k].Exterior.Block3dObjectRecords[l].YPos;
                     convBlock.SubRecords[k].Exterior.Block3dObjectRecords[l].ZPos = block.SubRecords[k].Exterior.Block3dObjectRecords[l].ZPos;
+                    convBlock.SubRecords[k].Exterior.Block3dObjectRecords[l].XScale = block.SubRecords[k].Exterior.Block3dObjectRecords[l].XScale;
+                    convBlock.SubRecords[k].Exterior.Block3dObjectRecords[l].YScale = block.SubRecords[k].Exterior.Block3dObjectRecords[l].YScale;
+                    convBlock.SubRecords[k].Exterior.Block3dObjectRecords[l].ZScale = block.SubRecords[k].Exterior.Block3dObjectRecords[l].ZScale;
                     convBlock.SubRecords[k].Exterior.Block3dObjectRecords[l].XRotation = block.SubRecords[k].Exterior.Block3dObjectRecords[l].XRotation;
                     convBlock.SubRecords[k].Exterior.Block3dObjectRecords[l].YRotation = block.SubRecords[k].Exterior.Block3dObjectRecords[l].YRotation;
                     convBlock.SubRecords[k].Exterior.Block3dObjectRecords[l].ZRotation = block.SubRecords[k].Exterior.Block3dObjectRecords[l].ZRotation;
@@ -754,6 +805,9 @@ namespace BlockRotator
                     convBlock.SubRecords[k].Interior.Block3dObjectRecords[q].XPos = block.SubRecords[k].Interior.Block3dObjectRecords[q].XPos;
                     convBlock.SubRecords[k].Interior.Block3dObjectRecords[q].YPos = block.SubRecords[k].Interior.Block3dObjectRecords[q].YPos;
                     convBlock.SubRecords[k].Interior.Block3dObjectRecords[q].ZPos = block.SubRecords[k].Interior.Block3dObjectRecords[q].ZPos;
+                    convBlock.SubRecords[k].Interior.Block3dObjectRecords[q].XScale = block.SubRecords[k].Interior.Block3dObjectRecords[q].XScale;
+                    convBlock.SubRecords[k].Interior.Block3dObjectRecords[q].YScale = block.SubRecords[k].Interior.Block3dObjectRecords[q].YScale;
+                    convBlock.SubRecords[k].Interior.Block3dObjectRecords[q].ZScale = block.SubRecords[k].Interior.Block3dObjectRecords[q].ZScale;
                     convBlock.SubRecords[k].Interior.Block3dObjectRecords[q].XRotation = block.SubRecords[k].Interior.Block3dObjectRecords[q].XRotation;
                     convBlock.SubRecords[k].Interior.Block3dObjectRecords[q].YRotation = block.SubRecords[k].Interior.Block3dObjectRecords[q].YRotation;
                     convBlock.SubRecords[k].Interior.Block3dObjectRecords[q].ZRotation = block.SubRecords[k].Interior.Block3dObjectRecords[q].ZRotation;
@@ -815,6 +869,9 @@ namespace BlockRotator
                 convBlock.Misc3dObjectRecords[v].XPos = block.Misc3dObjectRecords[v].XPos;
                 convBlock.Misc3dObjectRecords[v].YPos = block.Misc3dObjectRecords[v].YPos;
                 convBlock.Misc3dObjectRecords[v].ZPos = block.Misc3dObjectRecords[v].ZPos;
+                convBlock.Misc3dObjectRecords[v].XScale = block.Misc3dObjectRecords[v].XScale;
+                convBlock.Misc3dObjectRecords[v].YScale = block.Misc3dObjectRecords[v].YScale;
+                convBlock.Misc3dObjectRecords[v].ZScale = block.Misc3dObjectRecords[v].ZScale;
                 convBlock.Misc3dObjectRecords[v].XRotation = block.Misc3dObjectRecords[v].XRotation;
                 convBlock.Misc3dObjectRecords[v].YRotation = block.Misc3dObjectRecords[v].YRotation;
                 convBlock.Misc3dObjectRecords[v].ZRotation = block.Misc3dObjectRecords[v].ZRotation;
@@ -878,7 +935,7 @@ namespace BlockRotator
                 convBlock.FldHeader.GroundData.GroundTiles[a].IsRotated = block.FldHeader.GroundData.GroundTiles1d[a].IsRotated;
                 convBlock.FldHeader.GroundData.GroundTiles[a].IsFlipped = block.FldHeader.GroundData.GroundTiles1d[a].IsFlipped;
             }
-                
+
             convBlock.FldHeader.GroundData.GroundScenery = new DFBlockRotation.RmbGroundScenery[16 * 16];
             for (int b = 0; b < block.FldHeader.GroundData.GroundScenery1d.Length; b++)
             {
@@ -911,6 +968,9 @@ namespace BlockRotator
                     convBlock.SubRecords[k].Exterior.Block3dObjectRecords[l].XPos = block.SubRecords[k].Exterior.Block3dObjectRecords[l].XPos;
                     convBlock.SubRecords[k].Exterior.Block3dObjectRecords[l].YPos = block.SubRecords[k].Exterior.Block3dObjectRecords[l].YPos;
                     convBlock.SubRecords[k].Exterior.Block3dObjectRecords[l].ZPos = block.SubRecords[k].Exterior.Block3dObjectRecords[l].ZPos;
+                    convBlock.SubRecords[k].Exterior.Block3dObjectRecords[l].XScale = block.SubRecords[k].Exterior.Block3dObjectRecords[l].XScale;
+                    convBlock.SubRecords[k].Exterior.Block3dObjectRecords[l].YScale = block.SubRecords[k].Exterior.Block3dObjectRecords[l].YScale;
+                    convBlock.SubRecords[k].Exterior.Block3dObjectRecords[l].ZScale = block.SubRecords[k].Exterior.Block3dObjectRecords[l].ZScale;
                     convBlock.SubRecords[k].Exterior.Block3dObjectRecords[l].XRotation = block.SubRecords[k].Exterior.Block3dObjectRecords[l].XRotation;
                     convBlock.SubRecords[k].Exterior.Block3dObjectRecords[l].YRotation = block.SubRecords[k].Exterior.Block3dObjectRecords[l].YRotation;
                     convBlock.SubRecords[k].Exterior.Block3dObjectRecords[l].ZRotation = block.SubRecords[k].Exterior.Block3dObjectRecords[l].ZRotation;
@@ -978,6 +1038,9 @@ namespace BlockRotator
                     convBlock.SubRecords[k].Interior.Block3dObjectRecords[q].XPos = block.SubRecords[k].Interior.Block3dObjectRecords[q].XPos;
                     convBlock.SubRecords[k].Interior.Block3dObjectRecords[q].YPos = block.SubRecords[k].Interior.Block3dObjectRecords[q].YPos;
                     convBlock.SubRecords[k].Interior.Block3dObjectRecords[q].ZPos = block.SubRecords[k].Interior.Block3dObjectRecords[q].ZPos;
+                    convBlock.SubRecords[k].Interior.Block3dObjectRecords[q].XScale = block.SubRecords[k].Interior.Block3dObjectRecords[q].XScale;
+                    convBlock.SubRecords[k].Interior.Block3dObjectRecords[q].YScale = block.SubRecords[k].Interior.Block3dObjectRecords[q].YScale;
+                    convBlock.SubRecords[k].Interior.Block3dObjectRecords[q].ZScale = block.SubRecords[k].Interior.Block3dObjectRecords[q].ZScale;
                     convBlock.SubRecords[k].Interior.Block3dObjectRecords[q].XRotation = block.SubRecords[k].Interior.Block3dObjectRecords[q].XRotation;
                     convBlock.SubRecords[k].Interior.Block3dObjectRecords[q].YRotation = block.SubRecords[k].Interior.Block3dObjectRecords[q].YRotation;
                     convBlock.SubRecords[k].Interior.Block3dObjectRecords[q].ZRotation = block.SubRecords[k].Interior.Block3dObjectRecords[q].ZRotation;
@@ -1039,6 +1102,9 @@ namespace BlockRotator
                 convBlock.Misc3dObjectRecords[v].XPos = block.Misc3dObjectRecords[v].XPos;
                 convBlock.Misc3dObjectRecords[v].YPos = block.Misc3dObjectRecords[v].YPos;
                 convBlock.Misc3dObjectRecords[v].ZPos = block.Misc3dObjectRecords[v].ZPos;
+                convBlock.Misc3dObjectRecords[v].XScale = block.Misc3dObjectRecords[v].XScale;
+                convBlock.Misc3dObjectRecords[v].YScale = block.Misc3dObjectRecords[v].YScale;
+                convBlock.Misc3dObjectRecords[v].ZScale = block.Misc3dObjectRecords[v].ZScale;
                 convBlock.Misc3dObjectRecords[v].XRotation = block.Misc3dObjectRecords[v].XRotation;
                 convBlock.Misc3dObjectRecords[v].YRotation = block.Misc3dObjectRecords[v].YRotation;
                 convBlock.Misc3dObjectRecords[v].ZRotation = block.Misc3dObjectRecords[v].ZRotation;
@@ -1059,7 +1125,7 @@ namespace BlockRotator
 
             return convBlock;
         }
-        
+
         public static DFBlock.RdbBlockDesc GetRdbBDForRdb(DFBlockRotation.RdbBlockDesc block)
         {
             DFBlock.RdbBlockDesc convBlock = new DFBlock.RdbBlockDesc();
@@ -1211,7 +1277,7 @@ namespace BlockRotator
 
             return convBlock;
         }
-        
+
         public static void RotateBlock(string blockName, int rotation)
         {
             DFBlock block = new DFBlock();
@@ -1229,7 +1295,7 @@ namespace BlockRotator
                 case DFBlock.BlockTypes.Rmb:
                     rotatedBlock.RmbBlock = RotateRMBBlock(rotatedBlock.Name, block.RmbBlock, rotation);
                     break;
-                
+
                 default:
                     break;
             }
@@ -1265,7 +1331,7 @@ namespace BlockRotator
             rotatedRmb.FldHeader.GroundData.GroundScenery = null;
             rotatedRmb.FldHeader.GroundData.GroundTiles1d = new DFBlock.RmbGroundTiles[256];
             rotatedRmb.FldHeader.GroundData.GroundScenery1d = new DFBlock.RmbGroundScenery[256];
-            
+
             for (int k = 0; k < 16; k++)
             {
                 for (int j = 0; j < 16; j++)
@@ -1347,7 +1413,7 @@ namespace BlockRotator
 
             resultingBlockData.Block3dObjectRecords = new DFBlock.RmbBlock3dObjectRecord[blockData.Block3dObjectRecords.Length];
             for (int i = 0; i < blockData.Block3dObjectRecords.Length; i++)
-            {                
+            {
                 resultingBlockData.Block3dObjectRecords[i] = RotateBlock3dObjectRecord(blockData.Block3dObjectRecords[i], rotation, false);
             }
 
@@ -1494,7 +1560,7 @@ namespace BlockRotator
             // else resulting3dObj.YRotation = (short)(objRec.YRotation + (512 * (rotation + 1)));
             if (resulting3dObj.YRotation >= 2048)
                 resulting3dObj.YRotation -= 2048;
-             if (resulting3dObj.YRotation <= -2048)
+            if (resulting3dObj.YRotation <= -2048)
                 resulting3dObj.YRotation += 2048;
             // rotatedRmb.SubRecords[m].Exterior.Block3dObjectRecords[n].ZRotation = rmbBlock.SubRecords[m].Exterior.Block3dObjectRecords[n].ZRotation;
             return resulting3dObj;
@@ -1561,23 +1627,27 @@ namespace BlockRotator
             if (zNegative)
                 z *= -1;
 
+
+
             switch (rotation)
             {
                 case 0: // 90 degrees
-                    rotatedCoord = (z, size - x);
+                    if (size == 4095) rotatedCoord = (size - z, x);
+                    else rotatedCoord = (z, size - x);
                     break;
                 case 1: // 180 degrees
                     rotatedCoord = (size - x, size - z);
                     break;
                 case 2: // 270 degrees
-                    rotatedCoord = (size - z, x);
+                    if (size == 4095) rotatedCoord = (z, size - x);
+                    else rotatedCoord = (size - z, x);
                     break;
                 default:
                     Debug.Log("RotateCoord = wrong rotation value!");
                     rotatedCoord = (-1, -1);
                     break;
             }
-            
+
             if (zNegative)
                 rotatedCoord = (rotatedCoord.Item1, rotatedCoord.Item2 * -1);
 
@@ -1608,7 +1678,7 @@ namespace BlockRotator
                     rotatedCoord = (-1, -1);
                     break;
             }
-            
+
             if (zNegative)
                 rotatedCoord = (rotatedCoord.Item1, rotatedCoord.Item2 * -1);
 
@@ -1703,7 +1773,7 @@ namespace BlockRotator
                                         break;
                                 }
                                 if ((blockName.Substring(4, 1)).Equals("A"))
-                                {                                    
+                                {
                                     blockName = "FIG" + randomRotation.ToString() + "A" + sizeChar + (randomChance % 2).ToString("00") + ".RMB";
                                 }
                                 else
@@ -1846,8 +1916,6 @@ namespace BlockRotator
                             int climateIndex = Array.IndexOf(rmbBlockClimate, blockName.Substring(4, 2));
                             int prog;
                             int deityProg = 0;
-
-                            Debug.Log("Working on " + blockName + "; prefixIndex: " + prefixIndex + ", climateIndex: " + climateIndex + " in " + mapTile.Locations[k].Name + ", " + mapTile.Locations[k].RegionIndex);
 
                             if (prefixIndex == Array.IndexOf(blockPrefixes, "TEM"))
                             {

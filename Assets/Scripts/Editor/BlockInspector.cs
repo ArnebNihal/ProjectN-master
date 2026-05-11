@@ -34,7 +34,7 @@ namespace MapEditor
         public Vector2 scrollView1;
         public Vector2 scrollView2;
         public Vector2 scrollView3;
-        public const string arena2Path = "/home/arneb/Games/daggerfall/DaggerfallGameFiles/arena2";
+        public const string arena2Path = "D:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2";
 
         void Awake()
         {

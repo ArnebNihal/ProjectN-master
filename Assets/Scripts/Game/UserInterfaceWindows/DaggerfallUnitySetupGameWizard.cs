@@ -89,7 +89,7 @@ namespace DaggerfallWorkshop.Game.UserInterfaceWindows
         const SongFiles titleSongFile = SongFiles.song_5strong;
         static string startingBlock = "CUSTAA06";
         const string startingBackground = "TMAP00I0.IMG";
-        public static string mapPath =  "/home/arneb/Games/daggerfall/DaggerfallGameFiles/arena2/Maps";
+        public static string mapPath =  "D:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps";
 
         string findArena2Tip;
         string pathValidated;

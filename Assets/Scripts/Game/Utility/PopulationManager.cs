@@ -337,11 +337,11 @@ namespace DaggerfallWorkshop.Game.Utility
 
             if (playerGPS.CurrentLocationType == DFRegion.LocationTypes.TownCity && playerGPS.CurrentLocation.Exterior.ExteriorData.PortTownAndUnknown != 0)
             {
-                if (populationSelected < 40)
+                if (populationSelected < 30)
                     populationSelected = mainPopulationRace;
-                else if (populationSelected < 65)
+                else if (populationSelected < 50)
                     populationSelected = secondaryPopulationRace;
-                else if (populationSelected < 85)
+                else if (populationSelected < 60)
                     populationSelected = tertiaryPopulationRace;
                 else
                 {
@@ -350,11 +350,11 @@ namespace DaggerfallWorkshop.Game.Utility
             }
             else if (playerGPS.CurrentLocationType == DFRegion.LocationTypes.TownCity)
             {
-                if (populationSelected < 50)
+                if (populationSelected < 40)
                     populationSelected = mainPopulationRace;
-                else if (populationSelected < 75)
+                else if (populationSelected < 60)
                     populationSelected = secondaryPopulationRace;
-                else if (populationSelected < 90)
+                else if (populationSelected < 70)
                     populationSelected = tertiaryPopulationRace;
                 else
                 {
@@ -363,11 +363,11 @@ namespace DaggerfallWorkshop.Game.Utility
             }
             else if (playerGPS.CurrentLocationType == DFRegion.LocationTypes.TownHamlet)
             {
-                if (populationSelected < 75)
+                if (populationSelected < 74)
                     populationSelected = mainPopulationRace;
-                else if (populationSelected < 90)
+                else if (populationSelected < 88)
                     populationSelected = secondaryPopulationRace;
-                else if (populationSelected < 98)
+                else if (populationSelected < 95)
                     populationSelected = tertiaryPopulationRace;
                 else
                 {

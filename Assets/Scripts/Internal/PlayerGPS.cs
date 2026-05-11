@@ -77,7 +77,7 @@ namespace DaggerfallWorkshop
         Dictionary<ulong, DiscoveredLocation> discoveredLocations = new Dictionary<ulong, DiscoveredLocation>();
 
         Vector3 lastFramePosition;
-        // string arena2Path = "/home/arneb/Games/daggerfall/DaggerfallGameFiles/arena2";
+        // string arena2Path = "D:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2";
 
         static bool startingGame = false;
 

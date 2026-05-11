@@ -1154,7 +1154,7 @@ namespace DaggerfallConnect.Arena2
 
         static FactionsAtlas()
         {
-            FactionDictionary = JsonConvert.DeserializeObject<Dictionary<int, FactionFile.FactionData>>(File.ReadAllText(Path.Combine("/home/arneb/Games/daggerfall/DaggerfallGameFiles/arena2/Maps", "Faction.json")));
+            FactionDictionary = JsonConvert.DeserializeObject<Dictionary<int, FactionFile.FactionData>>(File.ReadAllText(Path.Combine("D:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps", "Faction.json")));
 
             foreach (KeyValuePair<int, FactionFile.FactionData> faction in FactionDictionary)
             {

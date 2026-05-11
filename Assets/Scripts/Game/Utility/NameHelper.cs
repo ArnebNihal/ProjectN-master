@@ -29,7 +29,7 @@ namespace DaggerfallWorkshop.Game.Utility
         #region Fields
 
         const string nameGenFilename = "NameGen.json";
-        const string mapPath = "/home/arneb/Games/daggerfall/DaggerfallGameFiles/arena2/Maps";
+        const string mapPath = "D:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps";
 
         Dictionary<BankTypes, NameBank> bankDict = null;
 

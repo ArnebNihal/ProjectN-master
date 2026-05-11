@@ -825,19 +825,27 @@ namespace MapEditor
 
         protected string GenerateLocationName(int locationType, List<int> majorReg, List<int> minorReg, int dungeonType)
         {
+            // I'm modifying the way to calculate major and minor regionalisms, since I don't think (anymore?) that having more
+            // regionalisms of a certain kind (maj or min) should alter the chances of getting one or the other(s). For now, I'll
+            // just comment the old code out in case I change my mind. Again.
             int majRegNumber = majorReg.Count;
             int minRegNumber = minorReg.Count;
             int minorRegionalismChance = 100 - majorRegionalismChance;
-            int majChance = majRegNumber * majorRegionalismChance;
-            int minChance = minRegNumber * minorRegionalismChance;
+
+            // int majChance = majRegNumber * majorRegionalismChance;
+            int majChance = majorRegionalismChance;
+
+            // int minChance = minRegNumber * minorRegionalismChance;
+            int minChance = minorRegionalismChance;
+
             int totalChance = majChance + minChance;
             int selectedReg = 0;
 
-            int randomPick = (UnityEngine.Random.Range(0, totalChance) + 1);
+            int randomPick = UnityEngine.Random.Range(0, totalChance);
 
             if (randomPick <= majChance)
-                selectedReg = majorReg[(randomPick - 1 ) / majorRegionalismChance];
-            else selectedReg = minorReg[(randomPick - majChance - 1) / minorRegionalismChance];
+                selectedReg = majorReg[randomPick / majorRegionalismChance];
+            else selectedReg = minorReg[(randomPick - majChance) / minorRegionalismChance];
 
             string resultingName;
 
@@ -1412,9 +1420,10 @@ namespace MapEditor
             string resultingName;
             int dungeonNameType;
 
-            if (dungeonType == (int)DFRegion.DungeonTypes.Cemetery || (UnityEngine.Random.Range(0, 10) + 1 < 10))
+            // It seems that I put a one out of ten chance to give the dungeon a random name. Removing it, since I think it could get confusing.
+            // if (dungeonType == (int)DFRegion.DungeonTypes.Cemetery || (UnityEngine.Random.Range(0, 10) + 1 < 10))
                 dungeonNameType = dungeonType;
-            else dungeonNameType = UnityEngine.Random.Range(0, (Enum.GetNames(typeof(DFRegion.DungeonTypes)).Length - 2));  // Excluding NoDungeon and cemeteries
+            // else dungeonNameType = UnityEngine.Random.Range(0, (Enum.GetNames(typeof(DFRegion.DungeonTypes)).Length - 2));  // Excluding NoDungeon and cemeteries
 
             // 0: The (name)'s (epithet);
             // 1: (title) (name)'s (epithet);

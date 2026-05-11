@@ -27,9 +27,9 @@ namespace DaggerfallConnect.Arena2
     /// </summary>
     public class BlocksFile
     {
-        public static string rmbPath = "/home/arneb/Games/daggerfall/DaggerfallGameFiles/arena2/Maps/RMB";
-        public static string rdbPath = "/home/arneb/Games/daggerfall/DaggerfallGameFiles/arena2/Maps/RDB";
-        public static string absoluteBlocks =  "/home/arneb/Games/daggerfall/DaggerfallGameFiles/arena2/Maps/BLOCKS.BSA";
+        public static string rmbPath = "D:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps/RMB";
+        public static string rdbPath = "D:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps/RDB";
+        public static string absoluteBlocks =  "D:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps/BLOCKS.BSA";
 
         #region Class Variables
 
