@@ -21,6 +21,7 @@ namespace BlockRotator
         const string windowTitle = "Block Rotator";
         const string menuPath = "Daggerfall Tools/Block Rotator";
         public const string testPath = "D:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps";
+        public const int regionForUnique = 62;  // To update as more regions get unique blocks
 
         public static string[] blockPrefixes = {
             "TVR", "GEN", "RES", "WEA", "ARM", "ALC", "BAN", "BOO",
@@ -28,7 +29,9 @@ namespace BlockRotator
             "DUN", "CAS", "CAR", "MAN", "SHR", "RUI", "SHC", "GRV",
             "FIL", "KRA", "KDR", "KOW", "KMO", "KCA", "KFL", "KHO",
             "KRO", "KWH", "KSC", "KHA", "MAG", "THI", "DAR", "FIG",
-            "CUS", "WAL", "MAR", "SHI", "WIT",
+            "CUS", "WAL", "MAR", "SHI", "WIT", "BBS", "CVN", "CRY",
+            "DST", "DGD", "GSH", "HRN", "HSH", "LAB", "MNE", "NCV",
+            "OSH", "PRS", "RNC", "SCN", "SPN", "VPH", "VCV",
             "B", "N", "W", "S", "M"
         };
 
@@ -45,6 +48,11 @@ namespace BlockRotator
 
         public static string[] deityCode = {
             "A", "B", "C", "D", "E", "F", "G", "H"
+        };
+
+        // Progressive identifiers for unique blocks
+        public static string[] uniqueCode = {
+            "!", "#", "$", "%", "&", "'", "(", ")", "+", ",", "-", "=", "@", "[", "]", "^", "_"
         };
 
         public static readonly string[] rotationNames = { "90", "180", "270" };
@@ -67,6 +75,7 @@ namespace BlockRotator
         public static bool typeToggle;
         public static bool blockToggle;
         public static bool rotationToggle;
+        public static bool handleUniques;
 
         public static int blockType = 0;
         public static int climateType = 0;
@@ -86,6 +95,7 @@ namespace BlockRotator
             typeToggle = false;
             blockToggle = false;
             rotationToggle = false;
+            handleUniques = false;
 
             availableBlocks = new string[blockPrefixes.Length][];
 
@@ -179,6 +189,8 @@ namespace BlockRotator
             rotationToggle = EditorGUILayout.BeginToggleGroup("Choose Rotation", rotationToggle);
             selectedRotation = EditorGUILayout.Popup("Rotation: ", selectedRotation, rotationNames, GUILayout.MaxWidth(600.0f));
             EditorGUILayout.EndToggleGroup();
+
+            handleUniques = EditorGUILayout.Toggle("Handle Unique Blocks", handleUniques);
 
             if (GUILayout.Button("ROTATE", GUILayout.MaxWidth(200.0f)))
             {
@@ -339,37 +351,57 @@ namespace BlockRotator
         public static void ConvertToPN()
         {
             List<string> blockList = new List<string>();
-            for (int i = 0; i < blockPrefixes.Length; i++)
+
+            if (handleUniques)
             {
-                if (blockPrefixes[i].Equals("N") || blockPrefixes[i].Equals("W") || blockPrefixes[i].Equals("B") || blockPrefixes[i].Equals("S") || blockPrefixes[i].Equals("M"))
+                for (int h = 0; h < blockPrefixes.Length; h++)
                 {
-                    for (int a = 0; a < availableBlocks[i].Length; a++)
+                    for (int g = 0; g < uniqueCode.Length; g++)
                     {
-                        string blockName = availableBlocks[i][a];
-                        if (File.Exists(Path.Combine(testPath, "RDB", "converted", blockName + ".RDB.json")))
-                            blockList.Add(blockName);
+                        for (int f = 0; f < regionForUnique; f++)
+                        {
+                            string blockName = blockPrefixes[h] + uniqueCode[g] + f.ToString("0000");
+                            if (!File.Exists(Path.Combine(testPath, "RMB", "converted", blockName + ".RMB.json")))
+                                continue;                            
+                            blockList.Add(blockName);                            
+                        }
                     }
                 }
-                else
+            }
+            else
+            {
+                for (int i = 0; i < blockPrefixes.Length; i++)
                 {
-                    for (int j = 0; j < rmbBlockClimate.Length; j++)
+                    if (blockPrefixes[i].Equals("N") || blockPrefixes[i].Equals("W") || blockPrefixes[i].Equals("B") || blockPrefixes[i].Equals("S") || blockPrefixes[i].Equals("M"))
                     {
-                        if (blockPrefixes[i].Equals("TEMP"))
+                        for (int a = 0; a < availableBlocks[i].Length; a++)
                         {
-                            for (int b = 0; b < availableBlocks[i].Length; b++)
-                            {
-                                string blockName = availableBlocks[i][b];
-                                if (File.Exists(Path.Combine(testPath, "RMB", "converted", blockName + ".RMB.json")))
-                                    blockList.Add(blockName);
-                            }
+                            string blockName = availableBlocks[i][a];
+                            if (File.Exists(Path.Combine(testPath, "RDB", "converted", blockName + ".RDB.json")))
+                                blockList.Add(blockName);
                         }
-                        else
+                    }
+                    else
+                    {
+                        for (int j = 0; j < rmbBlockClimate.Length; j++)
                         {
-                            for (int c = 0; c < availableBlocks[i].Length; c++)
+                            if (blockPrefixes[i].Equals("TEMP"))
                             {
-                                string blockName = availableBlocks[i][c];
-                                if (File.Exists(Path.Combine(testPath, "RMB", "converted", blockName + ".RMB.json")))
-                                    blockList.Add(blockName);
+                                for (int b = 0; b < availableBlocks[i].Length; b++)
+                                {
+                                    string blockName = availableBlocks[i][b];
+                                    if (File.Exists(Path.Combine(testPath, "RMB", "converted", blockName + ".RMB.json")))
+                                        blockList.Add(blockName);
+                                }
+                            }
+                            else
+                            {
+                                for (int c = 0; c < availableBlocks[i].Length; c++)
+                                {
+                                    string blockName = availableBlocks[i][c];
+                                    if (File.Exists(Path.Combine(testPath, "RMB", "converted", blockName + ".RMB.json")))
+                                        blockList.Add(blockName);
+                                }
                             }
                         }
                     }
@@ -507,6 +539,11 @@ namespace BlockRotator
             convBlock.Position = block.Position;
             convBlock.Index = block.Index;
             if (int.TryParse(block.Name.Substring(3, 1), out int rotIndex))
+            {
+                convBlock.Name = block.Name;
+                convBlock.RmbBlock.FldHeader.Name = block.Name;
+            }
+            else if (uniqueCode.Contains(block.Name.Substring(3, 1)))
             {
                 convBlock.Name = block.Name;
                 convBlock.RmbBlock.FldHeader.Name = block.Name;
@@ -691,7 +728,9 @@ namespace BlockRotator
 
             convBlock.FldHeader.BlockDataSizes = block.FldHeader.BlockDataSizes;
 
-            convBlock.FldHeader.GroundData.Header = block.FldHeader.GroundData.Header;
+            if (block.FldHeader.GroundData.Header == null)
+                convBlock.FldHeader.GroundData.Header = new int[] { 86, 9, 60, 130, 94, 42, 60, 130 };
+            else convBlock.FldHeader.GroundData.Header = block.FldHeader.GroundData.Header;
             convBlock.FldHeader.GroundData.GroundTiles = null;
             convBlock.FldHeader.GroundData.GroundTiles1d = new DFBlock.RmbGroundTiles[16 * 16];
             for (int a = 0; a < block.FldHeader.GroundData.GroundTiles.Length; a++)
@@ -926,7 +965,9 @@ namespace BlockRotator
 
             convBlock.FldHeader.BlockDataSizes = block.FldHeader.BlockDataSizes;
 
-            convBlock.FldHeader.GroundData.Header = block.FldHeader.GroundData.Header;
+            if (block.FldHeader.GroundData.Header == null)
+                convBlock.FldHeader.GroundData.Header = new int[] { 86, 9, 60, 130, 94, 42, 60, 130 };
+            else convBlock.FldHeader.GroundData.Header = block.FldHeader.GroundData.Header;
             convBlock.FldHeader.GroundData.GroundTiles = new DFBlockRotation.RmbGroundTiles[16 * 16];
             for (int a = 0; a < block.FldHeader.GroundData.GroundTiles1d.Length; a++)
             {
