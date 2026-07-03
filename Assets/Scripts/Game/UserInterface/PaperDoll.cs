@@ -219,10 +219,10 @@ namespace DaggerfallWorkshop.Game.UserInterface
                 // Set background based on location.
                 if (playerGPS.IsPlayerInTown(true))
                     return "SCBG04I0.IMG";                                          // Town
+                else if (playerGPS.CurrentLocation.MapTableData.DungeonType == DFRegion.DungeonTypes.Crypt && playerGPS.IsPlayerInLocationRect)
+                    return "SCBG08I0.IMG";                                          // Graveyard <- changed this to Crypt dungeon type
                 else if (playerEnterExit.IsPlayerInsideDungeon)
                     return "SCBG07I0.IMG";                                          // Dungeon
-                else if (playerGPS.CurrentLocation.MapTableData.LocationType == DFRegion.LocationTypes.Graveyard && playerGPS.IsPlayerInLocationRect)
-                    return "SCBG08I0.IMG";                                          // Graveyard
                 else                            
                     return "SCBG0" + regionBackgroundIdxChars[region] + "I0.IMG";   // Region
             }

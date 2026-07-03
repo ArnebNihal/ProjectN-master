@@ -907,7 +907,7 @@ namespace DaggerfallConnect.Arena2
                 case DFRegion.LocationTypes.TownHamlet:
                 case DFRegion.LocationTypes.TownVillage:
                 case DFRegion.LocationTypes.ReligionTemple:
-                case DFRegion.LocationTypes.Graveyard:
+                case DFRegion.LocationTypes.DungeonMinor:
                     return true;
 
                 case DFRegion.LocationTypes.HomeFarms:

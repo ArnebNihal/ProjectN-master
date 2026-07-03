@@ -1510,7 +1510,7 @@ namespace DaggerfallWorkshop.Game
                 if (location.MapTableData.LocationType == DFRegion.LocationTypes.DungeonLabyrinth ||
                     location.MapTableData.LocationType == DFRegion.LocationTypes.DungeonKeep ||
                     location.MapTableData.LocationType == DFRegion.LocationTypes.DungeonRuin ||
-                    location.MapTableData.LocationType == DFRegion.LocationTypes.Graveyard)
+                    location.MapTableData.LocationType == DFRegion.LocationTypes.DungeonMinor)
                 {
                     // Get text ID based on set start and dungeon type index
                     int dungeonTypeIndex = (int)location.MapTableData.DungeonType;

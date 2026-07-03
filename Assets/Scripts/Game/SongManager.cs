@@ -386,7 +386,7 @@ namespace DaggerfallWorkshop.Game
                         case DFRegion.LocationTypes.HomePoor:
                             currentContext.environment = PlayerMusicEnvironment.DungeonExterior;
                             break;
-                        case DFRegion.LocationTypes.Graveyard:
+                        case DFRegion.LocationTypes.DungeonMinor:
                             currentContext.environment = PlayerMusicEnvironment.Graveyard;
                             break;
                         case DFRegion.LocationTypes.HomeFarms:

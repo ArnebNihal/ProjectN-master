@@ -990,7 +990,7 @@ namespace DaggerfallWorkshop.Game.UserInterfaceWindows
                         if (regionData.MapTable[locationIndex].LocationType == DFRegion.LocationTypes.DungeonLabyrinth ||
                             regionData.MapTable[locationIndex].LocationType == DFRegion.LocationTypes.DungeonKeep ||
                             regionData.MapTable[locationIndex].LocationType == DFRegion.LocationTypes.DungeonRuin ||
-                            regionData.MapTable[locationIndex].LocationType == DFRegion.LocationTypes.Graveyard)
+                            regionData.MapTable[locationIndex].LocationType == DFRegion.LocationTypes.DungeonMinor)
                             continue;
 
                         // Get location data for town

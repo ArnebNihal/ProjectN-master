@@ -22,6 +22,11 @@ namespace BlockRotator
         const string menuPath = "Daggerfall Tools/Block Rotator";
         public const string testPath = "D:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps";
         public const int regionForUnique = 62;  // To update as more regions get unique blocks
+        public const int normalWallChance = 80; // To modify if I feel there are too many/too few special wall blocks
+
+        public static int provinceIndex;
+        public static int regionIndex;
+        public static WorldSettings worldData;
 
         public static string[] blockPrefixes = {
             "TVR", "GEN", "RES", "WEA", "ARM", "ALC", "BAN", "BOO",
@@ -212,10 +217,15 @@ namespace BlockRotator
                 CreateBlocksBsa();
             }
 
-            if (GUILayout.Button("Insert New Blocks", GUILayout.MaxWidth(200.0f)))
+            if (GUILayout.Button("Convert to new Block Format", GUILayout.MaxWidth(200.0f)))
             {
-                InsertRotatedAndNewBlocks();
+                ConvertToNewBlockFormat();
             }
+
+            // if (GUILayout.Button("Insert New Blocks", GUILayout.MaxWidth(200.0f)))
+            // {
+            //     InsertNewBlocks();
+            // }
 
             if (GUILayout.Button("Calculate Block Limits", GUILayout.MaxWidth(200.0f)))
             {
@@ -362,8 +372,8 @@ namespace BlockRotator
                         {
                             string blockName = blockPrefixes[h] + uniqueCode[g] + f.ToString("0000");
                             if (!File.Exists(Path.Combine(testPath, "RMB", "converted", blockName + ".RMB.json")))
-                                continue;                            
-                            blockList.Add(blockName);                            
+                                continue;
+                            blockList.Add(blockName);
                         }
                     }
                 }
@@ -1749,9 +1759,10 @@ namespace BlockRotator
             return rotatedCoord;
         }
 
-        public static void InsertRotatedAndNewBlocks()
+        public static void ConvertToNewBlockFormat()
         {
             Worldmap mapTile = new Worldmap();
+            worldData = JsonConvert.DeserializeObject<WorldSettings>(File.ReadAllText(Path.Combine("D:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps", "WorldData.json")));
 
             int[][] blockLimits = new int[blockPrefixes.Length][];
             blockLimits = JsonConvert.DeserializeObject<int[][]>(File.ReadAllText(Path.Combine(testPath, "BlockLimits.json")));
@@ -1776,13 +1787,23 @@ namespace BlockRotator
 
                     for (int i = 0; i < mapTile.Locations.Length; i++)
                     {
+                        provinceIndex = GetProvinceIndex(mapTile.Locations[i].RegionIndex);
+                        sizeChar = GetBlockSize(mapTile.Locations[i].MapTableData.LocationType);
+
                         for (int j = 0; j < mapTile.Locations[i].Exterior.ExteriorData.BlockNames.Length; j++)
                         {
                             string blockName = mapTile.Locations[i].Exterior.ExteriorData.BlockNames[j];
                             randomRotation = UnityEngine.Random.Range(0, 4);
 
-                            // Don't rotate custom (unique) blocks and ships, just change the name to the new format
-                            if (blockName.StartsWith("CUS") || blockName.StartsWith("SHI"))
+                            // OG "CUST" blocks have to be substituted with the new RMB format
+                            if (blockName.StartsWith("CUS"))
+                            {
+                                blockName = SubstituteUniqueBlockNames(blockName);
+                                continue;
+                            }
+
+                            // Don't rotate ships, just change the name to the new format
+                            if (blockName.StartsWith("SHI"))
                             {
                                 blockName = blockName.Substring(0, 3) + "0" + blockName.Substring(4, 8);
                                 continue;
@@ -1791,7 +1812,10 @@ namespace BlockRotator
                             // Walls can rotate, but it has meaning only for Wayton's new wall blocks
                             else if (blockName.StartsWith("WAL"))
                             {
-                                blockName = RandomizeWallVariant(blockName);
+                                int wallProg = int.Parse(blockName.Substring(6, 2));
+                                wallProg = GetWallSubgroup(wallProg, randomRotation);
+
+                                blockName = blockName.Substring(0, 3) + randomRotation.ToString() + "ZA" + wallProg.ToString("00");
                                 continue;
                             }
 
@@ -1799,30 +1823,18 @@ namespace BlockRotator
                             // From next time, FIG blocks should behave like any other.
                             else if (blockName.StartsWith("FIG"))
                             {
-                                // randomChance = UnityEngine.Random.Range(0, 2);
-                                switch (mapTile.Locations[i].MapTableData.LocationType)
+                                int randomFIGChance = UnityEngine.Random.Range(0, int.MaxValue);
+
+                                if (blockName.Substring(4, 1).Equals("A"))
                                 {
-                                    case DFRegion.LocationTypes.TownCity:
-                                        sizeChar = "L";
-                                        break;
-                                    case DFRegion.LocationTypes.TownHamlet:
-                                        sizeChar = "M";
-                                        break;
-                                    case DFRegion.LocationTypes.TownVillage:
-                                    default:
-                                        sizeChar = "S";
-                                        break;
-                                }
-                                if ((blockName.Substring(4, 1)).Equals("A"))
-                                {
-                                    blockName = "FIG" + randomRotation.ToString() + "A" + sizeChar + (randomChance % 2).ToString("00") + ".RMB";
+                                    blockName = "FIG" + randomRotation.ToString() + "A" + sizeChar + (randomFIGChance % 2).ToString("00") + ".RMB";
                                 }
                                 else
                                 {
                                     if (!sizeChar.Equals("S"))
                                         blockName = "FIG" + randomRotation.ToString() + blockName.Substring(4, 1) + sizeChar + "00.RMB";
                                     else
-                                        blockName = "FIG" + randomRotation.ToString() + blockName.Substring(4, 1) + sizeChar + (randomChance % 2).ToString("00") + ".RMB";
+                                        blockName = "FIG" + randomRotation.ToString() + blockName.Substring(4, 1) + sizeChar + (randomChance % 3).ToString("00") + ".RMB";
                                 }
                             }
 
@@ -1831,66 +1843,185 @@ namespace BlockRotator
                             // whenever I encounter one or the other.
                             else if (blockName.StartsWith("WEA") || blockName.StartsWith("ARM"))
                             {
+                                randomChance = UnityEngine.Random.Range(0, 2);
                                 if (randomChance % 2 == 1)
                                 {
                                     if (blockName.StartsWith("WEA"))
-                                    {
                                         blockName.Replace("WEA", "ARM");
-                                        blockName.Remove(3, 1);
-                                        blockName.Insert(3, randomRotation.ToString());
-                                        blockName.Replace(blockName.Substring(6, 2), ((randomChance % 2) % 2).ToString("00"));
-                                    }
-                                    else // if (blockName.StartsWith("ARM"))
-                                    {
-                                        blockName.Replace("ARM", "WEA");
-                                        blockName.Remove(3, 1);
-                                        blockName.Insert(3, randomRotation.ToString());
 
-                                        if ((blockName.Substring(4, 2)).Equals("AL"))
-                                        {
-                                            blockName.Replace(blockName.Substring(6, 2), ((randomChance % 2) % 4).ToString("00"));
-                                        }
-                                        else if ((blockName.Substring(4, 2)).Equals("AM"))
-                                        {
-                                            blockName.Replace(blockName.Substring(6, 2), ((randomChance % 2) % 3).ToString("00"));
-                                        }
-                                        else
-                                        {
-                                            blockName.Replace(blockName.Substring(6, 2), ((randomChance % 2) % 2).ToString("00"));
-                                        }
-                                    }
+                                    else // if (blockName.StartsWith("ARM"))                                    
+                                        blockName.Replace("ARM", "WEA");
                                 }
+                                blockName = ModifyBlockName(blockName, 3, randomRotation.ToString());
+                                blockName = ModifyBlockName(blockName, 5, sizeChar);
                             }
 
                             // No S sized ALC, BAN, BOO, GEM, PAW block exists in the original game. Where could I insert those?
                             // What about a system based on internal routes? Too complicated?
-                            else if (blockName.StartsWith("ALC"))
+                            else if (blockName.StartsWith("ALC") ||
+                                     blockName.StartsWith("BAN") ||
+                                     blockName.StartsWith("BOO") ||
+                                     blockName.StartsWith("GEM") ||
+                                     blockName.StartsWith("PAW"))
                             {
-
+                                blockName = ModifyBlockName(blockName, 3, randomRotation.ToString());
+                                blockName = ModifyBlockName(blockName, 5, sizeChar);
                             }
 
                             // Only S sized CLOT block exists in the original game.
                             else if (blockName.StartsWith("CLO"))
                             {
-
+                                blockName = ModifyBlockName(blockName, 3, randomRotation.ToString());
+                                blockName = ModifyBlockName(blockName, 5, sizeChar);
                             }
 
                             // // Only L sized LIB block exists in the original game. Actually, this could make sense
                             else if (blockName.StartsWith("LIB"))
                             {
+                                blockName = ModifyBlockName(blockName, 3, randomRotation.ToString());
+                                blockName = ModifyBlockName(blockName, 5, sizeChar);
+                            }
 
+                            // TEM block now have both a generic and a specialized version;
+                            // for now, I'm substituting OG blocks with the specialized versions,
+                            // thus I can keep track of the OG distribution of deities.
+                            else if (blockName.StartsWith("TEM"))
+                            {
+                                blockName = ModifyBlockName(blockName, 3, randomRotation.ToString());
+                                if (provinceIndex == (int)ProvinceNames.Hammerfell)
+                                    blockName = ModifyBlockName(blockName, 4, "B");
+                                blockName = ModifyBlockName(blockName, 5, sizeChar);
                             }
 
                             // Only S sized MANR block exists in the original game.
+                            // For now, I'm putting a generic proportion of L-M-S MAN blocks.
+                            // I leave to calculate modfied proportions based on gov type
+                            // to the location generator.
                             else if (blockName.StartsWith("MAN"))
                             {
+                                int prop = UnityEngine.Random.Range(0, 13);
+                                if (prop == 0) sizeChar = "L";
+                                else if (prop < 4) sizeChar = "M";
+                                else sizeChar = "S";
 
+                                blockName = ModifyBlockName(blockName, 3, randomRotation.ToString());
+                                blockName = ModifyBlockName(blockName, 5, sizeChar);
+                            }
+
+                            // No FURN blocks in OG. Where to put them?
+                            else if (blockName.StartsWith("FUR"))
+                            {
+
+                            }
+
+                            else if (blockName.StartsWith("PAL"))
+                            {
+                                blockName = ModifyBlockName(blockName, 3, randomRotation.ToString());
+
+                                if (blockName.Substring(4, 1).Equals("B") ||
+                                    blockName.Substring(4, 1).Equals("G"))
+                                {
+                                    int newProg = UnityEngine.Random.Range(0, 4);
+                                    blockName = ModifyBlockName(blockName, 4, "Z");
+                                    blockName.Replace(blockName.Substring(6, 2), newProg.ToString("00"));
+                                }
+                                else
+                                {
+                                    int newClimate = UnityEngine.Random.Range(0, 11);
+                                    if (newClimate < 4) blockName = ModifyBlockName(blockName, 4, "Z");
+                                }
+                            }
+
+                            else if (blockName.StartsWith("DUN") ||
+                                     blockName.StartsWith("CAS") ||
+                                     blockName.StartsWith("DUN") ||
+                                     blockName.StartsWith("CAR") ||
+                                     blockName.StartsWith("RUI"))
+                            {
+                                blockName.Replace(blockName.Substring(0, 3), GetDungeonPrefix(mapTile.Locations[i].MapTableData.DungeonType));
+                                blockName = ModifyBlockName(blockName, 3, randomRotation.ToString());
+                                blockName = ModifyBlockName(blockName, 4, "Z");
+                                blockName = ModifyBlockName(blockName, 5, sizeChar);
+                                blockName.Remove(6, 2);
+                                blockName += "00";
+                            }
+
+                            else if (blockName.StartsWith("WIT"))
+                            {
+                                blockName = ModifyBlockName(blockName, 3, "0");
+                                blockName = ModifyBlockName(blockName, 4, "Z");
+                            }
+
+                            // both FARM and SHCK don't have size or climate variants, integrating them should work the same.
+                            else if (blockName.StartsWith("SHC") ||
+                                     blockName.StartsWith("FAR"))
+                            {
+                                int prop = UnityEngine.Random.Range(0, 13);
+                                if (prop == 0) sizeChar = "L";
+                                else if (prop < 4) sizeChar = "M";
+                                else sizeChar = "S";
+
+                                blockName = ModifyBlockName(blockName, 3, randomRotation.ToString());
+                                blockName = ModifyBlockName(blockName, 5, sizeChar);
+                                if (provinceIndex == (int)ProvinceNames.Hammerfell)
+                                    blockName = ModifyBlockName(blockName, 4, "B");
+                            }
+
+                            // All those small graveyards need to be changed to random minor dungeons;
+                            // For the moment I'm applying a flat randomisation, later I'll maybe develop
+                            // different dungeon type proportions for different regions.
+                            else if (blockName.StartsWith("GRV"))
+                            {
+                                blockName = ModifyBlockName(blockName, 3, randomRotation.ToString());
+                                blockName = ModifyBlockName(blockName, 4, "Z");
+                                blockName = ModifyBlockName(blockName, 5, sizeChar);
+                                if (mapTile.Locations[i].MapTableData.DungeonType == DFRegion.DungeonTypes.Cemetery)
+                                {
+                                    DFRegion.DungeonTypes dType = (DFRegion.DungeonTypes)UnityEngine.Random.Range(0, 18);
+                                    mapTile.Locations[i].MapTableData.DungeonType = dType;
+                                    blockName.Replace(blockName.Substring(0, 3), GetDungeonPrefix(dType));
+                                    blockName.Remove(6, 2); blockName.Insert(6, "00");
+                                }
+                            }
+
+                            // It would be cool to have different filler for different town sizes.
+                            else if (blockName.StartsWith("FIL"))
+                            {
+                                blockName = ModifyBlockName(blockName, 3, randomRotation.ToString());
+                                blockName = ModifyBlockName(blockName, 4, "Z");
+                            }
+
+                            else if (blockName.StartsWith("KRA") ||
+                                     blockName.StartsWith("KDR") ||
+                                     blockName.StartsWith("KOW") ||
+                                     blockName.StartsWith("KMO") ||
+                                     blockName.StartsWith("KCA") ||
+                                     blockName.StartsWith("KFL") ||
+                                     blockName.StartsWith("KHO") ||
+                                     blockName.StartsWith("KRO") ||
+                                     blockName.StartsWith("KWH") ||
+                                     blockName.StartsWith("KSC") ||
+                                     blockName.StartsWith("KHA"))
+                            {
+                                blockName = ModifyBlockName(blockName, 3, randomRotation.ToString());
+                                blockName = ModifyBlockName(blockName, 5, sizeChar);
+                            }
+
+                            else if (blockName.StartsWith("THI") ||
+                                     blockName.StartsWith("DAR") ||
+                                     blockName.StartsWith("MAR"))
+                            {
+                                blockName = ModifyBlockName(blockName, 3, randomRotation.ToString());
+                                if (provinceIndex == (int)ProvinceNames.Hammerfell)
+                                    blockName = ModifyBlockName(blockName, 4, "B");
+                                blockName = ModifyBlockName(blockName, 5, sizeChar);
                             }
 
                             // TVRN, GENR, RESI, 
                             else
                             {
-
+                                blockName = ModifyBlockName(blockName, 3, randomRotation.ToString());
+                                blockName = ModifyBlockName(blockName, 5, sizeChar);
                             }
 
                             mapTile.Locations[i].Exterior.ExteriorData.BlockNames[j] = blockName;
@@ -1907,28 +2038,33 @@ namespace BlockRotator
         /// <returns></returns>
         public static void CalculateBlockLimits()
         {
-            int[][] blockLimits = new int[blockPrefixes.Length - 5][];
+            int[][] oldBlockLimits = new int[blockPrefixes.Length - 5][];
+            int[][] newBlockLimits = new int[blockPrefixes.Length - 5][];
             List<string>[][] blockUsed = new List<string>[blockPrefixes.Length - 5][];
 
             for (int i = 0; i < blockPrefixes.Length - 5; i++)
             {
                 if (i == Array.IndexOf(blockPrefixes, "TEM"))
                 {
-                    blockLimits[i] = new int[rmbBlockClimate.Length * deityCode.Length];
+                    oldBlockLimits[i] = new int[rmbBlockClimate.Length * deityCode.Length];
+                    newBlockLimits[i] = new int[rmbBlockClimate.Length * deityCode.Length];
                     blockUsed[i] = new List<string>[rmbBlockClimate.Length * deityCode.Length];
                     for (int j = 0; j < (rmbBlockClimate.Length * deityCode.Length); j++)
                     {
-                        blockLimits[i][j] = -1;
+                        oldBlockLimits[i][j] = -1;
+                        newBlockLimits[i][j] = -1;
                         blockUsed[i][j] = new List<string>();
                     }
                 }
                 else
                 {
-                    blockLimits[i] = new int[rmbBlockClimate.Length];
+                    oldBlockLimits[i] = new int[rmbBlockClimate.Length];
+                    newBlockLimits[i] = new int[rmbBlockClimate.Length];
                     blockUsed[i] = new List<string>[rmbBlockClimate.Length];
                     for (int j = 0; j < rmbBlockClimate.Length; j++)
                     {
-                        blockLimits[i][j] = -1;
+                        oldBlockLimits[i][j] = -1;
+                        newBlockLimits[i][j] = -1;
                         blockUsed[i][j] = new List<string>();
                     }
                 }
@@ -1962,31 +2098,69 @@ namespace BlockRotator
                             {
                                 prog = int.Parse(blockName.Substring(7, 1));
                                 deityProg = Array.IndexOf(deityCode, blockName.Substring(6, 1));
-                                if (blockLimits[prefixIndex][climateIndex * deityCode.Length + deityProg] <= prog)
+                                if (oldBlockLimits[prefixIndex][climateIndex * deityCode.Length + deityProg] <= prog)
                                 {
-                                    blockLimits[prefixIndex][climateIndex * deityCode.Length + deityProg] = prog;
+                                    oldBlockLimits[prefixIndex][climateIndex * deityCode.Length + deityProg] = prog;
                                 }
                                 if (blockUsed[prefixIndex][climateIndex * deityCode.Length + deityProg] == null || !blockUsed[prefixIndex][climateIndex * deityCode.Length + deityProg].Contains(blockName))
                                     blockUsed[prefixIndex][climateIndex * deityCode.Length + deityProg].Add(blockName);
                             }
-                            else
+                            else if (prefixIndex < Array.IndexOf(blockPrefixes, "B"))
                             {
                                 prog = int.Parse(blockName.Substring(6, 2));
 
-                                if (blockLimits[prefixIndex][climateIndex] <= prog)
+                                if (oldBlockLimits[prefixIndex][climateIndex] <= prog)
                                 {
-                                    blockLimits[prefixIndex][climateIndex] = prog;
+                                    oldBlockLimits[prefixIndex][climateIndex] = prog;
                                 }
                                 if (blockUsed[prefixIndex][climateIndex] == null || !blockUsed[prefixIndex][climateIndex].Contains(blockName))
                                     blockUsed[prefixIndex][climateIndex].Add(blockName);
                             }
+                            else continue;
                         }
                     }
                 }
             }
-            string path = Path.Combine(testPath, "BlockLimits.json");
-            var jsonBlockLimits = JsonConvert.SerializeObject(blockLimits, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
-            File.WriteAllText(path, jsonBlockLimits);
+
+            string rmbPath = Path.Combine(testPath, "RMB");
+            for (int m = 0; m < blockPrefixes.Length; m++)
+            {
+                for (int n = 0; n < rmbBlockClimate.Length; n++)
+                {
+                    int counter;
+
+                    if (m == Array.IndexOf(blockPrefixes, "TEM"))
+                    {
+                        for (int o = 0; o < deityCode.Length; o++)
+                        {
+                            counter = 0;
+                            while (File.Exists(Path.Combine(rmbPath, blockPrefixes[m] + "0" + rmbBlockClimate[n] + deityCode[o] + counter.ToString())))
+                            {
+                                newBlockLimits[m][n * deityCode.Length + o]++;
+                                counter++;
+                            }
+                        }
+                    }
+                    else if (m < Array.IndexOf(blockPrefixes, "B"))
+                    {
+                        counter = 0;
+                        while (File.Exists(Path.Combine(rmbPath, blockPrefixes[m] + "0" + rmbBlockClimate[n] + counter.ToString("00"))))
+                        {
+                            newBlockLimits[m][n]++;
+                            counter++;
+                        }
+                    }
+                    else continue;
+                }
+            }
+
+            string path = Path.Combine(testPath, "oldBlockLimits.json");
+            var jsonOldLimits = JsonConvert.SerializeObject(oldBlockLimits, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+            File.WriteAllText(path, jsonOldLimits);
+
+            path = Path.Combine(testPath, "newBlockLimits.json");
+            var jsonNewLimits = JsonConvert.SerializeObject(newBlockLimits, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+            File.WriteAllText(path, jsonNewLimits);
 
             path = Path.Combine(testPath, "BlockUsed.json");
             var jsonBlockUsed = JsonConvert.SerializeObject(blockUsed, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
@@ -1996,28 +2170,233 @@ namespace BlockRotator
         public static string RandomizeWallVariant(string wallName)
         {
             int wallProg = int.Parse(wallName.Substring(6, 2));
-            int diceRoll = UnityEngine.Random.Range(1, 101);
+            int normWall = UnityEngine.Random.Range(1, 101);
 
-            // 2/3 chances the wall block will stay as the default one (but with the rotation index inserted)
-            if (diceRoll <= 67)
-                return wallName.Substring(0, 3) + "0" + wallName.Substring(4, 8);
+            int diceRoll = UnityEngine.Random.Range(0, 4);
+            wallProg = GetWallSubgroup(wallProg, diceRoll);
 
-            diceRoll = UnityEngine.Random.Range(0, 4);
-            wallProg = GetWallSubgroup(wallProg, (4 - diceRoll));
-
-            return "WAL" + diceRoll.ToString() + "AA" + (wallProg + 12).ToString("00") + ".RMB";
+            // "normalWallChance" chances the wall block will be a standard one (i.e.: no external structures)
+            // For now, wall variants are available only in HighRock version
+            if (diceRoll <= normalWallChance)
+                return "WAL" + diceRoll.ToString() + "AA" + wallProg.ToString("00") + ".RMB";
+            // return wallName.Substring(0, 3) + "0" + wallName.Substring(4, 8);
+            else return "WAL" + diceRoll.ToString() + "AA" + wallProg.ToString("00") + ".RMB";
         }
 
-        public static int GetWallSubgroup(int wallProg, int addition)
+        public static int GetWallSubgroup(int wallProg, int diceRoll)
         {
-            int lowLim = (wallProg / 4) * 4;
-            int highLim = lowLim + 3;
+            int[] corner = { 0, 2, 3, 1 };
+            int[] straight = { 4, 7, 6, 5 };
+            int[] gate = { 8, 11, 10, 9 };
 
-            wallProg += addition;
+            int newWallProg = 99;
+            int varCounter = 0;
 
-            if (wallProg > highLim) wallProg -= 4;
+            while (wallProg >= 12)
+            {
+                wallProg -= 12;
+                varCounter++;
+            }
 
-            return wallProg;
+            switch (wallProg)
+            {
+                case 0:
+                case 1:
+                case 2:
+                case 3:
+                    int cIndex = Array.IndexOf(corner, wallProg);
+                    diceRoll += cIndex;
+                    if (diceRoll >= 4) diceRoll -= 4;
+                    newWallProg = corner[diceRoll];
+                    break;
+
+                case 4:
+                case 5:
+                case 6:
+                case 7:
+                    int sIndex = Array.IndexOf(straight, wallProg);
+                    diceRoll += sIndex;
+                    if (diceRoll >= 4) diceRoll -= 4;
+                    newWallProg = straight[diceRoll];
+                    break;
+
+                case 8:
+                case 9:
+                case 10:
+                case 11:
+                    int gIndex = Array.IndexOf(gate, wallProg);
+                    diceRoll += gIndex;
+                    if (diceRoll >= 4) diceRoll -= 4;
+                    newWallProg = gate[diceRoll];
+                    break;
+
+                default:
+                    Debug.Log("wallProg: " + wallProg + ", diceRoll: " + diceRoll + " not found!");
+                    return 99;
+            }
+
+            if (varCounter > 0)
+                newWallProg += (12 * varCounter);
+
+            return newWallProg;
+        }
+
+        public static string SubstituteUniqueBlockNames(string ogName)
+        {
+            switch (ogName)
+            {
+                case "CUSTAA00": return "GEN!0017";
+                case "CUSTAA01": return "GEN#0017";
+                case "CUSTAA02": return "RES!0017";
+                case "CUSTAA03": return "RES#0017";
+                case "CUSTAA04": return "BOO!0017";
+                case "CUSTAA05": return "PAL!0017";
+                case "CUSTAA06": return "VPH!0009";
+                case "CUSTAA07": return "HSH!0040";
+                case "CUSTAA08": return "CRY!0033";
+                case "CUSTAA09": return "OSH!0026";
+                case "CUSTAA10": return "CRY!0001";
+                case "CUSTAA19": return "LAB!0016";
+                case "CUSTAA29": return "HSH!0023";
+                case "CUSTAA30": return "HSH!0017";
+                case "CUSTAA34": return "FIL!0023";
+                case "CUSTAA35": return "FIL#0023";
+                case "CUSTAA36": return "FIL$0023";
+                case "CUSTAA42": return "TVR!0023";
+                case "CUSTAA43": return "RES!0023";
+                case "CUSTAA44": return "FIL%0023";
+                case "CUSTAA45": return "PAL!0023";
+                case "CUSTAA46": return "FIL&0023";
+                case "CUSTAA54": return "FIL'0023";
+                case "CUSTAA55": return "FIL(0023";
+                case "CUSTAA56": return "FIL)0023";
+
+                case "CUSTGA00": return "MAR!0020";
+                case "CUSTGA01": return "RES!0020";
+                case "CUSTGA02": return "GEN!0020";
+                case "CUSTGA03": return "RES#0020";
+                case "CUSTGA04": return "WEA!0020";
+                case "CUSTGA05": return "RES$0020";
+                case "CUSTGA06": return "WEA#0020";
+                case "CUSTGA07": return "WEA$0020";
+                case "CUSTGA08": return "RES%0020";
+                case "CUSTGA09": return "TVR!0020";
+                case "CUSTGA10": return "ALC!0020";
+                case "CUSTGA11": return "RES&0020";
+                case "CUSTGA12": return "RES'0020";
+                case "CUSTGA13": return "RES(0020";
+                case "CUSTGA14": return "RES)0020";
+                case "CUSTGA15": return "FIL!0020";
+                case "CUSTGA16": return "FIL#0020";
+                case "CUSTGA17": return "KCA!0020";
+                case "CUSTGA18": return "RES+0020";
+                case "CUSTGA19": return "TVR#0020";
+                case "CUSTGA20": return "FIL$0020";
+                case "CUSTGA21": return "PAL!0020";
+                case "CUSTGA22": return "FIL%0020";
+                case "CUSTGA23": return "TVR$0020";
+                case "CUSTGA24": return "RES,0020";
+                case "CUSTGA25": return "MAG!0020";
+                case "CUSTGA26": return "RES-0020";
+                case "CUSTGA27": return "FIL&0020";
+                case "CUSTGA28": return "RES=0020";
+                case "CUSTGA29": return "RES@0020";
+                case "CUSTGA30": return "TEM!0020";
+                case "CUSTGA31": return "RES[0020";
+                case "CUSTGA32": return "RES]0020";
+                case "CUSTGA33": return "TVR%0020";
+                case "CUSTGA34": return "RES^0020";
+                case "CUSTGA35": return "RES_0020";
+
+                default:
+                    Debug.Log("Block " + ogName + " not listed!");
+                    return "";
+            }
+        }
+
+        public static int GetProvinceIndex(int regInd)
+        {
+            for (int i = 0; i < worldData.regionInProvince.Length; i++)
+            {
+                if (worldData.regionInProvince[i].Contains(regInd))
+                    return i;
+            }
+
+            Debug.Log("Region Index " + regInd + " doesn't appear in any region!");
+            return -1;
+        }
+
+        public static string GetBlockSize(DFRegion.LocationTypes locType)
+        {
+            switch (locType)
+            {
+                case DFRegion.LocationTypes.TownCity:
+                case DFRegion.LocationTypes.DungeonLabyrinth:
+                    return "L";
+                case DFRegion.LocationTypes.TownHamlet:
+                case DFRegion.LocationTypes.DungeonKeep:
+                    return "M";
+                case DFRegion.LocationTypes.TownVillage:
+                case DFRegion.LocationTypes.DungeonRuin:
+                    return "S";
+                case DFRegion.LocationTypes.DungeonMinor:
+                    return "N";
+                default:
+                    return "Z";
+            }
+        }
+
+        public static string ModifyBlockName(string bName, int index, string sub)
+        {
+            bName.Remove(index, 1);
+            bName.Insert(index, sub);
+            return bName;
+        }
+
+        public static string GetDungeonPrefix(DFRegion.DungeonTypes dungeon)
+        {
+            switch (dungeon)
+            {
+                case DFRegion.DungeonTypes.Crypt:
+                    return "CRY";
+                case DFRegion.DungeonTypes.OrcStronghold:
+                    return "OSH";
+                case DFRegion.DungeonTypes.HumanStronghold:
+                    return "HSH";
+                case DFRegion.DungeonTypes.Prison:
+                    return "PRS";
+                case DFRegion.DungeonTypes.DesecratedTemple:
+                    return "DST";
+                case DFRegion.DungeonTypes.Mine:
+                    return "MNE";
+                case DFRegion.DungeonTypes.NaturalCave:
+                    return "NCV";
+                case DFRegion.DungeonTypes.Coven:
+                    return "CVN";
+                case DFRegion.DungeonTypes.VampireHaunt:
+                    return "VPH";
+                case DFRegion.DungeonTypes.Laboratory:
+                    return "LAB";
+                case DFRegion.DungeonTypes.HarpyNest:
+                    return "HRN";
+                case DFRegion.DungeonTypes.RuinedCastle:
+                    return "RNC";
+                case DFRegion.DungeonTypes.SpiderNest:
+                    return "SPN";
+                case DFRegion.DungeonTypes.GiantStronghold:
+                    return "GSH";
+                case DFRegion.DungeonTypes.DragonsDen:
+                    return "DGD";
+                case DFRegion.DungeonTypes.BarbarianStronghold:
+                    return "BBS";
+                case DFRegion.DungeonTypes.VolcanicCaves:
+                    return "VCV";
+                case DFRegion.DungeonTypes.ScorpionNest:
+                    return "SCN";
+                default:
+                    Debug.Log("Dungeon Type " + dungeon + " not recognised");
+                    return "---";
+            }
         }
     }
 }

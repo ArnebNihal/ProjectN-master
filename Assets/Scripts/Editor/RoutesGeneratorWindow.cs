@@ -176,9 +176,9 @@ namespace MapEditor
                             break;
 
                         // Locations that will have a track in most cases
-                        case (int)DFRegion.LocationTypes.Graveyard:
-                            routedLocations[j][k].trailPreference = GetRandomTrail(governmentMultiplier, 5, 15, 30);
-                            break;
+                        // case (int)DFRegion.LocationTypes.Graveyard:
+                        //     routedLocations[j][k].trailPreference = GetRandomTrail(governmentMultiplier, 5, 15, 30);
+                        //     break;
 
                         // Locations that have the same chances to have a track or no trail at all
                         case (int)DFRegion.LocationTypes.ReligionCult:
@@ -190,6 +190,7 @@ namespace MapEditor
                         case (int)DFRegion.LocationTypes.DungeonLabyrinth:
                         case (int)DFRegion.LocationTypes.DungeonKeep:
                         case (int)DFRegion.LocationTypes.DungeonRuin:
+                        case (int)DFRegion.LocationTypes.DungeonMinor:
                             MapSummary location = new MapSummary();
                             if (!Worldmaps.HasLocation(routedLocations[j][k].position.X, routedLocations[j][k].position.Y, out location))
                                 break;
@@ -213,7 +214,7 @@ namespace MapEditor
                                         routedLocations[j][k].trailPreference = GetRandomTrail(governmentMultiplier, 0, 1, 100);
                                         break;
 
-                                    case DFRegion.DungeonTypes.Cemetery:
+                                    case DFRegion.DungeonTypes.Crypt:
                                         routedLocations[j][k].trailPreference = GetRandomTrail(governmentMultiplier, 1, 5, 15);
                                         break;
 

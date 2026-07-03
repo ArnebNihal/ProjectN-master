@@ -89,8 +89,8 @@ namespace DaggerfallConnect
             DungeonRuin = 10,
             /// <summary>Poor home.</summary>
             HomePoor = 11,
-            /// <summary>Graveyard.</summary>
-            Graveyard = 12,
+            /// <summary>Negligible dungeon.</summary>
+            DungeonMinor = 12,
             /// <summary>Coven.</summary>
             Coven = 13,
             /// <summary>Player ship.</summary>

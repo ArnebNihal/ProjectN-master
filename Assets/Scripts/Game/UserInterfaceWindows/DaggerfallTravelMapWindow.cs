@@ -289,7 +289,7 @@ namespace DaggerfallWorkshop.Game.UserInterfaceWindows
                 new Color32(colors.GetRed(237), colors.GetGreen(237), colors.GetBlue(237), 255),  //dunglab (R215, G119, B39)
                 new Color32(colors.GetRed(240), colors.GetGreen(240), colors.GetBlue(240), 255),  //dungkeep (R191, G87, B27)
                 new Color32(colors.GetRed(243), colors.GetGreen(243), colors.GetBlue(243), 255),  //dungruin (R171, G51, B15)
-                new Color32(colors.GetRed(246), colors.GetGreen(246), colors.GetBlue(246), 255),  //graveyards (R147, G15, B7)
+                new Color32(colors.GetRed(246), colors.GetGreen(246), colors.GetBlue(246), 255),  //dungminor (R147, G15, B7)
                 new Color32(colors.GetRed(0), colors.GetGreen(0), colors.GetBlue(0), 255),        //coven (R15, G15, B15)
                 new Color32(colors.GetRed(53), colors.GetGreen(53), colors.GetBlue(53), 255),     //farms (R165, G100, B70)
                 new Color32(colors.GetRed(51), colors.GetGreen(51), colors.GetBlue(51), 255),     //wealthy (R193, G133, B100)
@@ -1839,7 +1839,7 @@ namespace DaggerfallWorkshop.Game.UserInterfaceWindows
                 case DFRegion.LocationTypes.DungeonRuin:
                     index = 2;
                     break;
-                case DFRegion.LocationTypes.Graveyard:
+                case DFRegion.LocationTypes.DungeonMinor:
                     index = 3;
                     break;
                 case DFRegion.LocationTypes.Coven:

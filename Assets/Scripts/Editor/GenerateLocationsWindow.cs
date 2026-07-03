@@ -9,10 +9,11 @@ using System.Linq;
 using DaggerfallWorkshop.Game.Utility;
 using DaggerfallWorkshop.Game.Serialization;
 using Unity.Collections;
-using UnityEditor;
 using UnityEngine;
+using UnityEditor;
 using Newtonsoft.Json;
 
+// #if UNITY_EDITOR
 namespace MapEditor
 {
     public class GenerateLocationsWindow : EditorWindow
@@ -268,8 +269,8 @@ namespace MapEditor
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            regionOptions.locationDensity[(int)(DFRegion.LocationTypes.Graveyard)] = EditorGUILayout.FloatField("Graveyards: ", regionOptions.locationDensity[(int)(DFRegion.LocationTypes.Graveyard)]);
-            EditorGUILayout.LabelField("", (CalculateInteger(RegionManager.currentRegionData.surface, regionOptions.locationDensity[(int)(DFRegion.LocationTypes.Graveyard)])).ToString());
+            regionOptions.locationDensity[(int)(DFRegion.LocationTypes.DungeonMinor)] = EditorGUILayout.FloatField("Negligible Dungeons: ", regionOptions.locationDensity[(int)(DFRegion.LocationTypes.DungeonMinor)]);
+            EditorGUILayout.LabelField("", (CalculateInteger(RegionManager.currentRegionData.surface, regionOptions.locationDensity[(int)(DFRegion.LocationTypes.DungeonMinor)])).ToString());
             GUILayout.EndHorizontal();
 
             // GUILayout.Space(20.0f);
@@ -709,7 +710,7 @@ namespace MapEditor
                         locations.Add(location);
                         // mapTable.Add(location.MapTableData);
                     }
-                    else if (l == (int)DFRegion.LocationTypes.Graveyard)
+                    else if (l == (int)DFRegion.LocationTypes.DungeonMinor)
                     {
                         location = CreateLocation(l, locationMatrix[l][m], out locationName, ref currentOptions, false, (int)DFRegion.DungeonTypes.Cemetery);
                         locations.Add(location);
@@ -870,7 +871,7 @@ namespace MapEditor
                 case (int)DFRegion.LocationTypes.DungeonLabyrinth:
                 case (int)DFRegion.LocationTypes.DungeonKeep:
                 case (int)DFRegion.LocationTypes.DungeonRuin:
-                case (int)DFRegion.LocationTypes.Graveyard:
+                case (int)DFRegion.LocationTypes.DungeonMinor:
                     resultingName = GenerateDungeonName(locationType, selectedReg, dungeonType);
                     break;
 
@@ -995,7 +996,7 @@ namespace MapEditor
                         numPrefix = UnityEngine.Random.Range(0, LocationNamesList.NamesList[regionalism][(int)LocationNamesList.NameParts.Prefix].Length);
                         numSuffix1 = UnityEngine.Random.Range(0, LocationNamesList.NamesList[regionalism][(int)LocationNamesList.NameParts.Suffix1].Length);
 
-                        if ((UnityEngine.Random.Range(0, 10) + 1) > 8)
+                        if ((UnityEngine.Random.Range(0, 10) + 1) > 9)
                         {
                             int extra = UnityEngine.Random.Range(0, LocationNamesList.NamesList[regionalism][(int)LocationNamesList.NameParts.Extra].Length);
                             if (!LocationNamesList.NamesList[regionalism][(int)LocationNamesList.NameParts.Extra][extra].Equals(LocationNamesList.NamesList[regionalism][(int)LocationNamesList.NameParts.Suffix1][numSuffix1]))
@@ -1217,7 +1218,7 @@ namespace MapEditor
                     conflictingLocations.Add((int)DFRegion.LocationTypes.DungeonLabyrinth);
                     conflictingLocations.Add((int)DFRegion.LocationTypes.DungeonKeep);
                     conflictingLocations.Add((int)DFRegion.LocationTypes.DungeonRuin);
-                    conflictingLocations.Add((int)DFRegion.LocationTypes.Graveyard);
+                    conflictingLocations.Add((int)DFRegion.LocationTypes.DungeonMinor);
                     break;
 
                 case (int)DFRegion.LocationTypes.DungeonLabyrinth:
@@ -1247,7 +1248,7 @@ namespace MapEditor
                     conflictingLocations.Add((int)DFRegion.LocationTypes.DungeonLabyrinth);
                     conflictingLocations.Add((int)DFRegion.LocationTypes.Tavern);
                     conflictingLocations.Add((int)DFRegion.LocationTypes.DungeonKeep);
-                    conflictingLocations.Add((int)DFRegion.LocationTypes.Graveyard);
+                    conflictingLocations.Add((int)DFRegion.LocationTypes.DungeonMinor);
                     conflictingLocations.Add((int)DFRegion.LocationTypes.Coven);
                     break;
 
@@ -1290,10 +1291,10 @@ namespace MapEditor
                     conflictingLocations.Add((int)DFRegion.LocationTypes.HomePoor);
                     break;
 
-                case (int)DFRegion.LocationTypes.Graveyard:
+                case (int)DFRegion.LocationTypes.DungeonMinor:
                     conflictingLocations.Add((int)DFRegion.LocationTypes.HomeFarms);
                     conflictingLocations.Add((int)DFRegion.LocationTypes.Tavern);
-                    conflictingLocations.Add((int)DFRegion.LocationTypes.Graveyard);
+                    // conflictingLocations.Add((int)DFRegion.LocationTypes.Graveyard);
                     break;
 
                 case (int)DFRegion.LocationTypes.Coven:
@@ -2662,7 +2663,7 @@ namespace MapEditor
                 case (int)DFRegion.LocationTypes.DungeonLabyrinth:
                 case (int)DFRegion.LocationTypes.DungeonKeep:
                 case (int)DFRegion.LocationTypes.DungeonRuin:
-                case (int)DFRegion.LocationTypes.Graveyard:
+                case (int)DFRegion.LocationTypes.DungeonMinor:
                     generatedLocation = GenerateDungeon(locationType, position, dungeonType, locationName);
                     break;
 
@@ -4652,7 +4653,7 @@ namespace MapEditor
 
                     break;
 
-                case (int)DFRegion.LocationTypes.Graveyard:
+                case (int)DFRegion.LocationTypes.DungeonMinor:
                     blocksNumber = 1;
                     break;
                     // (int, int)[] cemetery = new (int, int)[1];
@@ -5051,3 +5052,4 @@ namespace MapEditor
         }        
     }
 }
+// #endif

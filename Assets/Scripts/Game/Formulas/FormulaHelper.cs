@@ -2938,7 +2938,7 @@ namespace DaggerfallWorkshop.Game.Formulas
                         return 5;
                     case DFRegion.LocationTypes.TownHamlet:
                     case DFRegion.LocationTypes.HomeWealthy:
-                    case DFRegion.LocationTypes.Graveyard:
+                    case DFRegion.LocationTypes.DungeonMinor:
                     case DFRegion.LocationTypes.HiddenLocation:
                         return 3;
                     case DFRegion.LocationTypes.TownVillage:

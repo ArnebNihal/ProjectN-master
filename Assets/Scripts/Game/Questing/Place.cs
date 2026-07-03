@@ -1141,7 +1141,7 @@ namespace DaggerfallWorkshop.Game.Questing
             if (locationType == DFRegion.LocationTypes.DungeonKeep ||
                 locationType == DFRegion.LocationTypes.DungeonLabyrinth ||
                 locationType == DFRegion.LocationTypes.DungeonRuin ||
-                locationType == DFRegion.LocationTypes.Graveyard)
+                locationType == DFRegion.LocationTypes.DungeonMinor)
             {
                 return true;
             }

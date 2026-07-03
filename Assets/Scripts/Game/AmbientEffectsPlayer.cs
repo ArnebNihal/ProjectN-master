@@ -522,7 +522,7 @@ namespace DaggerfallWorkshop.Game
 
             if (!isPlayerInside)
             {
-                IsCemeteryNearby = (location.MapTableData.LocationType == DaggerfallConnect.DFRegion.LocationTypes.Graveyard);
+                IsCemeteryNearby = (location.MapTableData.LocationType == DaggerfallConnect.DFRegion.LocationTypes.DungeonMinor);
                 if (IsCemeteryNearby)
                     StartCemeteryWaiting();
             }

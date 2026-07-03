@@ -326,8 +326,8 @@ namespace MapEditor
                     EditorGUILayout.LabelField(((float)currentRegionData.locations[(int)DFRegion.LocationTypes.DungeonRuin] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
                     GUILayout.EndHorizontal();
                     GUILayout.BeginHorizontal();
-                    EditorGUILayout.LabelField("Graveyards: ", currentRegionData.locations[(int)DFRegion.LocationTypes.Graveyard].ToString());
-                    EditorGUILayout.LabelField(((float)currentRegionData.locations[(int)DFRegion.LocationTypes.Graveyard] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
+                    EditorGUILayout.LabelField("Negligible Dungeons: ", currentRegionData.locations[(int)DFRegion.LocationTypes.DungeonMinor].ToString());
+                    EditorGUILayout.LabelField(((float)currentRegionData.locations[(int)DFRegion.LocationTypes.DungeonMinor] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
                     GUILayout.EndHorizontal();
                     GUILayout.Space(20.0f);
                     int allLocationsCount = 0;
