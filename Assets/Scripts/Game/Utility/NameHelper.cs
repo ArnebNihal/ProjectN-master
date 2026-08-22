@@ -4,7 +4,7 @@
 // License:         MIT License (http://www.opensource.org/licenses/mit-license.php)
 // Source Code:     https://github.com/Interkarma/daggerfall-unity
 // Original Author: Gavin Clayton (interkarma@dfworkshop.net)
-// Contributors:    
+// Contributors:    Arneb
 // 
 // Notes:
 //
@@ -110,7 +110,7 @@ namespace DaggerfallWorkshop.Game.Utility
 
         /// <summary>
         /// Gets random first name for an NPC.
-        /// Supports Breton, Redguard, Nord, DarkElf, HighElf, WoodElf, Khajiit, Imperial, Argonian.
+        /// Supports Breton, Redguard, Nord, DarkElf, HighElf, WoodElf, Khajiit, Imperial, Argonian, Orc.
         /// </summary>
         public string FirstName(BankTypes type, Genders gender)
         {
@@ -123,24 +123,42 @@ namespace DaggerfallWorkshop.Game.Utility
             string firstName = string.Empty;
             switch (type)
             {
-                case BankTypes.Breton:                                                  // These banks all work the same
+                // As of today, these still didn't receive the Ibiss treatement
+                case BankTypes.Breton:
+                case BankTypes.Imperial:
+                case BankTypes.Orc:
+                    firstName = GetRandomFirstName(nameBank, gender);
+                    break;
+
                 case BankTypes.Nord:
+                    if (UnityEngine.Random.Range(0, 3) == 0)
+                        firstName = GetRandomFirstName(nameBank, gender);
+                    else firstName = GetExpandedNordFirstName(nameBank, gender);
+                    break;
+
                 case BankTypes.DarkElf:
                 case BankTypes.HighElf:
                 case BankTypes.WoodElf:
-                case BankTypes.Khajiit:
-                case BankTypes.Imperial:
                 case BankTypes.BretonModern:
-                case BankTypes.Orc:
-                    firstName = GetRandomFirstName(nameBank, gender);
+                    if (UnityEngine.Random.Range(0, 3) == 0)
+                        firstName = GetRandomFirstName(nameBank, gender);
+                    else firstName = GetExpandedFirstName(nameBank, gender);
+                    break;
+
+                case BankTypes.Khajiit:
+                    if (UnityEngine.Random.Range(0, 3) == 0)
+                        firstName = GetRandomFirstName(nameBank, gender);
+                    else firstName = GetExpandedKhajiitFirstName(nameBank, gender);
                     break;
 
                 case BankTypes.Redguard:                                                // Redguards have just a single name
                     firstName = GetRandomRedguardName(nameBank, gender);
                     break;
-                
+
                 case BankTypes.Argonian:
-                    firstName = GetRandomArgonianName(nameBank, gender);
+                    if (UnityEngine.Random.Range(0, 3) == 0)
+                        firstName = GetRandomArgonianName(nameBank, gender);
+                    else firstName = GetExpandedArgonianName(nameBank, gender);
                     break;
             }
 
@@ -159,7 +177,7 @@ namespace DaggerfallWorkshop.Game.Utility
 
             // Generate name by type
             NameBank nameBank = bankDict[type];
-            
+
             string lastName = string.Empty;
             switch (type)
             {
@@ -167,14 +185,23 @@ namespace DaggerfallWorkshop.Game.Utility
                 case BankTypes.DarkElf:
                 case BankTypes.HighElf:
                 case BankTypes.WoodElf:
-                case BankTypes.Khajiit:
                 case BankTypes.Imperial:
                 case BankTypes.BretonModern:
                     lastName = GetRandomSurname(nameBank);
                     break;
 
                 case BankTypes.Nord:
-                    lastName = GetRandomNordSurname(nameBank);
+                    if (UnityEngine.Random.Range(0, 3) == 0)
+                        lastName = GetRandomNordSurname(nameBank, (Genders)gender);
+                    else lastName = GetExpandedNordSurname(nameBank, (Genders)gender);
+
+                    break;
+
+                case BankTypes.Khajiit:
+                    if (UnityEngine.Random.Range(0, 10) == 0)
+                        lastName = GetExpandedKhajiitSurname(nameBank, (Genders)gender);
+                    else if (UnityEngine.Random.Range(0, 10) == 0)
+                        lastName = GetRandomFirstName(nameBank, (Genders)gender);                        
                     break;
 
                 case BankTypes.Orc:
@@ -227,6 +254,45 @@ namespace DaggerfallWorkshop.Game.Utility
             return stringA + stringB;
         }
 
+        // Get random first name by gender for names that follow 6 (male), 7 (female) pattern
+        string GetExpandedFirstName(NameBank nameBank, Genders gender)
+        {
+            // Get set parts
+            string[] partsA;
+            if (gender == Genders.Male)
+            {
+                partsA = nameBank.sets[6].parts;
+            }
+            else
+            {
+                partsA = nameBank.sets[7].parts;
+            }
+
+            // Generate strings
+            uint index = DFRandom.rand() % (uint)partsA.Length;
+
+            return partsA[index];
+        }
+
+        string GetExpandedNordFirstName(NameBank nameBank, Genders gender)
+        {
+            // Get set parts
+            string[] partsA;
+            if (gender == Genders.Male)
+            {
+                partsA = nameBank.sets[4].parts;
+            }
+            else
+            {
+                partsA = nameBank.sets[5].parts;
+            }
+
+            // Generate strings
+            uint index = DFRandom.rand() % (uint)partsA.Length;
+
+            return partsA[index];
+        }
+
         // Gets random surname for names that follow 4+5 pattern
         string GetRandomSurname(NameBank nameBank)
         {
@@ -246,7 +312,7 @@ namespace DaggerfallWorkshop.Game.Utility
         }
 
         // Gets random surname for Nord names that follow 0+1+"sen" pattern
-        string GetRandomNordSurname(NameBank nameBank)
+        string GetRandomNordSurname(NameBank nameBank, Genders gender)
         {
             // Get set parts
             string[] partsA, partsB;
@@ -260,7 +326,36 @@ namespace DaggerfallWorkshop.Game.Utility
             index = DFRandom.rand() % (uint)partsB.Length;
             string stringB = partsB[index];
 
-            return stringA + stringB + "sen";
+            string stringC = gender == Genders.Male ? "sen" : "dottir";
+
+            if (stringC.Equals("sen") && UnityEngine.Random.Range(0, 5) == 0)
+                stringC = "son";
+
+            return stringA + stringB + stringC;
+        }
+
+        string GetExpandedNordSurname(NameBank nameBank, Genders gender)
+        {
+            // Get set parts
+            string[] partsA;
+            partsA = nameBank.sets[4].parts;
+
+            // Generate strings
+            uint index = DFRandom.rand() % (uint)partsA.Length;
+            string stringA = partsA[index];
+
+            string stringC = gender == Genders.Male ? "sen" : "dottir";
+
+            if (stringC.Equals("sen") && UnityEngine.Random.Range(0, 5) == 0)
+                stringC = "son";
+
+            return stringA + stringC;
+        }
+
+        string GetExpandedKhajiitSurname(NameBank nameBank, Genders gender)
+        {
+            if (gender == (int)Genders.Male) return nameBank.sets[12].parts[UnityEngine.Random.Range(0, nameBank.sets[12].parts.Length)];
+            else return nameBank.sets[13].parts[UnityEngine.Random.Range(0, nameBank.sets[13].parts.Length)];
         }
 
         string GetRandomOrcSurname(NameBank nameBank, Genders gender)
@@ -337,6 +432,59 @@ namespace DaggerfallWorkshop.Game.Utility
             return stringA + stringB + stringC + stringD;
         }
 
+        string GetExpandedKhajiitFirstName(NameBank nameBank, Genders gender)
+        {
+            // Get set parts
+            string[] partsA, partsB;
+            string resName;
+
+            if (UnityEngine.Random.Range(0, 2) == 0)
+            {
+                if (gender == Genders.Male)
+                {
+                    if (UnityEngine.Random.Range(0, 100) >= 80)
+                    {
+                        resName = nameBank.sets[6].parts[UnityEngine.Random.Range(0, nameBank.sets[6].parts.Length)];
+                        resName = ChangeToFirstUpper(resName);
+                    }
+                    else
+                    {
+                        resName = nameBank.sets[6].parts[UnityEngine.Random.Range(0, nameBank.sets[6].parts.Length)] +
+                                  nameBank.sets[7].parts[UnityEngine.Random.Range(0, nameBank.sets[7].parts.Length)];
+                        resName = ChangeToFirstUpper(resName);
+                    }
+                }
+                else
+                {
+                    if (UnityEngine.Random.Range(0, 100) >= 50)
+                    {
+                        resName = nameBank.sets[9].parts[UnityEngine.Random.Range(0, nameBank.sets[9].parts.Length)];
+                        resName = ChangeToFirstUpper(resName);
+                    }
+                    else
+                    {
+                        resName = nameBank.sets[9].parts[UnityEngine.Random.Range(0, nameBank.sets[9].parts.Length)] +
+                                  nameBank.sets[10].parts[UnityEngine.Random.Range(0, nameBank.sets[10].parts.Length)];
+                        resName = ChangeToFirstUpper(resName);
+                    }
+                }
+            }
+            else
+            {
+                if (gender == Genders.Male)
+                {
+                    resName = nameBank.sets[8].parts[UnityEngine.Random.Range(0, nameBank.sets[8].parts.Length)] +
+                              nameBank.sets[6].parts[UnityEngine.Random.Range(0, nameBank.sets[6].parts.Length)];
+                }
+                else
+                {
+                    resName = nameBank.sets[11].parts[UnityEngine.Random.Range(0, nameBank.sets[11].parts.Length)] +
+                              nameBank.sets[9].parts[UnityEngine.Random.Range(0, nameBank.sets[9].parts.Length)];
+                }
+            }
+            return resName;
+        }
+
         // Argonian name can be one word Jel, two words Jel with or without hyphen, Tamrielic
         // cfr. https://en.uesp.net/wiki/Lore:Argonian_Names
         string GetRandomArgonianName(NameBank nameBank, Genders gender)
@@ -349,7 +497,7 @@ namespace DaggerfallWorkshop.Game.Utility
             int randomSet;
             uint index;
 
-            switch(argNameType)
+            switch (argNameType)
             {
                 // Single word Jel
                 case 0:
@@ -361,7 +509,7 @@ namespace DaggerfallWorkshop.Game.Utility
                     char[] sB;
 
                     switch (twoWordStructure)
-                    {                        
+                    {
                         case 0: // Part + Part
                             randomSet = UnityEngine.Random.Range(0, 1);
                             if (randomSet == 1 && gender == Genders.Female)
@@ -373,7 +521,8 @@ namespace DaggerfallWorkshop.Game.Utility
 
                             stringA = string.Empty;
 
-                            do{
+                            do
+                            {
                                 index = DFRandom.rand() % (uint)partsA.Length;
                                 stringA = partsA[index];
                             }
@@ -400,7 +549,8 @@ namespace DaggerfallWorkshop.Game.Utility
                                 partsB = nameBank.sets[1].parts;
                             else partsB = nameBank.sets[2].parts;
 
-                            do{
+                            do
+                            {
                                 index = DFRandom.rand() % (uint)partsB.Length;
                                 stringB = partsB[index];
                             }
@@ -418,7 +568,8 @@ namespace DaggerfallWorkshop.Game.Utility
 
                         case 2: // Part + Complete
                             partsA = nameBank.sets[0].parts;
-                            do{
+                            do
+                            {
                                 index = DFRandom.rand() % (uint)partsA.Length;
                                 stringA = partsA[index];
                             }
@@ -553,6 +704,13 @@ namespace DaggerfallWorkshop.Game.Utility
             return resultName;
         }
 
+        string GetExpandedArgonianName(NameBank nameBank, Genders gender)
+        {
+            if (gender == Genders.Male)
+                return nameBank.sets[8].parts[UnityEngine.Random.Range(0, nameBank.sets[8].parts.Length)];
+            else return nameBank.sets[9].parts[UnityEngine.Random.Range(0, nameBank.sets[9].parts.Length)];
+        }
+
         // Get random monster name.
         // Monster1: 0+(50% +1)+2
         // Monster2: 0+(50% +1)+2+(if female, +3)
@@ -629,6 +787,11 @@ namespace DaggerfallWorkshop.Game.Utility
             return stringA + stringB + stringC + stringD;
         }
 
+        string ChangeToFirstUpper(string nameToChange)
+        {
+            return string.Concat(nameToChange[0].ToString().ToUpper(), nameToChange.Substring(1));
+        }
+
         #endregion
 
         #region Private Methods
@@ -641,7 +804,7 @@ namespace DaggerfallWorkshop.Game.Utility
             try
             {
                 bankDict = JsonConvert.DeserializeObject<Dictionary<BankTypes, NameBank>>(File.ReadAllText(Path.Combine(mapPath, nameGenFilename)));
-            }            
+            }
             catch
             {
                 Debug.Log("Could not load NameGen database from Resources. Check file exists and is in correct format.");

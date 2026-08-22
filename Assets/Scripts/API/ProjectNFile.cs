@@ -1127,6 +1127,7 @@ namespace DaggerfallConnect.Arena2
 
     public class WorldSettings
     {
+        public int regions;
         public string[] RegionNames;
         // public int WorldWidth;
         // public int WorldHeight;

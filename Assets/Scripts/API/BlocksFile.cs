@@ -284,10 +284,14 @@ namespace DaggerfallConnect.Arena2
             //     return blockIndex;
 
             // Otherwise find and store index by searching for name
-            Debug.Log("GetBlockIndex = Count: " + Count);
+            // Debug.Log("GetBlockIndex = Count: " + Count);
             for (int i = 0; i < Count; i++)
             {
-                if (GetBlockName(i) == name)
+                string blockName = GetBlockName(i);
+                // Debug.Log("blockName = " + blockName);
+                if (blockName == null) continue;
+                if (blockName.StartsWith(name.Substring(0, 3)) &&
+                    blockName.EndsWith(name.Substring(4)))
                 {
                     // Found the block, add to dictionary and return
                     blockNameLookup.Add(name, i);
@@ -492,10 +496,12 @@ namespace DaggerfallConnect.Arena2
                 //     return customBlock;
                 // }
                 outBlock = new DFBlock();
+                Debug.Log("GetBlock returning false.");
                 return false;
             }
 
             outBlock = GetBlock(index);
+            Debug.Log("GetBlock returning true.");
             return true;
         }
 

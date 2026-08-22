@@ -485,7 +485,6 @@ namespace DaggerfallConnect.Arena2
                 case DFCareer.Skills.Streetwise:
                 case DFCareer.Skills.Swimming:
                     return (int)BiogQuestType.Generic;
-                    break;
 
                 case DFCareer.Skills.Alchemy:
                 case DFCareer.Skills.Alteration:
@@ -497,7 +496,6 @@ namespace DaggerfallConnect.Arena2
                 case DFCareer.Skills.Restoration:
                 case DFCareer.Skills.Thaumaturgy:
                     return (int)BiogQuestType.Magic;
-                    break;
 
                 case DFCareer.Skills.Archery:
                 case DFCareer.Skills.Axe:
@@ -509,7 +507,6 @@ namespace DaggerfallConnect.Arena2
                 case DFCareer.Skills.MediumArmor:
                 case DFCareer.Skills.ShortBlade:
                     return (int)BiogQuestType.Combat;
-                    break;
 
                 case DFCareer.Skills.Backstabbing:
                 case DFCareer.Skills.Climbing:
@@ -522,7 +519,6 @@ namespace DaggerfallConnect.Arena2
                 case DFCareer.Skills.Pickpocket:
                 case DFCareer.Skills.Stealth:
                     return (int)BiogQuestType.Thievery;
-                    break;
 
                 case DFCareer.Skills.Centaurian:
                 case DFCareer.Skills.Daedric:
@@ -534,7 +530,6 @@ namespace DaggerfallConnect.Arena2
                 case DFCareer.Skills.Orcish:
                 case DFCareer.Skills.Spriggan:
                     return (int)BiogQuestType.Languages;
-                    break;
 
                 default:
                     Debug.Log("Skill not present in this switch!");

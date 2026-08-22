@@ -4124,7 +4124,6 @@ namespace MapEditor
         {
             WorldSetting = new WorldStats();
             WorldSetting = JsonConvert.DeserializeObject<WorldStats>(File.ReadAllText(Path.Combine(MapEditor.testPath, "WorldData.json")));
-            WorldSetting.Regions = WorldSetting.RegionNames.Length;
         }
     }
 
@@ -4142,10 +4141,16 @@ namespace MapEditor
         public int[] regionRaces;
         public int[] regionTemples;
         public int[] regionBorders;
+        public int[][] regionInProvince;        
 
         public WorldStats()
         {
-            
+            this.Regions = 408;
+            this.RegionNames = new string[408];
+            this.regionRaces = new int[408];
+            this.regionTemples = new int[408];
+            this.regionBorders = new int[408 * 20];
+            this.regionInProvince = new int[408][];
         }
     }
 

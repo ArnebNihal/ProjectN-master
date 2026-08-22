@@ -85,7 +85,9 @@ namespace DaggerfallWorkshop
         Lyg,
         Pyandonea,
         Yokuda,
-        Isles
+        Isles,
+        Thras,
+        UnclaimedTerritory
     }
 
     /// <summary>
@@ -93,6 +95,7 @@ namespace DaggerfallWorkshop
     /// </summary>
     public enum ProvinceNames
     {
+        Unused = 0,
         HighRock = 1,
         Hammerfell = 2,
         Skyrim = 3,

@@ -279,12 +279,16 @@ namespace DaggerfallWorkshop
                                     }
                                     else if (itemGroup == ItemGroups.MensClothing)
                                     {
-                                        item = ItemBuilder.CreateMensClothing(j + MensClothing.Straps, playerEntity.Race, buildingData.quality);
+                                        int correctInd = 0;
+                                        if ((j + (int)MensClothing.Straps) > (int)MensClothing.Champion_straps) correctInd = 138;
+                                        item = ItemBuilder.CreateMensClothing((MensClothing)(j + correctInd + (int)MensClothing.Straps), playerEntity.Race, buildingData.quality);
                                         item.dyeColor = ItemBuilder.RandomClothingDye();
                                     }
                                     else if (itemGroup == ItemGroups.WomensClothing)
                                     {
-                                        item = ItemBuilder.CreateWomensClothing(j + WomensClothing.Brassier, playerEntity.Race, buildingData.quality);
+                                        int correctInd = 0;
+                                        if ((j + (int)WomensClothing.Brassier) > (int)WomensClothing.Vest) correctInd = 99;
+                                        item = ItemBuilder.CreateWomensClothing((WomensClothing)(j + correctInd + (int)WomensClothing.Brassier), playerEntity.Race, buildingData.quality);
                                         item.dyeColor = ItemBuilder.RandomClothingDye();
                                     }
                                     else if (itemGroup == ItemGroups.MagicItems)

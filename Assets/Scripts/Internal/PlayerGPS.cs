@@ -483,6 +483,7 @@ namespace DaggerfallWorkshop
         /// </summary>
         public int GetCourtOfCurrentRegion()
         {
+            Debug.Log("Getting factions for region number " + CurrentRegionIndex);
             // Find court in current region
             FactionFile.FactionData[] factions = GameManager.Instance.PlayerEntity.FactionData.FindFactions(
                 (int)FactionFile.FactionTypes.Courts,

@@ -996,11 +996,15 @@ namespace DaggerfallWorkshop.Game.UserInterfaceWindows
                         // Get location data for town
                         DFLocation location = WorldMaps.GetLocation(tile.ToString("00000"), regionData.MapNames[locationIndex]);
 
+                        // Discard it if it's not in the region selected by the player
+                        if (region != location.RegionIndex)
+                            continue;
+
                         // Get list of valid sites
                         DFBlock[] blocks = RMBLayout.GetLocationBuildingData(location);
                         for (int block = 0; block < blocks.Length; block++)
                         {
-                            for (int bld = 0; bld < blocks[block].RmbBlock.FldHeader.NumBlockDataRecords; bld++)
+                            for (int bld = 0; bld < blocks[block].RmbBlock.FldHeader.BuildingDataList.Length; bld++)
                             {
                                 Debug.Log("requiredBuildingType: " + requiredBuildingType + ", block: " + block + " - " + blocks[block].Name + ", bld: " + bld);
                                 if (CheckBuildingCompatibility(requiredBuildingType, blocks[block].RmbBlock.FldHeader.BuildingDataList[bld], subBuilding))
@@ -1026,7 +1030,7 @@ namespace DaggerfallWorkshop.Game.UserInterfaceWindows
                         DFBlock[] blocks = RMBLayout.GetLocationBuildingData(location);
                         for (int block = 0; block < blocks.Length; block++)
                         {
-                            for (int bld = 0; bld < blocks[block].RmbBlock.FldHeader.NumBlockDataRecords; bld++)
+                            for (int bld = 0; bld < blocks[block].RmbBlock.FldHeader.BuildingDataList.Length; bld++)
                             {
                                 Debug.Log("requiredBuildingType: " + requiredBuildingType + ", block: " + block + " - " + blocks[block].Name + ", bld: " + bld);
                                 if (CheckBuildingCompatibility(requiredBuildingType, blocks[block].RmbBlock.FldHeader.BuildingDataList[bld], subBuilding))

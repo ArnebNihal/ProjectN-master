@@ -109,15 +109,15 @@ namespace MapEditor
         // Other government types reduce/increase these values by a percentage.
         public static float[,] locationDensity = { 
             { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },                  // Ocean
-            { 0.35f, 0.45f, 0.60f, 0.30f, 0.40f, 0.45f, 0.60f, 0.25f, 0.30f, 0.35f, 0.05f, 0.30f, 0.20f, 0.0f },      // Desert
-            { 0.30f, 0.40f, 0.55f, 0.25f, 0.45f, 0.40f, 0.55f, 0.30f, 0.25f, 0.30f, 0.10f, 0.25f, 0.15f, 0.0f },      // Desert2
-            { 0.10f, 0.20f, 0.60f, 0.40f, 0.45f, 0.25f, 0.70f, 0.30f, 0.55f, 0.15f, 0.55f, 0.30f, 0.25f, 0.0f },      // Mountain
-            { 0.25f, 0.55f, 0.80f, 0.70f, 0.40f, 0.45f, 1.15f, 0.65f, 0.85f, 0.30f, 0.40f, 0.40f, 0.20f, 0.0f },      // Rainforest
-            { 0.10f, 0.15f, 0.35f, 0.25f, 0.35f, 0.20f, 0.80f, 0.25f, 0.40f, 0.10f, 0.20f, 0.20f, 0.15f, 0.0f },      // Swamp
-            { 0.25f, 0.50f, 0.65f, 0.65f, 0.70f, 0.65f, 1.25f, 0.40f, 1.10f, 0.40f, 0.20f, 0.90f, 0.15f, 0.0f },      // Subtropical
-            { 0.20f, 0.45f, 0.90f, 1.10f, 0.55f, 0.40f, 0.35f, 0.15f, 0.70f, 0.30f, 0.70f, 0.45f, 0.45f, 0.0f },      // MountainWood
-            { 0.25f, 0.90f, 0.95f, 0.95f, 0.80f, 0.60f, 1.30f, 0.65f, 1.00f, 0.95f, 0.60f, 1.10f, 0.60f, 0.0f },      // Woodland
-            { 0.20f, 0.75f, 0.80f, 0.75f, 0.70f, 0.50f, 1.10f, 0.65f, 0.70f, 0.95f, 0.80f, 0.90f, 0.50f, 0.0f }       // HauntedWoodland
+            { 0.25f, 0.45f, 0.90f, 0.30f, 0.40f, 0.45f, 1.15f, 0.60f, 0.45f, 0.35f, 0.90f, 0.30f, 1.00f, 0.0f },      // Desert
+            { 0.20f, 0.40f, 0.95f, 0.25f, 0.45f, 0.40f, 1.10f, 0.70f, 0.40f, 0.30f, 1.05f, 0.25f, 1.15f, 0.0f },      // Desert2
+            { 0.15f, 0.40f, 1.00f, 0.90f, 0.45f, 0.25f, 0.70f, 0.70f, 0.30f, 0.15f, 1.05f, 0.30f, 1.15f, 0.0f },      // Mountain
+            { 0.25f, 0.55f, 0.95f, 0.70f, 0.40f, 0.45f, 0.75f, 0.60f, 0.35f, 0.30f, 0.90f, 0.40f, 1.00f, 0.0f },      // Rainforest
+            { 0.10f, 0.25f, 0.75f, 1.15f, 0.35f, 0.20f, 0.80f, 0.55f, 0.20f, 0.45f, 0.80f, 0.20f, 0.90f, 0.0f },      // Swamp
+            { 0.30f, 0.85f, 1.30f, 0.65f, 0.70f, 0.65f, 0.90f, 0.75f, 0.50f, 0.40f, 1.10f, 0.90f, 1.20f, 0.0f },      // Subtropical
+            { 0.25f, 0.45f, 0.90f, 1.10f, 0.55f, 0.40f, 0.85f, 0.85f, 0.25f, 0.30f, 1.25f, 0.45f, 1.35f, 0.0f },      // MountainWood
+            { 0.30f, 0.90f, 1.35f, 0.95f, 0.80f, 0.60f, 0.75f, 1.20f, 0.30f, 0.95f, 1.60f, 1.10f, 1.70f, 0.0f },      // Woodland
+            { 0.20f, 0.75f, 1.15f, 0.75f, 0.70f, 0.50f, 0.85f, 1.05f, 0.15f, 0.95f, 1.40f, 0.90f, 1.50f, 0.0f }       // HauntedWoodland
         };                                                                                                        // TODO: Maquis
 
         // governmentModifier list reduction/increase of densities in a [government, locationType] format.
@@ -1417,7 +1417,6 @@ namespace MapEditor
             int gender;
             int bankType = ConvertRegionalismToBankType(regionalism);
             int nameType;
-            string epithet;
             string resultingName;
             int dungeonNameType;
 
@@ -4717,7 +4716,6 @@ namespace MapEditor
                     while(!positionFound);
                 } 
             }
-
             return diagram;
         }
 

@@ -360,7 +360,6 @@ namespace DaggerfallWorkshop.Utility
                         }
                     }
                     imageData.offset = textureFile.GetOffset(record, textureNumber);
-                    Debug.Log("imageData.offset for " + textureNumber + "." + record +  ": " + imageData.offset);
                     imageData.scale = textureFile.GetScale(record);
                     // Debug.Log("imageData.scale: " + imageData.scale);
                     imageData.size = textureFile.GetSize(record);
@@ -382,13 +381,11 @@ namespace DaggerfallWorkshop.Utility
                         imgFile.LoadPalette(Path.Combine(dfUnity.Arena2Path, imgFile.PaletteName));
                         dfBitmap = imgFile.GetDFBitmap();
                         imageData.offset = imgFile.ImageOffset;
-                        Debug.Log("ImageOffset: " + imgFile.ImageOffset);
                         imageData.scale = new DFSize();
                         imageData.size = imgFile.GetSize(0);
                     }
                     else{
                         filename = filename + ".png";
-                        Debug.Log("body file: " + filename);
                         ImgFile fakeHeader = new ImgFile();
                         ImgFile imgFile = new ImgFile(Path.Combine(WorldMaps.mapPath, "Textures", "Races", filename), FileUsage.UseMemory, true);
                         imgFile.LoadPalette(Path.Combine(WorldMaps.mapPath, "Textures", "Races", imgFile.PaletteName));
@@ -396,7 +393,6 @@ namespace DaggerfallWorkshop.Utility
                         imageData.offset = fakeHeader.ImageOffset;
                         imageData.scale = new DFSize();
                         imageData.size = new DFSize(dfBitmap.Width, dfBitmap.Height);
-                        Debug.Log("imageData.size: " + imageData.size.Width + ", " + imageData.size.Height);
                         imageData.texture = new Texture2D(4, 4);
                         if (!imageData.texture.LoadImage(dfBitmap.Data, false))
                             Debug.Log("Unable to load image " + filename);

@@ -32,6 +32,7 @@ namespace DaggerfallWorkshop.Game.Entity
     public enum Races
     {
         None = -1,
+        Undetermined = 0,
         Breton = 1,
         Redguard = 2,
         Nord = 3,

@@ -30,6 +30,7 @@ namespace MapEditor
     public class RegionManager : EditorWindow
     {
         static RegionManager regionManagerWindow;
+        public static GenerateLocationsWindow.GenOptions genOptions;
         const string windowTitle = "Region Manager";
         public static int currentRegionIndex = 0;
         public string[] regionNames;
@@ -199,6 +200,7 @@ namespace MapEditor
             EditorGUILayout.EndHorizontal();
             if (currentRegionIndex != oldRegionIndex)
             {
+                genOptions = new GenerateLocationsWindow.GenOptions();
                 modifiedRegionName = ConvertRegionName(regionNames[currentRegionIndex]);
                 AnalyzeSelectedRegion(currentRegionIndex);
                 if (factionToIdDict.ContainsKey(modifiedRegionName))
@@ -206,6 +208,7 @@ namespace MapEditor
                     factionId = factionToIdDict[modifiedRegionName];
                     FactionAtlas.GetFactionData(factionId, out newFaction);
                 }
+                InitializeLocationDensity();
             }
 
             GUILayout.Label(regionNames[currentRegionIndex], EditorStyles.boldLabel);
@@ -215,7 +218,7 @@ namespace MapEditor
             EditorGUILayout.LabelField("Govern Type: ", ((GovernType)((newFaction.ruler + 1) / 2)).ToString());
             EditorGUILayout.BeginHorizontal();
             currentRegionData.population = EditorGUILayout.IntField("Population", currentRegionData.population, GUILayout.MaxWidth(200.0f));
-            EditorGUILayout.LabelField(" : ", ((DaggerfallWorkshop.Game.Entity.Races)currentRegionData.population + 1).ToString());
+            EditorGUILayout.LabelField(" : ", GetRacesForDisplay(currentRegionData.population));
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.BeginHorizontal();
             currentRegionData.deity = (ushort)EditorGUILayout.IntField("Deity: ", currentRegionData.deity, GUILayout.MaxWidth(200.0f));
@@ -262,7 +265,7 @@ namespace MapEditor
                     currentRegionData.regionBorders[i] = (EditorGUILayout.Popup("", regionBorder, regionNames, GUILayout.MaxWidth(100.0f)));
                 }
                 EditorGUILayout.EndHorizontal();
-            }            
+            }
             GUILayout.Space(30.0f);
 
             politicalStats = EditorGUILayout.Foldout(politicalStats, "Politics");
@@ -271,63 +274,77 @@ namespace MapEditor
                 if (currentRegionData.surface != 0)
                 {
                     GUILayout.BeginHorizontal();
-                    EditorGUILayout.LabelField("Cities: ", currentRegionData.locations[(int)DFRegion.LocationTypes.TownCity].ToString());
-                    EditorGUILayout.LabelField(((float)currentRegionData.locations[(int)DFRegion.LocationTypes.TownCity] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
+                    EditorGUILayout.LabelField("Cities: ", currentRegionData.locations[(int)DFRegion.LocationTypes.TownCity].ToString(), GUILayout.MaxWidth(200.0f));
+                    EditorGUILayout.LabelField(((float)currentRegionData.locations[(int)DFRegion.LocationTypes.TownCity] * 100.0f / (float)currentRegionData.surface).ToString(), "%", GUILayout.MaxWidth(150.0f));
+                    EditorGUILayout.LabelField("", (CalculateInteger(RegionManager.currentRegionData.surface, genOptions.locationDensity[(int)(DFRegion.LocationTypes.TownCity)])).ToString());
                     GUILayout.EndHorizontal();
                     GUILayout.BeginHorizontal();
-                    EditorGUILayout.LabelField("Hamlets: ", currentRegionData.locations[(int)DFRegion.LocationTypes.TownHamlet].ToString());
-                    EditorGUILayout.LabelField(((float)currentRegionData.locations[(int)DFRegion.LocationTypes.TownHamlet] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
+                    EditorGUILayout.LabelField("Hamlets: ", currentRegionData.locations[(int)DFRegion.LocationTypes.TownHamlet].ToString(), GUILayout.MaxWidth(200.0f));
+                    EditorGUILayout.LabelField(((float)currentRegionData.locations[(int)DFRegion.LocationTypes.TownHamlet] * 100.0f / (float)currentRegionData.surface).ToString(), "%", GUILayout.MaxWidth(150.0f));
+                    EditorGUILayout.LabelField("", (CalculateInteger(RegionManager.currentRegionData.surface, genOptions.locationDensity[(int)(DFRegion.LocationTypes.TownHamlet)])).ToString());
                     GUILayout.EndHorizontal();
                     GUILayout.BeginHorizontal();
-                    EditorGUILayout.LabelField("Villages: ", currentRegionData.locations[(int)DFRegion.LocationTypes.TownVillage].ToString());
-                    EditorGUILayout.LabelField(((float)currentRegionData.locations[(int)DFRegion.LocationTypes.TownVillage] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
-                    GUILayout.EndHorizontal();
-                    GUILayout.Space(20.0f);
-                    GUILayout.BeginHorizontal();
-                    EditorGUILayout.LabelField("Wealthy Homes: ", currentRegionData.locations[(int)DFRegion.LocationTypes.HomeWealthy].ToString());
-                    EditorGUILayout.LabelField(((float)currentRegionData.locations[(int)DFRegion.LocationTypes.HomeWealthy] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
-                    GUILayout.EndHorizontal();
-                    GUILayout.BeginHorizontal();
-                    EditorGUILayout.LabelField("Hovels: ", currentRegionData.locations[(int)DFRegion.LocationTypes.HomePoor].ToString());
-                    EditorGUILayout.LabelField(((float)currentRegionData.locations[(int)DFRegion.LocationTypes.HomePoor] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
-                    GUILayout.EndHorizontal();
-                    GUILayout.BeginHorizontal();
-                    EditorGUILayout.LabelField("Taverns: ", currentRegionData.locations[(int)DFRegion.LocationTypes.Tavern].ToString());
-                    EditorGUILayout.LabelField(((float)currentRegionData.locations[(int)DFRegion.LocationTypes.Tavern] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
-                    GUILayout.EndHorizontal();
-                    GUILayout.BeginHorizontal();
-                    EditorGUILayout.LabelField("Farms: ", currentRegionData.locations[(int)DFRegion.LocationTypes.HomeFarms].ToString());
-                    EditorGUILayout.LabelField(((float)currentRegionData.locations[(int)DFRegion.LocationTypes.HomeFarms] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
+                    EditorGUILayout.LabelField("Villages: ", currentRegionData.locations[(int)DFRegion.LocationTypes.TownVillage].ToString(), GUILayout.MaxWidth(200.0f));
+                    EditorGUILayout.LabelField(((float)currentRegionData.locations[(int)DFRegion.LocationTypes.TownVillage] * 100.0f / (float)currentRegionData.surface).ToString(), "%", GUILayout.MaxWidth(150.0f));
+                    EditorGUILayout.LabelField("", (CalculateInteger(RegionManager.currentRegionData.surface, genOptions.locationDensity[(int)(DFRegion.LocationTypes.TownVillage)])).ToString());
                     GUILayout.EndHorizontal();
                     GUILayout.Space(20.0f);
                     GUILayout.BeginHorizontal();
-                    EditorGUILayout.LabelField("Temples: ", currentRegionData.locations[(int)DFRegion.LocationTypes.ReligionTemple].ToString());
-                    EditorGUILayout.LabelField(((float)currentRegionData.locations[(int)DFRegion.LocationTypes.ReligionTemple] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
+                    EditorGUILayout.LabelField("Wealthy Homes: ", currentRegionData.locations[(int)DFRegion.LocationTypes.HomeWealthy].ToString(), GUILayout.MaxWidth(200.0f));
+                    EditorGUILayout.LabelField(((float)currentRegionData.locations[(int)DFRegion.LocationTypes.HomeWealthy] * 100.0f / (float)currentRegionData.surface).ToString(), "%", GUILayout.MaxWidth(150.0f));
+                    EditorGUILayout.LabelField("", (CalculateInteger(RegionManager.currentRegionData.surface, genOptions.locationDensity[(int)(DFRegion.LocationTypes.HomeWealthy)])).ToString());
                     GUILayout.EndHorizontal();
                     GUILayout.BeginHorizontal();
-                    EditorGUILayout.LabelField("Cult Sites: ", currentRegionData.locations[(int)DFRegion.LocationTypes.ReligionCult].ToString());
-                    EditorGUILayout.LabelField(((float)currentRegionData.locations[(int)DFRegion.LocationTypes.ReligionCult] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
+                    EditorGUILayout.LabelField("Hovels: ", currentRegionData.locations[(int)DFRegion.LocationTypes.HomePoor].ToString(), GUILayout.MaxWidth(200.0f));
+                    EditorGUILayout.LabelField(((float)currentRegionData.locations[(int)DFRegion.LocationTypes.HomePoor] * 100.0f / (float)currentRegionData.surface).ToString(), "%", GUILayout.MaxWidth(150.0f));
+                    EditorGUILayout.LabelField("", (CalculateInteger(RegionManager.currentRegionData.surface, genOptions.locationDensity[(int)(DFRegion.LocationTypes.HomePoor)])).ToString());
                     GUILayout.EndHorizontal();
                     GUILayout.BeginHorizontal();
-                    EditorGUILayout.LabelField("Witch Covens: ", currentRegionData.locations[(int)DFRegion.LocationTypes.Coven].ToString());
-                    EditorGUILayout.LabelField(((float)currentRegionData.locations[(int)DFRegion.LocationTypes.Coven] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
+                    EditorGUILayout.LabelField("Taverns: ", currentRegionData.locations[(int)DFRegion.LocationTypes.Tavern].ToString(), GUILayout.MaxWidth(200.0f));
+                    EditorGUILayout.LabelField(((float)currentRegionData.locations[(int)DFRegion.LocationTypes.Tavern] * 100.0f / (float)currentRegionData.surface).ToString(), "%", GUILayout.MaxWidth(150.0f));
+                    EditorGUILayout.LabelField("", (CalculateInteger(RegionManager.currentRegionData.surface, genOptions.locationDensity[(int)(DFRegion.LocationTypes.Tavern)])).ToString());
+                    GUILayout.EndHorizontal();
+                    GUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField("Farms: ", currentRegionData.locations[(int)DFRegion.LocationTypes.HomeFarms].ToString(), GUILayout.MaxWidth(200.0f));
+                    EditorGUILayout.LabelField(((float)currentRegionData.locations[(int)DFRegion.LocationTypes.HomeFarms] * 100.0f / (float)currentRegionData.surface).ToString(), "%", GUILayout.MaxWidth(150.0f));
+                    EditorGUILayout.LabelField("", (CalculateInteger(RegionManager.currentRegionData.surface, genOptions.locationDensity[(int)(DFRegion.LocationTypes.HomeFarms)])).ToString());
                     GUILayout.EndHorizontal();
                     GUILayout.Space(20.0f);
                     GUILayout.BeginHorizontal();
-                    EditorGUILayout.LabelField("Large Dungeons: ", currentRegionData.locations[(int)DFRegion.LocationTypes.DungeonLabyrinth].ToString());
-                    EditorGUILayout.LabelField(((float)currentRegionData.locations[(int)DFRegion.LocationTypes.DungeonLabyrinth] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
+                    EditorGUILayout.LabelField("Temples: ", currentRegionData.locations[(int)DFRegion.LocationTypes.ReligionTemple].ToString(), GUILayout.MaxWidth(200.0f));
+                    EditorGUILayout.LabelField(((float)currentRegionData.locations[(int)DFRegion.LocationTypes.ReligionTemple] * 100.0f / (float)currentRegionData.surface).ToString(), "%", GUILayout.MaxWidth(150.0f));
+                    EditorGUILayout.LabelField("", (CalculateInteger(RegionManager.currentRegionData.surface, genOptions.locationDensity[(int)(DFRegion.LocationTypes.ReligionTemple)])).ToString());
                     GUILayout.EndHorizontal();
                     GUILayout.BeginHorizontal();
-                    EditorGUILayout.LabelField("Medium Dungeons: ", currentRegionData.locations[(int)DFRegion.LocationTypes.DungeonKeep].ToString());
-                    EditorGUILayout.LabelField(((float)currentRegionData.locations[(int)DFRegion.LocationTypes.DungeonKeep] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
+                    EditorGUILayout.LabelField("Cult Sites: ", currentRegionData.locations[(int)DFRegion.LocationTypes.ReligionCult].ToString(), GUILayout.MaxWidth(200.0f));
+                    EditorGUILayout.LabelField(((float)currentRegionData.locations[(int)DFRegion.LocationTypes.ReligionCult] * 100.0f / (float)currentRegionData.surface).ToString(), "%", GUILayout.MaxWidth(150.0f));
+                    EditorGUILayout.LabelField("", (CalculateInteger(RegionManager.currentRegionData.surface, genOptions.locationDensity[(int)(DFRegion.LocationTypes.ReligionCult)])).ToString());
                     GUILayout.EndHorizontal();
                     GUILayout.BeginHorizontal();
-                    EditorGUILayout.LabelField("Small Dungeons: ", currentRegionData.locations[(int)DFRegion.LocationTypes.DungeonRuin].ToString());
-                    EditorGUILayout.LabelField(((float)currentRegionData.locations[(int)DFRegion.LocationTypes.DungeonRuin] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
+                    EditorGUILayout.LabelField("Witch Covens: ", currentRegionData.locations[(int)DFRegion.LocationTypes.Coven].ToString(), GUILayout.MaxWidth(200.0f));
+                    EditorGUILayout.LabelField(((float)currentRegionData.locations[(int)DFRegion.LocationTypes.Coven] * 100.0f / (float)currentRegionData.surface).ToString(), "%", GUILayout.MaxWidth(150.0f));
+                    EditorGUILayout.LabelField("", (CalculateInteger(RegionManager.currentRegionData.surface, genOptions.locationDensity[(int)(DFRegion.LocationTypes.Coven)])).ToString());
+                    GUILayout.EndHorizontal();
+                    GUILayout.Space(20.0f);
+                    GUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField("Large Dungeons: ", currentRegionData.locations[(int)DFRegion.LocationTypes.DungeonLabyrinth].ToString(), GUILayout.MaxWidth(200.0f));
+                    EditorGUILayout.LabelField(((float)currentRegionData.locations[(int)DFRegion.LocationTypes.DungeonLabyrinth] * 100.0f / (float)currentRegionData.surface).ToString(), "%", GUILayout.MaxWidth(150.0f));
+                    EditorGUILayout.LabelField("", (CalculateInteger(RegionManager.currentRegionData.surface, genOptions.locationDensity[(int)(DFRegion.LocationTypes.DungeonLabyrinth)])).ToString());
                     GUILayout.EndHorizontal();
                     GUILayout.BeginHorizontal();
-                    EditorGUILayout.LabelField("Negligible Dungeons: ", currentRegionData.locations[(int)DFRegion.LocationTypes.DungeonMinor].ToString());
-                    EditorGUILayout.LabelField(((float)currentRegionData.locations[(int)DFRegion.LocationTypes.DungeonMinor] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
+                    EditorGUILayout.LabelField("Medium Dungeons: ", currentRegionData.locations[(int)DFRegion.LocationTypes.DungeonKeep].ToString(), GUILayout.MaxWidth(200.0f));
+                    EditorGUILayout.LabelField(((float)currentRegionData.locations[(int)DFRegion.LocationTypes.DungeonKeep] * 100.0f / (float)currentRegionData.surface).ToString(), "%", GUILayout.MaxWidth(150.0f));
+                    EditorGUILayout.LabelField("", (CalculateInteger(RegionManager.currentRegionData.surface, genOptions.locationDensity[(int)(DFRegion.LocationTypes.DungeonKeep)])).ToString());
+                    GUILayout.EndHorizontal();
+                    GUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField("Small Dungeons: ", currentRegionData.locations[(int)DFRegion.LocationTypes.DungeonRuin].ToString(), GUILayout.MaxWidth(200.0f));
+                    EditorGUILayout.LabelField(((float)currentRegionData.locations[(int)DFRegion.LocationTypes.DungeonRuin] * 100.0f / (float)currentRegionData.surface).ToString(), "%", GUILayout.MaxWidth(150.0f));
+                    EditorGUILayout.LabelField("", (CalculateInteger(RegionManager.currentRegionData.surface, genOptions.locationDensity[(int)(DFRegion.LocationTypes.DungeonRuin)])).ToString());
+                    GUILayout.EndHorizontal();
+                    GUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField("Negligible Dungeons: ", currentRegionData.locations[(int)DFRegion.LocationTypes.DungeonMinor].ToString(), GUILayout.MaxWidth(200.0f));
+                    EditorGUILayout.LabelField(((float)currentRegionData.locations[(int)DFRegion.LocationTypes.DungeonMinor] * 100.0f / (float)currentRegionData.surface).ToString(), "%", GUILayout.MaxWidth(150.0f));
+                    EditorGUILayout.LabelField("", (CalculateInteger(RegionManager.currentRegionData.surface, genOptions.locationDensity[(int)(DFRegion.LocationTypes.DungeonMinor)])).ToString());
                     GUILayout.EndHorizontal();
                     GUILayout.Space(20.0f);
                     int allLocationsCount = 0;
@@ -336,8 +353,9 @@ namespace MapEditor
                         allLocationsCount += currentRegionData.locations[i];
                     }
                     GUILayout.BeginHorizontal();
-                    EditorGUILayout.LabelField("All Locations: ", allLocationsCount.ToString());
-                    EditorGUILayout.LabelField(((float)allLocationsCount * 100.0f / (float)currentRegionData.surface).ToString(), "%");
+                    EditorGUILayout.LabelField("All Locations: ", allLocationsCount.ToString(), GUILayout.MaxWidth(200.0f));
+                    EditorGUILayout.LabelField(((float)allLocationsCount * 100.0f / (float)currentRegionData.surface).ToString(), "%", GUILayout.MaxWidth(150.0f));
+                    // EditorGUILayout.LabelField("", (CalculateInteger(RegionManager.currentRegionData.surface, genOptions.locationDensity[(int)(DFRegion.LocationTypes.DungeonMinor)])).ToString());
                     GUILayout.EndHorizontal();
                     EditorGUILayout.LabelField("Location Id range: ", currentRegionData.lowestLocationId + " - " + currentRegionData.highestLocationId);
                 }
@@ -353,46 +371,46 @@ namespace MapEditor
             {
                 if (currentRegionData.surface != 0)
                 {
-                GUILayout.BeginHorizontal();
-                EditorGUILayout.LabelField("Ocean: ", "");
-                EditorGUILayout.LabelField(((float)currentRegionData.climates[0] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
-                GUILayout.EndHorizontal();
-                GUILayout.BeginHorizontal();
-                EditorGUILayout.LabelField("Desert: ", "");
-                EditorGUILayout.LabelField(((float)currentRegionData.climates[(int)MapsFile.Climates.Desert - (int)MapsFile.Climates.Ocean] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
-                GUILayout.EndHorizontal();
-                GUILayout.BeginHorizontal();
-                EditorGUILayout.LabelField("Desert2: ", "");
-                EditorGUILayout.LabelField(((float)currentRegionData.climates[(int)MapsFile.Climates.Desert2 - (int)MapsFile.Climates.Ocean] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
-                GUILayout.EndHorizontal();
-                GUILayout.BeginHorizontal();
-                EditorGUILayout.LabelField("Mountain: ", "");
-                EditorGUILayout.LabelField(((float)currentRegionData.climates[(int)MapsFile.Climates.Mountain - (int)MapsFile.Climates.Ocean] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
-                GUILayout.EndHorizontal();
-                GUILayout.BeginHorizontal();
-                EditorGUILayout.LabelField("Rainforest: ", "");
-                EditorGUILayout.LabelField(((float)currentRegionData.climates[(int)MapsFile.Climates.Rainforest - (int)MapsFile.Climates.Ocean] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
-                GUILayout.EndHorizontal();
-                GUILayout.BeginHorizontal();
-                EditorGUILayout.LabelField("Swamp: ", "");
-                EditorGUILayout.LabelField(((float)currentRegionData.climates[(int)MapsFile.Climates.Swamp - (int)MapsFile.Climates.Ocean] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
-                GUILayout.EndHorizontal();
-                GUILayout.BeginHorizontal();
-                EditorGUILayout.LabelField("Subtropical: ", "");
-                EditorGUILayout.LabelField(((float)currentRegionData.climates[(int)MapsFile.Climates.Subtropical - (int)MapsFile.Climates.Ocean] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
-                GUILayout.EndHorizontal();
-                GUILayout.BeginHorizontal();
-                EditorGUILayout.LabelField("Mountain Woods: ", "");
-                EditorGUILayout.LabelField(((float)currentRegionData.climates[(int)MapsFile.Climates.MountainWoods - (int)MapsFile.Climates.Ocean] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
-                GUILayout.EndHorizontal();
-                GUILayout.BeginHorizontal();
-                EditorGUILayout.LabelField("Woodlands: ", "");
-                EditorGUILayout.LabelField(((float)currentRegionData.climates[(int)MapsFile.Climates.Woodlands - (int)MapsFile.Climates.Ocean] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
-                GUILayout.EndHorizontal();
-                GUILayout.BeginHorizontal();
-                EditorGUILayout.LabelField("Haunted Woodlands: ", "");
-                EditorGUILayout.LabelField(((float)currentRegionData.climates[(int)MapsFile.Climates.HauntedWoodlands - (int)MapsFile.Climates.Ocean] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
-                GUILayout.EndHorizontal();
+                    GUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField("Ocean: ", "");
+                    EditorGUILayout.LabelField(((float)currentRegionData.climates[0] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
+                    GUILayout.EndHorizontal();
+                    GUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField("Desert: ", "");
+                    EditorGUILayout.LabelField(((float)currentRegionData.climates[(int)MapsFile.Climates.Desert - (int)MapsFile.Climates.Ocean] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
+                    GUILayout.EndHorizontal();
+                    GUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField("Desert2: ", "");
+                    EditorGUILayout.LabelField(((float)currentRegionData.climates[(int)MapsFile.Climates.Desert2 - (int)MapsFile.Climates.Ocean] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
+                    GUILayout.EndHorizontal();
+                    GUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField("Mountain: ", "");
+                    EditorGUILayout.LabelField(((float)currentRegionData.climates[(int)MapsFile.Climates.Mountain - (int)MapsFile.Climates.Ocean] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
+                    GUILayout.EndHorizontal();
+                    GUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField("Rainforest: ", "");
+                    EditorGUILayout.LabelField(((float)currentRegionData.climates[(int)MapsFile.Climates.Rainforest - (int)MapsFile.Climates.Ocean] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
+                    GUILayout.EndHorizontal();
+                    GUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField("Swamp: ", "");
+                    EditorGUILayout.LabelField(((float)currentRegionData.climates[(int)MapsFile.Climates.Swamp - (int)MapsFile.Climates.Ocean] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
+                    GUILayout.EndHorizontal();
+                    GUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField("Subtropical: ", "");
+                    EditorGUILayout.LabelField(((float)currentRegionData.climates[(int)MapsFile.Climates.Subtropical - (int)MapsFile.Climates.Ocean] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
+                    GUILayout.EndHorizontal();
+                    GUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField("Mountain Woods: ", "");
+                    EditorGUILayout.LabelField(((float)currentRegionData.climates[(int)MapsFile.Climates.MountainWoods - (int)MapsFile.Climates.Ocean] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
+                    GUILayout.EndHorizontal();
+                    GUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField("Woodlands: ", "");
+                    EditorGUILayout.LabelField(((float)currentRegionData.climates[(int)MapsFile.Climates.Woodlands - (int)MapsFile.Climates.Ocean] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
+                    GUILayout.EndHorizontal();
+                    GUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField("Haunted Woodlands: ", "");
+                    EditorGUILayout.LabelField(((float)currentRegionData.climates[(int)MapsFile.Climates.HauntedWoodlands - (int)MapsFile.Climates.Ocean] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
+                    GUILayout.EndHorizontal();
                 }
                 else
                 {
@@ -574,13 +592,13 @@ namespace MapEditor
 
         protected void OpenNewRegionWindow()
         {
-            NewRegionWindow newRegionWindow = (NewRegionWindow) EditorWindow.GetWindow(typeof(NewRegionWindow), false, "New Region");
+            NewRegionWindow newRegionWindow = (NewRegionWindow)EditorWindow.GetWindow(typeof(NewRegionWindow), false, "New Region");
             newRegionWindow.Show();
         }
 
         protected void OpenGenerateLocationsWindow()
         {
-            GenerateLocationsWindow generateLocationsWindow = (GenerateLocationsWindow) EditorWindow.GetWindow(typeof(GenerateLocationsWindow), false, "Locations Generator");
+            GenerateLocationsWindow generateLocationsWindow = (GenerateLocationsWindow)EditorWindow.GetWindow(typeof(GenerateLocationsWindow), false, "Locations Generator");
             generateLocationsWindow.Show();
         }
 
@@ -614,11 +632,54 @@ namespace MapEditor
                 {
                     regionData[k] = (float)currentRegionData.climates[k - 15] * 100.0f / (float)currentRegionData.surface;
                 }
-                
+
                 dataPath = Path.Combine(MapEditor.testPath, "Data", "region" + i.ToString() + "B.json");
                 json = JsonConvert.SerializeObject(regionData, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
                 File.WriteAllText(dataPath, json);
             }
+        }
+
+        protected static string GetRacesForDisplay(int races)
+        {
+            if (races / 100 == races % 10 && races / 100 == ((races / 10) % 10))
+                return ((DaggerfallWorkshop.Game.Entity.Races)(races % 10)).ToString();
+            else if (races / 100 == ((races / 10) % 10))
+                return "Mainly " + ((DaggerfallWorkshop.Game.Entity.Races)(races / 100)).ToString() +
+                        "s, minor community of " + ((DaggerfallWorkshop.Game.Entity.Races)(races % 10)).ToString() + "s";
+            else if (races % 10 == ((races / 10) % 10))
+                return "Mainly " + ((DaggerfallWorkshop.Game.Entity.Races)(races / 100)).ToString() +
+                        "s, secondary community of " + ((DaggerfallWorkshop.Game.Entity.Races)(races % 10)).ToString() + "s";
+            else if (races / 100 == races % 10)
+                return "Mainly " + ((DaggerfallWorkshop.Game.Entity.Races)(races / 100)).ToString() +
+                        "s, small community of " + ((DaggerfallWorkshop.Game.Entity.Races)((races / 10) % 10)).ToString() + "s";
+            else
+                return "Mainly " + ((DaggerfallWorkshop.Game.Entity.Races)(races / 100)).ToString() +
+                        "s, small community of " + ((DaggerfallWorkshop.Game.Entity.Races)((races / 10) % 10)).ToString() +
+                        "s, minor community of " + ((DaggerfallWorkshop.Game.Entity.Races)(races % 10)).ToString() + "s";
+        }
+
+        protected void InitializeLocationDensity()
+        {
+            for (int i = 0; i < (int)DFRegion.LocationTypes.HomeYourShips; i++)
+            {
+                genOptions.locationDensity[i] = 0;
+
+                for (int j = 0; j <= ((int)MapsFile.Climates.HauntedWoodlands - (int)MapsFile.Climates.Ocean); j++)
+                {
+                    genOptions.locationDensity[i] += (GenerateLocationsWindow.locationDensity[j, i] * GenerateLocationsWindow.governmentModifier[(RegionManager.currentRegionData.governType + 1) / 2, i] * ((float)RegionManager.currentRegionData.climates[j] * 100.0f / (float)RegionManager.currentRegionData.surface)) / 100.0f;
+                }
+
+                genOptions.locationDensity[i] += (UnityEngine.Random.Range(-0.10f, 0.10f) * genOptions.locationDensity[i]);
+            }
+        }
+
+        protected int CalculateInteger(int surface, float density)
+        {
+            float result = density * (float)surface / 100.0f;
+
+            if ((result - (int)result) < 0.5f)
+                return (int)result;
+            else return (int)result + 1;
         }
     }
 
@@ -646,7 +707,7 @@ namespace MapEditor
             newRegionData.population = EditorGUILayout.IntField("Population: ", newRegionData.population); // right now this is simply used with each digit pointing to a certain race, from the most to the least common
             tempDeity = (ushort)EditorGUILayout.Popup("Deity: ", tempDeity, FactionManager.factionNames[(int)FactionFile.FactionTypes.Temple], GUILayout.MaxWidth(250.0f)); // int points to the faction Id of the main deity for this region
             newRegionData.deity = (ushort)FactionAtlas.FactionToId[FactionManager.factionNames[(int)FactionFile.FactionTypes.Temple][tempDeity]];
-            EditorGUILayout.Space(); 
+            EditorGUILayout.Space();
 
 
 
@@ -718,7 +779,7 @@ namespace MapEditor
                     for (int n = 0; n < RegionManager.borderLimit; n++)
                     {
                         modifiedWorldInfo.regionBorders[newRegionIndex * RegionManager.borderLimit + n] = 0;
-                    }                    
+                    }
                 }
                 else
                 {
@@ -803,7 +864,7 @@ namespace MapEditor
                     newFaction.minf = 20;
                     newFaction.maxf = 80;
                 }
-                else 
+                else
                 {
                     newFaction.name = "People of " + region.regionName;
                     newFaction.flat1 = 23316;
@@ -818,7 +879,7 @@ namespace MapEditor
                 newFaction.vam = 0;
                 newFaction.children = null;
             }
-            
+
             newFaction.rep = 0;
             newFaction.summon = -1;
             newFaction.region = newRegionIndex;
@@ -828,21 +889,21 @@ namespace MapEditor
             newFaction.ally1 = newFaction.ally2 = newFaction.ally3 = 0;
             newFaction.enemy1 = newFaction.enemy2 = newFaction.enemy3 = 0;
             newFaction.face = -1;
-            newFaction.race = region.population;            
-            
+            newFaction.race = region.population;
+
             newFaction.rank = 0;
             newFaction.rulerNameSeed = 0;
             newFaction.rulerPowerBonus = 0;
             newFaction.ptrToNextFactionAtSameHierarchyLevel = 0;
             newFaction.ptrToFirstChildFaction = 0;
-            newFaction.ptrToParentFaction = 0;           
+            newFaction.ptrToParentFaction = 0;
 
             return newFaction;
         }
 
         protected int GetAvailableFactionId(Dictionary<int, FactionFile.FactionData> factions, int startingFrom = 201)
         {
-            for (int i = startingFrom; i < int.MaxValue; i ++)
+            for (int i = startingFrom; i < int.MaxValue; i++)
             {
                 if (!factions.ContainsKey(i))
                     return i;
