@@ -98,6 +98,8 @@ namespace DaggerfallConnect
         {
             Color32[] colors = new Color32[Width * Height];
 
+            Debug.Log("Width: " + Width + ", Height: " + Height + ", Data.Length: " + Data.Length);
+
             Color32 c = new Color32();
             int index, offset, srcRow, dstRow;
             for (int y = 0; y < Height; y++)

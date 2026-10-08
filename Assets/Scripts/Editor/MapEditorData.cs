@@ -156,7 +156,9 @@ namespace MapEditor
             Y = Worldmaps.Worldmap[regionIndex].Locations[mapIndex].Dungeon.RecordElement.Header.Y;
             LocationId = Worldmaps.Worldmap[regionIndex].Locations[mapIndex].Dungeon.RecordElement.Header.LocationId;
             DungeonName = Worldmaps.Worldmap[regionIndex].Locations[mapIndex].Dungeon.RecordElement.Header.LocationName;
-            BlockCount = Worldmaps.Worldmap[regionIndex].Locations[mapIndex].Dungeon.Header.BlockCount;
+            if (Worldmaps.Worldmap[regionIndex].Locations[mapIndex].HasDungeon)
+                BlockCount = Worldmaps.Worldmap[regionIndex].Locations[mapIndex].Dungeon.Blocks.Length;
+            else BlockCount = 0;
 
             if (BlockCount > 0)
             {
@@ -183,6 +185,7 @@ namespace MapEditor
 
         public void GetBlocksData(int x, int y, int regionIndex, int mapIndex, int block)
         {
+            // Debug.Log("regionIndex: " + regionIndex + ", mapIndex: " + mapIndex + ", block: " + block);
             X = Worldmaps.Worldmap[regionIndex].Locations[mapIndex].Dungeon.Blocks[block].X;
             Z = Worldmaps.Worldmap[regionIndex].Locations[mapIndex].Dungeon.Blocks[block].Z;
             IsStartingBlock = Worldmaps.Worldmap[regionIndex].Locations[mapIndex].Dungeon.Blocks[block].IsStartingBlock;

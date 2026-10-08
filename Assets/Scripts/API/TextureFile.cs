@@ -518,11 +518,11 @@ namespace DaggerfallConnect.Arena2
             int fakeArchive = archive;
             if (archive >= 100000) fakeArchive = archive / 100 * 100;
             string recordName = archive.ToString("0000000") + "_" + record.ToString() + "-" + frame.ToString() + ".png";
-            if (!File.Exists(Path.Combine(path, "Textures", recordName)))
+            if (!File.Exists(Path.Combine(path, "Textures", fakeArchive.ToString(), recordName)))
             {
                 recordName = fakeArchive.ToString("0000000") + "_" + record.ToString() + "-" + frame.ToString() + ".png";
             }
-            byte[] fileBytes = File.ReadAllBytes(Path.Combine(path, "Textures", recordName));
+            byte[] fileBytes = File.ReadAllBytes(Path.Combine(path, "Textures", fakeArchive.ToString(), recordName));
 
             fakeReader = JsonConvert.DeserializeObject<FakeHeader>(File.ReadAllText(Path.Combine(TextureReader.MapsPath, "Textures", "TEXTURE." + fakeArchive.ToString("0000000"))));
             ReadFakeHeader();

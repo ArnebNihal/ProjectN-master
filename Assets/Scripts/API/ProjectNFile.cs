@@ -464,9 +464,9 @@ namespace DaggerfallConnect.Arena2
 
             // Get mapId from locationId
             ulong mapId = LocationIdToMapId(locationId);
-            if (WorldMaps.mapDict.ContainsKey(mapId))
+            if (mapDict.ContainsKey(mapId))
             {
-                MapSummary summary = WorldMaps.mapDict[mapId];
+                MapSummary summary = mapDict[mapId];
                 return GetLocation(GetRelativeTile(LocalPlayerGPS.CurrentMapPixel), summary.MapIndex, out locationOut);
             }
 
@@ -597,6 +597,11 @@ namespace DaggerfallConnect.Arena2
         {
             int index = y * dfLocation.Exterior.ExteriorData.Width + x;
             return dfLocation.Exterior.ExteriorData.BlockNames[index];
+        }
+
+        public static DFPosition ConvertMapIdToDFPosition(ulong mapId)
+        {
+            return new DFPosition((int)(mapId % MapsFile.MaxMapPixelX), (int)(mapId / MapsFile.MaxMapPixelX));
         }
     }
 
@@ -811,6 +816,31 @@ namespace DaggerfallConnect.Arena2
             PoliticData.ConvertToMatrix(textureTiles, out politic);
 
             return politic[x % MapsFile.TileDim, y % MapsFile.TileDim] - 128;
+        }
+
+        public static int ConvertMapIdToRegionIndex(ulong mapId)
+        {
+            DFPosition pos = WorldMaps.ConvertMapIdToDFPosition(mapId);
+            return GetAbsPoliticValue(pos.X, pos.Y);
+        }
+
+        public static DFRegion.LocationTypes GetLocTypeFromMapId(ulong mapId, int locIndex, out byte townAttributes)
+        {
+            townAttributes = 0;
+            DFPosition pos = WorldMaps.ConvertMapIdToDFPosition(mapId);
+            if (!WorldMaps.HasLocation(pos.X, pos.Y, out MapSummary summaryOut))
+                return DFRegion.LocationTypes.None;
+            if (summaryOut.LocationType != DFRegion.LocationTypes.TownCity ||
+                summaryOut.LocationType != DFRegion.LocationTypes.TownHamlet)
+                return summaryOut.LocationType;
+            townAttributes = GetTownAttributesFromMapId(mapId, locIndex);
+            return summaryOut.LocationType;
+        }
+
+        public static byte GetTownAttributesFromMapId(ulong mapId, int locIndex)
+        {
+            DFPosition pos = WorldMaps.ConvertMapIdToDFPosition(mapId);
+            return WorldMaps.WorldMap[WorldMaps.GetRelativeTile(pos.X, pos.Y)].Locations[locIndex].Exterior.ExteriorData.PortTownAndUnknown;
         }
 
         public static void ConvertToMatrix(Texture2D imageToTranslate, out int[,] matrix)

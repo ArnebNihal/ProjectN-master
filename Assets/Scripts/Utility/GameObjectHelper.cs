@@ -23,6 +23,7 @@ using DaggerfallWorkshop.Game.Serialization;
 using DaggerfallWorkshop.Game.Utility;
 using DaggerfallWorkshop.Utility.AssetInjection;
 using System.Linq;
+using Newtonsoft.Json;
 
 namespace DaggerfallWorkshop.Utility
 {
@@ -41,6 +42,9 @@ namespace DaggerfallWorkshop.Utility
                 return enemyDict;
             }
         }
+
+        public static (int, int)[][][][] billboardType = FlatCategories.InitialiseBillboardType();
+        public static Dictionary<int, int> billboardDict = JsonConvert.DeserializeObject<Dictionary<int, int>>(Path.Combine(WorldMaps.mapPath, "flatDict.json"));;
 
         // Animal sounds range. Matched to classic.
         const float animalSoundMaxDistance = 768 * MeshReader.GlobalScale;
@@ -569,7 +573,7 @@ namespace DaggerfallWorkshop.Utility
             RMBLayout.AddLights(ref blockData, flatsNode.transform, lightsNode.transform, lightsBillboardBatch);
 
             // Layout nature billboards
-            RMBLayout.AddNatureFlats(ref blockData, flatsNode.transform, natureBillboardBatch, climateNature, climateSeason);
+            RMBLayout.AddNatureFlats(ref blockData, flatsNode.transform, mapId + (ulong)(layoutX + layoutY * 8), natureBillboardBatch, climateNature, climateSeason);
 
             // Layout all other flats
             RMBLayout.AddMiscBlockFlats(ref blockData, flatsNode.transform, mapId, locationIndex, animalsBillboardBatch, miscBillboardAtlas, miscBillboardBatch);

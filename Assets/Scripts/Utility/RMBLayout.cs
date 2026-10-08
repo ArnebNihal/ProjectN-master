@@ -4,7 +4,7 @@
 // License:         MIT License (http://www.opensource.org/licenses/mit-license.php)
 // Source Code:     https://github.com/Interkarma/daggerfall-unity
 // Original Author: Gavin Clayton (interkarma@dfworkshop.net)
-// Contributors:    
+// Contributors:    Arneb
 // 
 // Notes:
 //
@@ -33,6 +33,7 @@ namespace DaggerfallWorkshop.Utility
         public const int RMBTilesPerTerrain = 128;
         public const float RMBSide = 4096f * MeshReader.GlobalScale;
         public const float RMBTileSide = 256f * MeshReader.GlobalScale;
+        public static int[][] sceneryType = new int[36][];
 
         const float propsOffsetY = -4f;
         const float blockFlatsOffsetY = -6f;
@@ -217,28 +218,85 @@ namespace DaggerfallWorkshop.Utility
             return go;
         }
 
+        public static void InitialiseSceneryType()
+        {
+            sceneryType[0] = new int[] { 1, 2, 5, 6, 7, 8, 9, 10, 11, 20, 21, 22, 23, 24, 26, 27, 29, 31 };     // Rainforest plants
+            sceneryType[1] = new int[] { 4, 17, 19, 28 };                                                       // Rainforest stones
+            sceneryType[2] = new int[] { 3, 12, 13, 14, 15, 16, 18, 25, 30 };                                   // Rainforest trees
+
+            sceneryType[3] = new int[] { 1, 2, 7, 8, 9, 14, 18, 20, 21, 22, 25, 26, 27, 28, 29, 31 };           // Sub Tropical plants
+            sceneryType[4] = new int[] { 3, 4, 5, 6, 10, 23 };                                                  // Sub Tropical stones
+            sceneryType[5] = new int[] { 11, 12, 13, 15, 16, 17, 19, 24, 30 };                                  // Sub Tropical trees
+
+            sceneryType[6] = new int[] { 1, 7, 8, 9, 11, 14, 20, 21, 22, 23, 26, 27, 28, 29, 31 };              // Swamp plants
+            sceneryType[7] = new int[] { 2, 3, 4, 5, 6, 10 };                                                   // Swamp stones
+            sceneryType[8] = new int[] { 12, 13, 15, 16, 17, 18, 19, 24, 25, 30 };                              // Swamp trees
+
+            sceneryType[9] = new int[] { 1, 7, 8, 9, 10, 14, 15, 16, 17, 23, 24, 25, 26, 27, 29, 31 };          // Desert plants
+            sceneryType[10] = new int[] { 2, 3, 4, 6, 18, 19, 20, 22 };                                         // Desert stones
+            sceneryType[11] = new int[] { 5, 11, 12, 13, 28, 30 };                                              // Desert trees
+
+            sceneryType[12] = new int[] { 1, 2, 7, 8, 9, 10, 21, 22, 23, 24, 26, 27, 28, 29, 31 };                     // Temperate Woodland plants
+            sceneryType[13] = new int[] { 3, 4, 5, 6 };                                                         // Temperate Woodland stones
+            sceneryType[14] = new int[] { 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 25, 30 };                 // Temperate Woodland trees
+
+            sceneryType[15] = new int[] { 1, 7, 8, 9, 10, 21, 22, 23, 24, 26, 27, 28, 29 };                     // Snow Woodland plants
+            sceneryType[16] = new int[] { 3, 4, 5, 6 };                                                         // Snow Woodland stones
+            sceneryType[17] = new int[] { 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 25, 30, 31 };                 // Snow Woodland trees
+
+            sceneryType[18] = new int[] { 2, 7, 8, 9, 21, 22, 23, 26, 27, 29, 31 };                             // Woodland Hills plants
+            sceneryType[19] = new int[] { 1, 3, 4, 6, 17, 18, 28 };                                             // Woodland Hills stones
+            sceneryType[20] = new int[] { 5, 10, 11, 12, 13, 14, 15, 16, 19, 20, 24, 25, 30 };                  // Woodland Hills trees
+
+            sceneryType[21] = new int[] { 7, 8, 9, 21, 22, 23, 26, 27, 29, 30, 31 };                            // Snow Woodland Hills plants
+            sceneryType[22] = new int[] { 1, 3, 4, 6, 17, 18, 28 };                                             // Snow Woodland Hills stones
+            sceneryType[23] = new int[] { 2, 5, 10, 11, 12, 13, 14, 15, 16, 19, 20, 24, 25 };                   // Snow Woodland Hills trees
+
+            sceneryType[24] = new int[] { 2, 7, 8, 9, 11, 14, 21, 22, 23, 26, 27, 28, 29 };                     // Haunted Woodland plants
+            sceneryType[25] = new int[] { 1, 3, 4, 5, 6, 10, 12, 17 };                                          // Haunted Woodland stones
+            sceneryType[26] = new int[] { 13, 15, 16, 18, 19, 20, 24, 25, 30, 31 };                             // Haunted Woodland trees
+
+            sceneryType[27] = new int[] { 2, 7, 8, 9, 11, 14, 21, 22, 23, 26, 27, 28, 29 };                     // Snow Haunted Woodland plants
+            sceneryType[28] = new int[] { 1, 3, 4, 5, 6, 10, 12, 17 };                                          // Snow Haunted Woodland stones
+            sceneryType[29] = new int[] { 13, 15, 16, 18, 19, 20, 24, 25, 30, 31 };                             // Snow Haunted Woodland trees
+
+            sceneryType[30] = new int[] { 2, 7, 8, 9, 10, 21, 22, 23, 26, 29 };                                 // Mountain plants
+            sceneryType[31] = new int[] { 1, 3, 4, 6, 14, 17, 18, 27, 28, 31 };                                 // Mountain stones
+            sceneryType[32] = new int[] { 5, 11, 12, 13, 15, 16, 19, 20, 24, 25, 30 };                          // Mountain trees
+
+            sceneryType[33] = new int[] { 7, 8, 9, 10, 21, 22, 23, 26, 29, 30 };                                // Snow Mountain plants
+            sceneryType[34] = new int[] { 1, 3, 4, 6, 12, 14, 17, 18, 27, 28, 31 };                             // Snow Mountain stones
+            sceneryType[35] = new int[] { 2, 5, 11, 13, 15, 16, 19, 20, 24, 25 };                               // Snow Mountain trees
+        }
+
         /// <summary>
         /// Add nature billboards.
         /// </summary>
         public static void AddNatureFlats(
             ref DFBlock blockData,
             Transform flatsParent,
+            ulong randSeed,
             DaggerfallBillboardBatch billboardBatch = null,
             ClimateNatureSets climateNature = ClimateNatureSets.TemperateWoodland,
             ClimateSeason climateSeason = ClimateSeason.Summer)
         {
             DaggerfallUnity dfUnity = DaggerfallUnity.Instance;
+
             if (!dfUnity.IsReady)
                 return;
+            bool randomiseStuff = int.TryParse(blockData.Name.Substring(3, 1), out int uselessValue);
+            InitialiseSceneryType();
 
+            UnityEngine.Random.InitState(Convert.ToInt32(randSeed));
             for (int y = 0; y < 16; y++)
             {
                 for (int x = 0; x < 16; x++)
                 {
                     // Get scenery item - ignore indices -1 (empty) and 0 (marker/waypoint of some kind)
-                    DFBlock.RmbGroundScenery scenery = blockData.RmbBlock.FldHeader.GroundData.GroundScenery[x, 15 - y];
-                    if (scenery.TextureRecord < 1)
+                    if (blockData.RmbBlock.FldHeader.GroundData.GroundScenery[x, 15 - y].TextureRecord < 1)
                         continue;
+                    DFBlock.RmbGroundScenery scenery;
+                    scenery = randomiseStuff ? GetRandomScenery(billboardBatch.TextureArchive, billboardBatch.TextureArchive, blockData.RmbBlock.FldHeader.GroundData.GroundScenery[x, 15 - y].TextureRecord) : blockData.RmbBlock.FldHeader.GroundData.GroundScenery[x, 15 - y];
 
                     // Calculate position
                     Vector3 billboardPosition = new Vector3(
@@ -266,6 +324,32 @@ namespace DaggerfallWorkshop.Utility
                     }
                 }
             }
+        }
+
+        public static DFBlock.RmbGroundScenery GetRandomScenery(int oldArchive, int archive, int texture)
+        {
+            int sceneryTypeIndex = GetScenerySubType(oldArchive, texture);
+            Debug.Log("Scenery Sub Type: " + sceneryTypeIndex + ", Scenery Type Index: " + ((archive - 500) * 3 + sceneryTypeIndex));
+            DFBlock.RmbGroundScenery rmbGroundScenery = new DFBlock.RmbGroundScenery
+            {
+                TextureRecord = sceneryType[(archive - 500) * 3 + sceneryTypeIndex][UnityEngine.Random.Range(0, sceneryType[(archive - 500) * 3 + sceneryTypeIndex].Length)]
+            };
+
+            return rmbGroundScenery;
+        }
+
+        public static int GetScenerySubType(int archive, int record)
+        { 
+            int index = (archive - 500) * 3;
+
+            for (int i = 0; i < 3; i++)
+            {
+                if (sceneryType[index + i].Contains(record))
+                    return i;
+            }
+
+            Debug.Log("Scenery Type Index not found for archive " + archive + ", record " + record + ". Returning default index 0.");
+            return 0;
         }
 
         /// <summary>
@@ -336,12 +420,17 @@ namespace DaggerfallWorkshop.Utility
             if (!dfUnity.IsReady)
                 return;
 
+            bool randomiseStuff = int.TryParse(blockData.Name.Substring(3, 1), out int uselessValue);
+
             // Add block flats
             foreach (DFBlock.RmbBlockFlatObjectRecord obj in blockData.RmbBlock.MiscFlatObjectRecords)
             {
                 // Ignore lights as they are handled by AddLights()
                 if (obj.TextureArchive == TextureReader.LightsTextureArchive)
                     continue;
+
+                DFBlock.RmbBlockFlatObjectRecord swapObj;
+                swapObj = ApplyFlags(obj, mapId, locationIndex);
 
                 // Calculate position
                 Vector3 billboardPosition = new Vector3(
@@ -377,6 +466,59 @@ namespace DaggerfallWorkshop.Utility
                     QuestMachine.Instance.SetupIndividualStaticNPC(go, obj.FactionID);
                 }
             }
+        }
+
+        public static DFBlock.RmbBlockFlatObjectRecord ApplyFlags(DFBlock.RmbBlockFlatObjectRecord flat, ulong mapId, int locationIndex)
+        {
+            bool randomNPC = flat.Flags % 2 > 0;
+            if (!randomNPC) return flat;
+            bool female = (flat.Flags >> 4) % 2 > 0;
+            bool randomRace = (flat.Flags >> 6) % 2 > 0;
+
+            if (randomRace)
+            {
+                int races = WorldData.WorldSetting.regionRaces[PoliticData.ConvertMapIdToRegionIndex(mapId)];
+                int selectedRace = GetNPCRace(races, PoliticData.GetLocTypeFromMapId(mapId, locationIndex, out byte townAttributes), townAttributes);
+            }
+        }
+
+        public static int GetNPCRace(int races, DFRegion.LocationTypes settlement, byte townAttributes)
+        {
+            int diceRoll = UnityEngine.Random.Range(0, 100);
+            if (townAttributes % 2 > 0) diceRoll += 10;        // Port town
+            if ((townAttributes >> 1) % 2 > 0) diceRoll += 10; // Capital
+            int raceCat = 0;
+
+            switch (settlement)
+            {
+                case DFRegion.LocationTypes.TownCity:
+                    if (diceRoll < 50)
+                        return races / 100;
+                    else if (diceRoll < 75)
+                        return races % 100 / 10;
+                    else if (diceRoll < 90)
+                        return races % 10;
+                    break;
+
+                case DFRegion.LocationTypes.TownHamlet:
+                    if (diceRoll < 75)
+                        return races / 100;
+                    else if (diceRoll < 90)
+                        return races % 100 / 10;
+                    else if (diceRoll < 98)
+                        raceCat = 2;
+                    break;
+
+                default:
+                    if (diceRoll < 90)
+                        return races / 100;
+                    else if (diceRoll < 96)
+                        return races % 100 / 10;
+                    else if (diceRoll < 99)
+                        return races % 10;
+                    break;
+            }
+            return UnityEngine.Random.Range(0, 10);
         }
 
         /// <summary>
@@ -626,6 +768,7 @@ namespace DaggerfallWorkshop.Utility
                 {
                     // Get block name
                     string blockName = contentReader.BlockFileReader.CheckName(WorldMaps.GetRmbBlockName(location, x, y));
+                    Debug.Log("blockName got: " + blockName);
 
                     // Get block data
                     DFBlock block;
@@ -659,20 +802,20 @@ namespace DaggerfallWorkshop.Utility
                             building.Quality = item.buildingData.Quality;
 
                             // Check for replacement building data and use it if found
-                            if (WorldDataReplacement.GetBuildingReplacementData(blockName, block.Index, i, out buildingReplacementData))
-                            {
-                                // Use custom building values from replacement data, but only use up pool item if factionId is zero
-                                if (buildingReplacementData.FactionId != 0)
-                                {
-                                    // Don't use up pool item and set factionId, NameSeed, Quality from replacement data
-                                    item.used = false;
-                                    building.FactionId = buildingReplacementData.FactionId;
-                                    building.Quality = buildingReplacementData.Quality;
-                                    building.NameSeed = (ushort)(buildingReplacementData.NameSeed + location.LocationIndex);    // Vary name seed by location
-                                }
-                                // Always override type
-                                building.BuildingType = (DFLocation.BuildingTypes)buildingReplacementData.BuildingType;
-                            }
+                            // if (WorldDataReplacement.GetBuildingReplacementData(blockName, block.Index, i, out buildingReplacementData))
+                            // {
+                            //     // Use custom building values from replacement data, but only use up pool item if factionId is zero
+                            //     if (buildingReplacementData.FactionId != 0)
+                            //     {
+                            //         // Don't use up pool item and set factionId, NameSeed, Quality from replacement data
+                            //         item.used = false;
+                            //         building.FactionId = buildingReplacementData.FactionId;
+                            //         building.Quality = buildingReplacementData.Quality;
+                            //         building.NameSeed = (ushort)(buildingReplacementData.NameSeed + location.LocationIndex);    // Vary name seed by location
+                            //     }
+                            //     // Always override type
+                            //     building.BuildingType = (DFLocation.BuildingTypes)buildingReplacementData.BuildingType;
+                            // }
 
                             // Matched to classic: special handling for some Order of the Raven buildings
                             if (block.RmbBlock.FldHeader.OtherNames != null &&

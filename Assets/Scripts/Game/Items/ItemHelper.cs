@@ -408,6 +408,15 @@ namespace DaggerfallWorkshop.Game.Items
             return false;
         }
 
+        public bool IsYellowHelm(DaggerfallUnityItem helm)
+        {
+            if (helm.IsOfTemplate(ItemGroups.Armor, (int)Armor.Helm) &&
+                (helm.CurrentVariant == 0 || helm.CurrentVariant == 3))
+                return true;
+
+            return false;
+        }
+
         /// <summary>
         /// Gets inventory/equip image for specified item.
         /// Image will be cached based on material and hand for faster subsequent fetches.
@@ -562,8 +571,10 @@ namespace DaggerfallWorkshop.Game.Items
                 // Change dye or just update texture
                 ItemGroups group = item.ItemGroup;
                 DyeColors dye = (DyeColors)color;
-                Debug.Log("item: " + item.LongName);
-                if (group == ItemGroups.Weapons || group == ItemGroups.Armor)
+                Debug.Log("item: " + item.LongName + ", new weapon: " + IsNewWeapon(item));
+                if (IsYellowHelm(item))
+                    data = ChangeDye(data, dye, DyeTargets.YellowClothing);
+                else if ((group == ItemGroups.Weapons || group == ItemGroups.Armor) && !IsNewWeapon(item))
                     data = ChangeDye(data, dye, DyeTargets.WeaponsAndArmor);
                 else if (item.ItemGroup == ItemGroups.MensClothing || item.ItemGroup == ItemGroups.WomensClothing)
                 {
@@ -572,6 +583,10 @@ namespace DaggerfallWorkshop.Game.Items
                         if (round != 0) dye = (DyeColors)additionalColors[round - 1];
                         data = ChangeDye(data, dye, item.dyeTargets[round]);
                     }
+                }
+                else if (IsNewWeapon(item))
+                {
+                    ImageReader.UpdateTexture(ref data, true);
                 }
                 else
                     ImageReader.UpdateTexture(ref data);

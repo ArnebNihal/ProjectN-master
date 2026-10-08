@@ -865,6 +865,7 @@ namespace DaggerfallWorkshop.Game.UserInterfaceWindows
                 }
             }
             Debug.Log("startingData.secondaryPosition: " + startingData.secondaryPosition);
+            Debug.Log("startingData" + startingData.startsFromPrimary);
 
             return startingData;
         }
@@ -877,7 +878,7 @@ namespace DaggerfallWorkshop.Game.UserInterfaceWindows
             startsFromPrimary = true;
 
             if (CharacterAge <= 30 && givenAnswer == 6)
-                givenAnswer = 6;
+                givenAnswer = 7;
             if (CharacterAge <= 20 && givenAnswer == 5)
                 givenAnswer = 7;
 

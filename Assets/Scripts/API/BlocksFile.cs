@@ -29,7 +29,7 @@ namespace DaggerfallConnect.Arena2
     {
         public static string rmbPath = "D:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps/RMB";
         public static string rdbPath = "D:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps/RDB";
-        public static string absoluteBlocks =  "D:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps/BLOCKS.BSA";
+        public static string absoluteBlocks = "D:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps/BLOCKS.BSA";
 
         #region Class Variables
 
@@ -268,7 +268,7 @@ namespace DaggerfallConnect.Arena2
 
         /// <summary>
         /// Gets index of block with specified name. Does not change the currently loaded block.
-        ///  Uses a dictionary to map name to index so this method will be faster on subsequent calls.
+        /// Uses a dictionary to map name to index so this method will be faster on subsequent calls.
         /// </summary>
         /// <param name="name">Name of block.</param>
         /// <returns>Index of found block, or -1 if not found.</returns>
@@ -284,21 +284,23 @@ namespace DaggerfallConnect.Arena2
             //     return blockIndex;
 
             // Otherwise find and store index by searching for name
-            // Debug.Log("GetBlockIndex = Count: " + Count);
             for (int i = 0; i < Count; i++)
             {
                 string blockName = GetBlockName(i);
-                // Debug.Log("blockName = " + blockName);
                 if (blockName == null) continue;
                 if (blockName.StartsWith(name.Substring(0, 3)) &&
                     blockName.EndsWith(name.Substring(4)))
                 {
                     // Found the block, add to dictionary and return
-                    blockNameLookup.Add(name, i);
-                    return i;
+                    if (int.TryParse(name.Substring(3, 1), out int rotation))
+                    {
+                        int ind = rotation * (int)Math.Pow(10, 8) + i;
+                        blockNameLookup.Add(name, ind);
+                        return ind;
+                    }
+                    else return i;
                 }
             }
-
             return -1;
         }
 
@@ -309,8 +311,12 @@ namespace DaggerfallConnect.Arena2
         /// <returns>True if successful, otherwise false.</returns>
         public bool LoadBlock(int block, out DFBlock outBlock)
         {
+            // Separates block index in the two different values contained within:
+            // its actual index and the rotation factor.
+            // int rotation = 0;
+            GetRotationAndIndex(block, out int rotation, out block);
             // Validate
-            if (block < 0)
+            if (block < 0 || block >= blocks.Length)
             // || block >= bsaFile.Length)
             {
                 outBlock = new DFBlock();
@@ -323,63 +329,371 @@ namespace DaggerfallConnect.Arena2
                 outBlock = blocks[block].DFBlock;
                 return true;
             }
+    
+                // Auto discard previous record
+                if (autoDiscardValue && lastBlock != -1)
+                    DiscardBlock(lastBlock);
 
-            // Auto discard previous record
-            if (autoDiscardValue && lastBlock != -1)
-                DiscardBlock(lastBlock);
+                // Load record data
+                // blocks[block] = bsaFile.GetRecordProxy(block);
+                // if (blocks[block] == null)
+                // {
+                //     outBlock = new DFBlock();
+                //     return false;
+                // }
 
-            // Load record data
-            // blocks[block] = bsaFile.GetRecordProxy(block);
-            // if (blocks[block] == null)
-            // {
-            //     outBlock = new DFBlock();
-            //     return false;
-            // }
+                // Set record name
+                blocks[block].Name = GetBlockName(block);
+                blocks[block].DFBlock.Type = GetBlockType(block);
 
-            // Set record name
-            blocks[block].Name = GetBlockName(block);
-            blocks[block].DFBlock.Type = GetBlockType(block);
+                switch (blocks[block].DFBlock.Type)
+                {
+                    case DFBlock.BlockTypes.Rmb:
+                        blocks[block].DFBlock = JsonConvert.DeserializeObject<DFBlock>(File.ReadAllText(Path.Combine(rmbPath, blocks[block].Name + ".json")));
+                        blocks[block].DFBlock.ConvertTo2d();
+                        break;
+                    case DFBlock.BlockTypes.Rdb:
+                        blocks[block].DFBlock = JsonConvert.DeserializeObject<DFBlock>(File.ReadAllText(Path.Combine(rdbPath, blocks[block].Name + ".json")));
+                        break;
+                    default:
+                        Debug.Log("LoadBlock = Unknown block type.");
+                        outBlock = new DFBlock();
+                        return false;
+                }
 
-            Debug.Log("LoadBlock = trying to load " + blocks[block].Name);
-            switch (blocks[block].DFBlock.Type)
-            {
-                case DFBlock.BlockTypes.Rmb:
-                    blocks[block].DFBlock = JsonConvert.DeserializeObject<DFBlock>(File.ReadAllText(Path.Combine(rmbPath, blocks[block].Name + ".json")));
-                    blocks[block].DFBlock.ConvertTo2d();
-                    break;
-                case DFBlock.BlockTypes.Rdb:
-                    blocks[block].DFBlock = JsonConvert.DeserializeObject<DFBlock>(File.ReadAllText(Path.Combine(rdbPath, blocks[block].Name + ".json")));
-                    break;
-                default:
-                    Debug.Log("LoadBlock = Unknown block type.");
-                    outBlock = new DFBlock();
-                    return false;
-            }
+                // // Set record type
+                // blocks[block].DFBlock.Type = GetBlockType(block);
 
-            // // Set record type
-            // blocks[block].DFBlock.Type = GetBlockType(block);
+                // // Set record position and index
+                // blocks[block].DFBlock.Position = bsaFile.GetRecordPosition(block);
+                // blocks[block].DFBlock.Index = block;
 
-            // // Set record position and index
-            // blocks[block].DFBlock.Position = bsaFile.GetRecordPosition(block);
-            // blocks[block].DFBlock.Index = block;
+                outBlock = blocks[block].DFBlock;
+                // if ()
 
-            outBlock = blocks[block].DFBlock;
+                // Read record
+                // if (!Read(block))
+                // {
+                //     DiscardBlock(block);
+                //     return false;
+                // }
 
-            // Read record
-            // if (!Read(block))
-            // {
-            //     DiscardBlock(block);
-            //     return false;
-            // }
+                // Store in lookup dictionary
+                if (!blockNameLookup.ContainsKey(GetBlockNameFromBaseAndRotation(blocks[block].Name, rotation)))
+                    blockNameLookup.Add(GetBlockNameFromBaseAndRotation(blocks[block].Name, rotation), GetStrIndex(block, rotation));
 
-            // Store in lookup dictionary
-            if (!blockNameLookup.ContainsKey(blocks[block].Name))
-                blockNameLookup.Add(blocks[block].Name, block);
-
-            // Set previous record
-            lastBlock = block;
+                // Set previous record
+                lastBlock = GetStrIndex(block, rotation);
+            // if (rotation != 0)
+            //     RotateRMBBlock(ref outBlock.RmbBlock, rotation);
 
             return true;
+        }
+
+        public void GetRotationAndIndex(int strIndex, out int rotation, out int index)
+        {
+            rotation = strIndex / (int)Math.Pow(10, 8);
+            index = strIndex % (int)Math.Pow(10, 8);
+        }
+
+        public int GetStrIndex(int index, int rotation)
+        {
+            return rotation * (int)Math.Pow(10, 8) + index;
+        }
+
+        public static string GetBlockNameFromBaseAndRotation(string baseName, int rotation)
+        {
+            return string.Concat(baseName.Substring(0, 3), rotation.ToString(), baseName.Substring(4));
+        }
+
+        public static void RotateRMBBlock(ref DFBlock.RmbBlockDesc rmbBlock, int rotation)
+        {
+            DFBlock.RmbBlockDesc rotatedRmb = new DFBlock.RmbBlockDesc();
+
+            rotatedRmb.FldHeader.NumBlockDataRecords = rmbBlock.FldHeader.NumBlockDataRecords;
+            rotatedRmb.FldHeader.NumMisc3dObjectRecords = rmbBlock.FldHeader.NumMisc3dObjectRecords;
+            rotatedRmb.FldHeader.NumMiscFlatObjectRecords = rmbBlock.FldHeader.NumMiscFlatObjectRecords;
+
+            rotatedRmb.FldHeader.BlockPositions = new DFBlock.RmbFldBlockPositions[rmbBlock.FldHeader.BlockPositions.Length];
+            for (int i = 0; i < rmbBlock.FldHeader.BlockPositions.Length; i++)
+            {
+                rotatedRmb.FldHeader.BlockPositions[i] = RotateBlockPositions(rmbBlock.FldHeader.BlockPositions[i], rotation);
+                rotatedRmb.FldHeader.BlockPositions[i].YRotation = rmbBlock.FldHeader.BlockPositions[i].YRotation - (512 * rotation);
+                if (rotatedRmb.FldHeader.BlockPositions[i].YRotation >= 2048)
+                    rotatedRmb.FldHeader.BlockPositions[i].YRotation -= 2048;
+                if (rotatedRmb.FldHeader.BlockPositions[i].YRotation <= -2048)
+                    rotatedRmb.FldHeader.BlockPositions[i].YRotation += 2048;
+            }
+
+            rotatedRmb.FldHeader.BuildingDataList = rmbBlock.FldHeader.BuildingDataList;
+            rotatedRmb.FldHeader.BlockDataSizes = rmbBlock.FldHeader.BlockDataSizes;
+            rotatedRmb.FldHeader.GroundData.Header = rmbBlock.FldHeader.GroundData.Header;
+
+            rotatedRmb.FldHeader.GroundData.GroundTiles = new DFBlock.RmbGroundTiles[16, 16];
+            rotatedRmb.FldHeader.GroundData.GroundScenery = new DFBlock.RmbGroundScenery[16, 16];
+            // rotatedRmb.FldHeader.GroundData.GroundTiles1d = new DFBlock.RmbGroundTiles[256];
+            // rotatedRmb.FldHeader.GroundData.GroundScenery1d = new DFBlock.RmbGroundScenery[256];
+
+            for (int k = 0; k < 16; k++)
+            {
+                for (int j = 0; j < 16; j++)
+                {
+                    (int, int) rotPos = RotateCoord(j, k, rotation, 16);
+                    rotatedRmb.FldHeader.GroundData.GroundTiles[j, k] = RotateGroundTiles(rmbBlock.FldHeader.GroundData.GroundTiles[rotPos.Item1, rotPos.Item2], rotation);
+
+                    (int, int) gsMod = GetGSMod(rotation);
+                    if ((j + gsMod.Item1) >= 0 && (j + gsMod.Item1) < 16 && (k + gsMod.Item2) >= 0 && (k + gsMod.Item2) < 16)
+                        rotatedRmb.FldHeader.GroundData.GroundScenery[(j + gsMod.Item1), (k + gsMod.Item2)] = rmbBlock.FldHeader.GroundData.GroundScenery[rotPos.Item1, rotPos.Item2];
+                }
+            }
+
+            rotatedRmb.FldHeader.AutoMapData = new uint[64 * 64];
+            for (int l = 0; l < (64 * 64); l++)
+            {
+                int x = l % 64;
+                int y = l / 64;
+                (int, int) rotPos = RotateCoord(x, y, rotation, 64);
+                rotatedRmb.FldHeader.AutoMapData[l] = rmbBlock.FldHeader.AutoMapData[rotPos.Item1 + rotPos.Item2 * 64];
+            }
+
+            rotatedRmb.FldHeader.Name = GetBlockNameFromBaseAndRotation(rmbBlock.FldHeader.Name, rotation);
+            rotatedRmb.FldHeader.OtherNames = rmbBlock.FldHeader.OtherNames;
+
+            rotatedRmb.SubRecords = new DFBlock.RmbSubRecord[rmbBlock.SubRecords.Length];
+            for (int m = 0; m < rmbBlock.SubRecords.Length; m++)
+            {
+                rotatedRmb.SubRecords[m] = RotateSubRecordPositions(rmbBlock.SubRecords[m], rotation);
+                rotatedRmb.SubRecords[m].YRotation = rmbBlock.SubRecords[m].YRotation - (512 * rotation);
+                if (rotatedRmb.SubRecords[m].YRotation >= 2048)
+                    rotatedRmb.SubRecords[m].YRotation -= 2048;
+                if (rotatedRmb.SubRecords[m].YRotation <= -2048)
+                    rotatedRmb.SubRecords[m].YRotation += 2048;
+
+                rotatedRmb.SubRecords[m].Exterior = rmbBlock.SubRecords[m].Exterior;
+                // rotatedRmb.SubRecords[m].Exterior = RotateExteriorInterior(rmbBlock.SubRecords[m].Exterior, rotation);
+                rotatedRmb.SubRecords[m].Interior = rmbBlock.SubRecords[m].Interior;
+                // rotatedRmb.SubRecords[m].Interior = RotateExteriorInterior(rmbBlock.SubRecords[m].Interior, rotation);
+            }
+
+            rotatedRmb.Misc3dObjectRecords = new DFBlock.RmbBlock3dObjectRecord[rmbBlock.Misc3dObjectRecords.Length];
+            for (int n = 0; n < rmbBlock.Misc3dObjectRecords.Length; n++)
+            {
+                rotatedRmb.Misc3dObjectRecords[n] = RotateBlock3dObjectRecord(rmbBlock.Misc3dObjectRecords[n], rotation);
+            }
+
+            rotatedRmb.MiscFlatObjectRecords = new DFBlock.RmbBlockFlatObjectRecord[rmbBlock.MiscFlatObjectRecords.Length];
+            for (int o = 0; o < rmbBlock.MiscFlatObjectRecords.Length; o++)
+            {
+                rotatedRmb.MiscFlatObjectRecords[o] = RotateBlockFlatObjectRecord(rmbBlock.MiscFlatObjectRecords[o], rotation);
+            }
+            rmbBlock = rotatedRmb;
+        }
+
+        public static DFBlock.RmbFldBlockPositions RotateBlockPositions(DFBlock.RmbFldBlockPositions blockPos, int rotation)
+        {
+            DFBlock.RmbFldBlockPositions rotatedBlockPos = new DFBlock.RmbFldBlockPositions();
+            int size = 4096;
+            bool zNegative = blockPos.ZPos < 0;
+            if (zNegative)
+                blockPos.ZPos *= -1;
+
+            switch (rotation)
+            {
+                case 1: // 90 degrees
+                    rotatedBlockPos.XPos = size - blockPos.ZPos;
+                    rotatedBlockPos.ZPos = blockPos.XPos;
+                    break;
+                case 2: // 180 degrees
+                    rotatedBlockPos.XPos = size - blockPos.XPos;
+                    rotatedBlockPos.ZPos = size - blockPos.ZPos;
+                    break;
+                case 3: // 270 degrees
+                    rotatedBlockPos.XPos = blockPos.ZPos;
+                    rotatedBlockPos.ZPos = size - blockPos.XPos;
+                    break;
+                default:
+                    Debug.Log("RotateBlockPosition = wrong rotation value!");
+                    break;
+            }
+            if (zNegative)
+                rotatedBlockPos.ZPos *= -1;
+            rotatedBlockPos.YRotation = blockPos.YRotation; // YRotation get calculated outside this method, since it's the same calculation for every block.
+            return rotatedBlockPos;
+        }
+
+        public static (int, int) RotateCoord(int x, int z, int rotation, int size)
+        {
+            (int, int) rotatedCoord;
+            bool zNegative = z < 0;
+            size--;
+            if (zNegative)
+                z *= -1;
+
+
+
+            switch (rotation)
+            {
+                case 1: // 90 degrees
+                    if (size == 4095) rotatedCoord = (size - z, x);
+                    else rotatedCoord = (z, size - x);
+                    break;
+                case 2: // 180 degrees
+                    rotatedCoord = (size - x, size - z);
+                    break;
+                case 3: // 270 degrees
+                    if (size == 4095) rotatedCoord = (z, size - x);
+                    else rotatedCoord = (size - z, x);
+                    break;
+                default:
+                    Debug.Log("RotateCoord = wrong rotation value!");
+                    rotatedCoord = (-1, -1);
+                    break;
+            }
+
+            if (zNegative)
+                rotatedCoord = (rotatedCoord.Item1, rotatedCoord.Item2 * -1);
+
+            return rotatedCoord;
+        }
+
+        public static DFBlock.RmbGroundTiles RotateGroundTiles(DFBlock.RmbGroundTiles tile, int rotation)
+        {
+            DFBlock.RmbGroundTiles resultingTile = new DFBlock.RmbGroundTiles();
+            resultingTile.TileBitfield = (byte)tile.TextureRecord;
+            resultingTile.TextureRecord = tile.TextureRecord;
+
+            switch (rotation)
+            {
+                case 1:
+                    // 1st version
+                    resultingTile.IsRotated = !tile.IsRotated;
+                    if (!tile.IsRotated)
+                        resultingTile.IsFlipped = !tile.IsFlipped;
+                    else resultingTile.IsFlipped = tile.IsFlipped;
+                    break;
+                case 2:
+                    // Flipped 1st
+                    resultingTile.IsRotated = tile.IsRotated;
+                    resultingTile.IsFlipped = !tile.IsFlipped;
+                    break;
+                case 3:
+                    // 1st version
+                    resultingTile.IsRotated = !tile.IsRotated;
+                    if (!tile.IsRotated)
+                        resultingTile.IsFlipped = tile.IsFlipped;
+                    else resultingTile.IsFlipped = !tile.IsFlipped;
+                    break;
+                default:
+                    Debug.Log("RotateGroundTiles = wrong rotation value!");
+                    break;
+            }
+
+            if (resultingTile.IsRotated)
+                resultingTile.TileBitfield += 64;
+            if (resultingTile.IsFlipped)
+                resultingTile.TileBitfield += 128;
+
+            return resultingTile;
+        }
+
+        public static (int, int) GetGSMod(int rotation)
+        {
+            switch (rotation)
+            {
+                case 1:
+                    return (1, 0);
+                case 2:
+                    return (1, 1);
+                case 3:
+                    return (0, 1);
+                default:
+                    Debug.Log("GetGSMod = wrong rotation value!");
+                    return (0, 0);
+            }
+        }
+
+        public static DFBlock.RmbSubRecord RotateSubRecordPositions(DFBlock.RmbSubRecord subRecord, int rotation)
+        {
+            DFBlock.RmbSubRecord rotatedSubPos = new DFBlock.RmbSubRecord();
+            int size = 4096;
+
+            switch (rotation)
+            {
+                case 1: // 90 degrees
+                    rotatedSubPos.XPos = size - subRecord.ZPos;
+                    rotatedSubPos.ZPos = subRecord.XPos;
+                    break;
+                case 2: // 180 degrees
+                    rotatedSubPos.XPos = size - subRecord.XPos;
+                    rotatedSubPos.ZPos = size - subRecord.ZPos;
+                    break;
+                case 3: // 270 degrees
+                    rotatedSubPos.XPos = subRecord.ZPos;
+                    rotatedSubPos.ZPos = size - subRecord.XPos;
+                    break;
+                default:
+                    Debug.Log("RotateSubRecordPosition = wrong rotation value!");
+                    break;
+            }
+            rotatedSubPos.YRotation = subRecord.YRotation; // YRotation get calculated outside this method, since it's the same calculation for every block.
+            return rotatedSubPos;
+        }
+
+        public static DFBlock.RmbBlock3dObjectRecord RotateBlock3dObjectRecord(DFBlock.RmbBlock3dObjectRecord objRec, int rotation)
+        {
+            DFBlock.RmbBlock3dObjectRecord resulting3dObj = new DFBlock.RmbBlock3dObjectRecord();
+            resulting3dObj = objRec;
+            (int, int) rotatedCoord = RotateCoord3dObj(objRec.XPos, objRec.ZPos, rotation, 4096);
+            resulting3dObj.XPos = rotatedCoord.Item1;
+            resulting3dObj.ZPos = rotatedCoord.Item2;
+            resulting3dObj.YPos = objRec.YPos;
+            resulting3dObj.YRotation = (short)(objRec.YRotation - (512 * rotation));
+            if (resulting3dObj.YRotation >= 2048)
+                resulting3dObj.YRotation -= 2048;
+            if (resulting3dObj.YRotation <= -2048)
+                resulting3dObj.YRotation += 2048;
+            return resulting3dObj;
+        }
+
+        public static (int, int) RotateCoord3dObj(int x, int z, int rotation, int size)
+        {
+            (int, int) rotatedCoord;
+            bool zNegative = z < 0;
+            size--;
+            if (zNegative)
+                z *= -1;
+
+            switch (rotation)
+            {
+                case 1: // 90 degrees
+                    rotatedCoord = (size - z, x);
+                    break;
+                case 2: // 180 degrees
+                    rotatedCoord = (size - x, size - z);
+                    break;
+                case 3: // 270 degrees
+                    rotatedCoord = (z, size - x);
+                    break;
+                default:
+                    Debug.Log("RotateCoord = wrong rotation value!");
+                    rotatedCoord = (-1, -1);
+                    break;
+            }
+
+            if (zNegative)
+                rotatedCoord = (rotatedCoord.Item1, rotatedCoord.Item2 * -1);
+
+            return rotatedCoord;
+        }
+
+        public static DFBlock.RmbBlockFlatObjectRecord RotateBlockFlatObjectRecord(DFBlock.RmbBlockFlatObjectRecord objRec, int rotation)
+        {
+            DFBlock.RmbBlockFlatObjectRecord resultingFlatObj = new DFBlock.RmbBlockFlatObjectRecord();
+            resultingFlatObj = objRec;
+            (int, int) rotatedCoord = RotateCoord(objRec.XPos, objRec.ZPos, rotation, 4096);
+            resultingFlatObj.XPos = rotatedCoord.Item1;
+            resultingFlatObj.ZPos = rotatedCoord.Item2;
+            return resultingFlatObj;
         }
 
         /// <summary>
@@ -422,19 +736,19 @@ namespace DaggerfallConnect.Arena2
         /// <returns>DFBlock object.</returns>
         public DFBlock GetBlock(int block)
         {
-            // Check for replacement block data and use it if found
             DFBlock dfBlock;
-            // if (WorldDataReplacement.GetDFBlockReplacementData(block, GetBlockName(block), out dfBlock))
-            // {
-            //     if (blocks.Length > block)
-            //         blocks[block].DFBlock = dfBlock;
-            //     return dfBlock;
-            // }
-            // else
             // Load the record
             if (!LoadBlock(block, out dfBlock))
                 return new DFBlock();
 
+            GetRotationAndIndex(block, out int rotation, out block);
+            if (rotation != 0)
+            {
+                RotateRMBBlock(ref dfBlock.RmbBlock, rotation);
+                dfBlock.Name = dfBlock.RmbBlock.FldHeader.Name;
+                return dfBlock;
+            }
+            
             return blocks[block].DFBlock;
         }
 
@@ -447,25 +761,6 @@ namespace DaggerfallConnect.Arena2
         {
             // Look for block index
             int index = GetBlockIndex(name);
-
-            // if (index == -1)
-            // {
-            //     // Not found, search for alternate name
-            //     string alternateName = SearchAlternateRMBName(ref name);
-            //     if (!string.IsNullOrEmpty(alternateName))
-            //         index = GetBlockIndex(alternateName);
-
-            //     string customBlockPath = Path.Combine("RMB", name.Remove(0, 9), name + ".json");
-            //     if (File.Exists(customBlockPath))
-            //     {
-            //         DFBlock customBlock = new DFBlock();
-            //         string blockReplacementJson = File.ReadAllText(customBlockPath);
-            //         customBlock = (DFBlock)SaveLoadManager.Deserialize(typeof(DFBlock), blockReplacementJson);
-            //         // customBlock = JsonConvert.DeserializeObject<DFBlock>(File.ReadAllText(customBlockPath));
-            //         return customBlock;
-            //     }
-            // }
-
             return GetBlock(index);
         }
 
@@ -496,12 +791,13 @@ namespace DaggerfallConnect.Arena2
                 //     return customBlock;
                 // }
                 outBlock = new DFBlock();
-                Debug.Log("GetBlock returning false.");
                 return false;
             }
 
             outBlock = GetBlock(index);
-            Debug.Log("GetBlock returning true.");
+            // GetRotationAndIndex(index, out int rotation, out index);
+            // if (rotation != 0)
+            //     RotateRMBBlock(ref outBlock.RmbBlock, rotation);
             return true;
         }
 

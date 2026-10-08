@@ -464,7 +464,8 @@ namespace DaggerfallWorkshop.Utility
 
             // Swap indices start through start + 15 with colour table
             List<byte> swapList = baseSwaps.ToList();
-            int rowPos;            
+            int rowPos;
+            
             for (int y = 0; y < srcBitmap.Height; y++)
             {
                 rowPos = y * srcBitmap.Width;

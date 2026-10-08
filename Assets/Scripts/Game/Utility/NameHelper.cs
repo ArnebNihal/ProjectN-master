@@ -182,12 +182,17 @@ namespace DaggerfallWorkshop.Game.Utility
             switch (type)
             {
                 case BankTypes.Breton:                                                  // These banks all work the same
+                case BankTypes.Imperial:
+                    lastName = GetRandomSurname(nameBank);
+                    break;
+
                 case BankTypes.DarkElf:
                 case BankTypes.HighElf:
                 case BankTypes.WoodElf:
-                case BankTypes.Imperial:
                 case BankTypes.BretonModern:
-                    lastName = GetRandomSurname(nameBank);
+                    if (UnityEngine.Random.Range(0, 3) == 0)
+                        lastName = GetRandomSurname(nameBank);
+                    else lastName = GetExpandedSurname(nameBank);
                     break;
 
                 case BankTypes.Nord:
@@ -309,6 +314,14 @@ namespace DaggerfallWorkshop.Game.Utility
             string stringB = partsB[index];
 
             return stringA + stringB;
+        }
+
+        // Get random surname for those that use the single-word version
+        string GetExpandedSurname(NameBank nameBank)
+        {
+            string[] parts = nameBank.sets[nameBank.sets.Length - 1].parts;
+            uint index = DFRandom.rand() % (uint)parts.Length;
+            return parts[index];
         }
 
         // Gets random surname for Nord names that follow 0+1+"sen" pattern

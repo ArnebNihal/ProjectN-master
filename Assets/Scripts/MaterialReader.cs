@@ -486,7 +486,9 @@ namespace DaggerfallWorkshop
             {
                 // If we have no texture file, this means this is a non-classic texture
                 // Just use the albedo texture directly
-                DFSize scale = results.textureFile.GetScale(record);
+                Debug.Log("archive: " + archive + ", record: " + record);
+                DFSize scale = new DFSize(1, 1);
+                // DFSize scale = results.textureFile.GetScale(record);
                 recordSizes = new Vector2[1] { new Vector2(results.albedoMap.width, results.albedoMap.height) };
                 recordScales = new Vector2[1] { new Vector2(scale.Width, scale.Height) };
                 // recordScales = new Vector2[1] { new Vector2(1.0f, 1.0f) };

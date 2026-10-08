@@ -21,7 +21,6 @@ using UnityEngine.EventSystems;
 using Newtonsoft.Json;
 using System.Linq;
 using System.Text;
-using DaggerfallWorkshop.Game.Player;
 using DaggerfallWorkshop.Game.Utility;
 using DaggerfallWorkshop.Game.Serialization;
 
@@ -34,6 +33,9 @@ namespace MapEditor
         const string windowTitle = "Map Editor";
         const string menuPath = "Daggerfall Tools/Map Editor";
         public static Vector2 mousePosition;
+        public const int MAPWIDTH = 7680;
+        public const int MAPHEIGHT = 6144;
+        public const int TILESIZE = 64;
 
         // Map alpha channel variables and const
         public static float mapAlphaChannel = 255.0f;
@@ -63,7 +65,7 @@ namespace MapEditor
         //Rects and Rect constants
         static Rect mapView;
         static Rect heightmapView = new Rect(0, 0, heightmapWidth, heightmapHeight);
-        static Rect heightmapRect = new Rect(-500, -500 , heightmapWidth, heightmapHeight);
+        static Rect heightmapRect = new Rect(-500, -500, heightmapWidth, heightmapHeight);
         static Rect mapRect;
         static Rect townBlocksRect;
         const int heightmapOriginX = 0;
@@ -144,12 +146,12 @@ namespace MapEditor
         };
 
         public readonly string[] rmbBlockPrefixes = {
-            "TVRN", "GENR", "RESI", "WEAP", "ARMR", "ALCH", "BANK", "BOOK",
-            "CLOT", "FURN", "GEMS", "LIBR", "PAWN", "TEMP", "PALA",
-            "FARM", "DUNG", "CAST", "MANR", "SHRI", "RUIN", "SHCK", "GRVE",
-            "FILL", "KRAV", "KDRA", "KOWL", "KMOO", "KCAN", "KFLA", "KHOR",
-            "KROS", "KWHE", "KSCA", "KHAW", "MAGE", "THIE", "DARK", "FIGH",
-            "CUST", "WALL", "MARK", "SHIP", "WITC"
+            "TVR", "GEN", "RES", "WEA", "ARM", "ALC", "BAN", "BOO",
+            "CLO", "FUR", "GEM", "LIB", "PAW", "TEM", "PAL",
+            "FAR", "DUN", "CAS", "MAN", "SHR", "RUI", "SHC", "GRV",
+            "FIL", "KRA", "KDR", "KOW", "KMO", "KCA", "KFL", "KHO",
+            "KRO", "KWH", "KSC", "KHA", "MAG", "THI", "DAR", "FIG",
+            "CUS", "WAL", "MAR", "SHI", "WIT"
         };
 
         private readonly string[] rdbBlockLetters = { "N", "W", "L", "S", "B", "M" };
@@ -157,6 +159,7 @@ namespace MapEditor
         private readonly string[] elevationIndex = { "-1", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "+" };
 
         public static BlocksFile blockFileReader;
+        public static (string, int)[] blocksArray;
         public string[] RMBBlocks;
         public string[] RDBBlocks;
         // public string[] RMBBlocksByPrefix;
@@ -191,7 +194,7 @@ namespace MapEditor
         public List<string> modifiedTownBlocks = new List<string>();
         public List<Blocks> modifiedDungeonBlocks = new List<Blocks>();
         public List<int> modifiedTiles = new List<int>();
-        public static void ShowWindow() 
+        public static void ShowWindow()
         {
             EditorWindow.GetWindow(typeof(MapEditor));
         }
@@ -231,7 +234,7 @@ namespace MapEditor
 
         public void LoadMapFile(string path)
         {
-            
+
         }
 
         void Awake()
@@ -262,6 +265,8 @@ namespace MapEditor
 
             if (blockFileReader == null)
                 blockFileReader = new BlocksFile(Path.Combine(arena2Path, BlocksFile.Filename), FileUsage.UseMemory, true);
+
+            blocksArray = JsonConvert.DeserializeObject<(string, int)[]>(File.ReadAllText(Path.Combine(MapEditor.testPath, "BLOCKS.BSA")));
 
             pixelData = new PixelData();
             modifiedPixelData = new PixelData();
@@ -393,12 +398,12 @@ namespace MapEditor
 
             if (drawClimate)
             {
-                
+
             }
 
             if (drawPolitics)
             {
-                
+
             }
 
             if (mousePosition == null)
@@ -439,11 +444,11 @@ namespace MapEditor
 
                 if (pixelData.Region == -1)
                     EditorGUILayout.LabelField("Region: ", "Water body");
-                else 
+                else
                 {
                     EditorGUILayout.LabelField("Region: ", regionNames[pixelData.Region]);
                 }
-                
+
                 EditorGUILayout.LabelField("Climate: ", climateNames[pixelData.Climate]);
 
                 EditorGUILayout.Space(100.0f);
@@ -532,7 +537,7 @@ namespace MapEditor
 
                         if (modifiedTownBlocks.Count <= 0)
                             modifiedTownBlocks = townBlocks.ToList();
-                        
+
                         if (modifiedTownBlocks.Count != (width * height))
                             modifiedTownBlocks = SetListCount(modifiedTownBlocks, width, height);
 
@@ -632,7 +637,7 @@ namespace MapEditor
                             RMBBlocks = SetBlocks(availablePrefixes, true);
                             lastAvailable = availablePrefixes;
                         }
-                        
+
                         availableBlocks = EditorGUILayout.Popup("RMB: ", availableBlocks, RMBBlocks, GUILayout.MaxWidth(dataField));
                         EditorGUILayout.EndHorizontal();
 
@@ -650,7 +655,7 @@ namespace MapEditor
                             //     modifiedTownBlocks.Add(i, townBlocks[i]);
                             // }
 
-                            modifiedTownBlocks.RemoveAt(selectedCoordinates); 
+                            modifiedTownBlocks.RemoveAt(selectedCoordinates);
                             modifiedTownBlocks.Insert(selectedCoordinates, RMBBlocks[availableBlocks]);
 
                             // Debug.Log("modifiedTownBlocks.Count: " + modifiedTownBlocks.Count);
@@ -733,17 +738,17 @@ namespace MapEditor
                                 for (int X = x.Item1; X <= x.Item2; X++)
                                 {
                                     Blocks currentBlock = new Blocks();
-                                    bool[] border = {false, false, false, false}; //0: top, 1: bottom, 2: left, 3: right
-                                    if (Z == z.Item1 || !(modifiedDungeonBlocks.Exists(blk => (blk.X, blk.Z) == (X , Z - 1))))
+                                    bool[] border = { false, false, false, false }; //0: top, 1: bottom, 2: left, 3: right
+                                    if (Z == z.Item1 || !(modifiedDungeonBlocks.Exists(blk => (blk.X, blk.Z) == (X, Z - 1))))
                                         border[0] = true;
                                     else if (Z == z.Item2 || !(modifiedDungeonBlocks.Exists(blk => (blk.X, blk.Z) == (X, Z + 1))))
                                         border[1] = true;
-                                    
+
                                     if (X == x.Item1 || !(modifiedDungeonBlocks.Exists(blk => (blk.X, blk.Z) == (X - 1, Z))))
                                         border[2] = true;
-                                    else if (X == x.Item2|| !(modifiedDungeonBlocks.Exists(blk => (blk.X, blk.Z) == (X + 1, Z))))
+                                    else if (X == x.Item2 || !(modifiedDungeonBlocks.Exists(blk => (blk.X, blk.Z) == (X + 1, Z))))
                                         border[3] = true;
-                                    
+
                                     bool found = false;
                                     for (int block = 0; block < modifiedDungeonBlocks.Count; block++)
                                     {
@@ -914,7 +919,7 @@ namespace MapEditor
             EditorGUILayout.BeginVertical();
             drawHeightmap = EditorGUILayout.ToggleLeft("Draw Heightmap Mode", drawHeightmap);
             if (drawHeightmap)
-            {                
+            {
                 colourIndex = EditorGUILayout.Popup("Elevation: ", colourIndex, elevationIndex, GUILayout.MaxWidth(dataFieldSmall));
                 paintBrush = GetElevationColour(colourIndex - 1);
 
@@ -963,7 +968,7 @@ namespace MapEditor
             EditorGUILayout.BeginVertical();
             drawClimate = EditorGUILayout.ToggleLeft("Draw Climate Mode", drawClimate);
             if (drawClimate)
-            {                
+            {
                 colourIndex = EditorGUILayout.Popup("Climate: ", colourIndex, Enum.GetNames(typeof(MapsFile.Climates)), GUILayout.MaxWidth(dataFieldSmall));
                 paintBrush = GetClimateColour(colourIndex + (int)MapsFile.Climates.Ocean);
 
@@ -996,7 +1001,7 @@ namespace MapEditor
             EditorGUILayout.BeginVertical();
             drawPolitics = EditorGUILayout.ToggleLeft("Draw Politics Mode", drawPolitics);
             if (drawPolitics)
-            {                
+            {
                 colourIndex = EditorGUILayout.Popup("Region: ", colourIndex, WorldInfo.WorldSetting.RegionNames, GUILayout.MaxWidth(dataFieldSmall));
                 paintBrush = GetRegionColour(colourIndex);
 
@@ -1191,7 +1196,7 @@ namespace MapEditor
 
                 coordinates.y = mouse.mousePosition.y - mapView.y;
                 coordinates.y = (coordinates.y * (float)MapsFile.MaxMapPixelY / zoomLevel) / mapView.height;
-                coordinates.y += ((1.0f - mapRect.y) * (float)MapsFile.MaxMapPixelY)- (float)MapsFile.MaxMapPixelY / zoomLevel;
+                coordinates.y += ((1.0f - mapRect.y) * (float)MapsFile.MaxMapPixelY) - (float)MapsFile.MaxMapPixelY / zoomLevel;
 
                 return coordinates;
             }
@@ -1200,7 +1205,8 @@ namespace MapEditor
             {
                 coordinates = new Vector2(-1.0f, -1.0f);
                 return coordinates;
-            };
+            }
+            ;
         }
 
         protected List<string> SetListCount(List<string> rmBlocks, int width, int height)
@@ -1260,7 +1266,8 @@ namespace MapEditor
                 size = (int)pixelCoordinates.x * MapsFile.WorldMapTileDim;
                 pixelSize = modifiedPixelData.exterior.Width;
             }
-            else{
+            else
+            {
                 size = (MapsFile.MaxMapPixelY - (int)pixelCoordinates.y) * MapsFile.WorldMapTileDim;
                 pixelSize = modifiedPixelData.exterior.Height;
             }
@@ -1303,7 +1310,8 @@ namespace MapEditor
             {
                 size = (int)pixelCoordinates.x * MapsFile.WorldMapTerrainDim + (8 - modifiedPixelData.exterior.Width) * 2048;
             }
-            else{
+            else
+            {
                 size = ((int)pixelCoordinates.y * MapsFile.WorldMapTerrainDim + (8 - modifiedPixelData.exterior.Height) * 2048) + 1;
             }
             return size;
@@ -1385,7 +1393,8 @@ namespace MapEditor
                         newLocations[counter] = location;
                         counter++;
                     }
-                    else {
+                    else
+                    {
                         if (!newMapNameLookup.ContainsKey(modifiedPixelData.Name))
                             newMapNameLookup.Add(modifiedPixelData.Name, counter);
                         newMapNames[counter] = modifiedPixelData.Name;
@@ -1423,7 +1432,7 @@ namespace MapEditor
                 Worldmaps.Worldmap[Worldmaps.GetTileIndex(modifiedPixelData.MapId)].MapNameLookup = newMapNameLookup;
 
                 Worldmaps.Worldmap[Worldmaps.GetTileIndex(modifiedPixelData.MapId)].Locations = newLocations;
-                
+
                 // Debug.Log("Enumerating maps from changes applying");
                 Worldmaps.mapDict = Worldmaps.EnumerateMaps();
             }
@@ -1435,25 +1444,25 @@ namespace MapEditor
 
         protected void OpenRegionManager()
         {
-            RegionManager regionManager = (RegionManager) EditorWindow.GetWindow(typeof(RegionManager), false, "Region Manager");
+            RegionManager regionManager = (RegionManager)EditorWindow.GetWindow(typeof(RegionManager), false, "Region Manager");
             regionManager.Show();
         }
 
         protected void OpenFactionManager()
         {
-            FactionManager factionManager = (FactionManager) EditorWindow.GetWindow(typeof(FactionManager), false, "Faction Manager");
+            FactionManager factionManager = (FactionManager)EditorWindow.GetWindow(typeof(FactionManager), false, "Faction Manager");
             factionManager.Show();
         }
 
         protected void OpenTileCreator()
         {
-            TileCreator tileCreator = (TileCreator) EditorWindow.GetWindow(typeof(TileCreator), false, "Tile Creator");
+            TileCreator tileCreator = (TileCreator)EditorWindow.GetWindow(typeof(TileCreator), false, "Tile Creator");
             tileCreator.Show();
         }
 
         protected void OpenGenerateRoutesWindow()
         {
-            GenerateRoutesWindow generateRoutesWindow = (GenerateRoutesWindow) EditorWindow.GetWindow(typeof(GenerateRoutesWindow), false, "Routes Generator");
+            GenerateRoutesWindow generateRoutesWindow = (GenerateRoutesWindow)EditorWindow.GetWindow(typeof(GenerateRoutesWindow), false, "Routes Generator");
             generateRoutesWindow.Show();
         }
 
@@ -1489,40 +1498,40 @@ namespace MapEditor
                 }
                 else
                 {
-                for (int k = 0; k < Worldmaps.WholeWM[j].Locations.Length; k++)
-                {
-                    DFLocation location = Worldmaps.WholeWM[j].Locations[k];
+                    for (int k = 0; k < Worldmaps.WholeWM[j].Locations.Length; k++)
+                    {
+                        DFLocation location = Worldmaps.WholeWM[j].Locations[k];
 
-                    if (location.Name == null || location.Name.Contains("Test")) continue;
-                    int splitLocIndex = (int)((location.MapTableData.MapId / MapsFile.MaxMapPixelX) / MapsFile.TileDim) * MapsFile.TileX + (int)((location.MapTableData.MapId % MapsFile.MaxMapPixelX) / MapsFile.TileDim);
+                        if (location.Name == null || location.Name.Contains("Test")) continue;
+                        int splitLocIndex = (int)((location.MapTableData.MapId / MapsFile.MaxMapPixelX) / MapsFile.TileDim) * MapsFile.TileX + (int)((location.MapTableData.MapId % MapsFile.MaxMapPixelX) / MapsFile.TileDim);
 
-                    List<string> mapNames;
-                    if (splittedLocations[splitLocIndex].MapNames != null) mapNames = splittedLocations[splitLocIndex].MapNames.ToList<string>();
-                    else mapNames = new List<string>();
-                    mapNames.Add(location.Name);
-                    splittedLocations[splitLocIndex].MapNames = mapNames.ToArray();
+                        List<string> mapNames;
+                        if (splittedLocations[splitLocIndex].MapNames != null) mapNames = splittedLocations[splitLocIndex].MapNames.ToList<string>();
+                        else mapNames = new List<string>();
+                        mapNames.Add(location.Name);
+                        splittedLocations[splitLocIndex].MapNames = mapNames.ToArray();
 
-                    List<DFRegion.RegionMapTable> mapTable;
-                    if (splittedLocations[splitLocIndex].MapTable != null) mapTable = splittedLocations[splitLocIndex].MapTable.ToList();
-                    else mapTable = new List<DFRegion.RegionMapTable>();
-                    mapTable.Add(Worldmaps.WholeWM[j].MapTable[k]);
-                    splittedLocations[splitLocIndex].MapTable = mapTable.ToArray();
+                        List<DFRegion.RegionMapTable> mapTable;
+                        if (splittedLocations[splitLocIndex].MapTable != null) mapTable = splittedLocations[splitLocIndex].MapTable.ToList();
+                        else mapTable = new List<DFRegion.RegionMapTable>();
+                        mapTable.Add(Worldmaps.WholeWM[j].MapTable[k]);
+                        splittedLocations[splitLocIndex].MapTable = mapTable.ToArray();
 
-                    if (splittedLocations[splitLocIndex].MapIdLookup == null) splittedLocations[splitLocIndex].MapIdLookup = new Dictionary<ulong, int>();
-                    if (splittedLocations[splitLocIndex].MapIdLookup.ContainsKey(location.MapTableData.MapId)) Debug.Log("Found existing MapId: " + location.MapTableData.MapId);
-                    else splittedLocations[splitLocIndex].MapIdLookup.Add(location.MapTableData.MapId, splittedLocations[splitLocIndex].LocationCount);
+                        if (splittedLocations[splitLocIndex].MapIdLookup == null) splittedLocations[splitLocIndex].MapIdLookup = new Dictionary<ulong, int>();
+                        if (splittedLocations[splitLocIndex].MapIdLookup.ContainsKey(location.MapTableData.MapId)) Debug.Log("Found existing MapId: " + location.MapTableData.MapId);
+                        else splittedLocations[splitLocIndex].MapIdLookup.Add(location.MapTableData.MapId, splittedLocations[splitLocIndex].LocationCount);
 
-                    if (splittedLocations[splitLocIndex].MapNameLookup == null) splittedLocations[splitLocIndex].MapNameLookup = new Dictionary<string, int>();
-                    if (!splittedLocations[splitLocIndex].MapNameLookup.ContainsKey(location.Name)) splittedLocations[splitLocIndex].MapNameLookup.Add(location.Name, splittedLocations[splitLocIndex].LocationCount);
+                        if (splittedLocations[splitLocIndex].MapNameLookup == null) splittedLocations[splitLocIndex].MapNameLookup = new Dictionary<string, int>();
+                        if (!splittedLocations[splitLocIndex].MapNameLookup.ContainsKey(location.Name)) splittedLocations[splitLocIndex].MapNameLookup.Add(location.Name, splittedLocations[splitLocIndex].LocationCount);
 
-                    List<DFLocation> locations;
-                    if (splittedLocations[splitLocIndex].Locations != null) locations = splittedLocations[splitLocIndex].Locations.ToList();
-                    else locations = new List<DFLocation>();
-                    locations.Add(location);
-                    splittedLocations[splitLocIndex].Locations = locations.ToArray();
+                        List<DFLocation> locations;
+                        if (splittedLocations[splitLocIndex].Locations != null) locations = splittedLocations[splitLocIndex].Locations.ToList();
+                        else locations = new List<DFLocation>();
+                        locations.Add(location);
+                        splittedLocations[splitLocIndex].Locations = locations.ToArray();
 
-                    splittedLocations[splitLocIndex].LocationCount++;
-                }
+                        splittedLocations[splitLocIndex].LocationCount++;
+                    }
                 }
             }
 
@@ -1587,7 +1596,7 @@ namespace MapEditor
                 case DFLocation.BuildingTypes.Library:
                     return 65536;
                 case DFLocation.BuildingTypes.PawnShop:
-                    return 4194304;                
+                    return 4194304;
                 case DFLocation.BuildingTypes.Tavern:
                     return 256;
                 case DFLocation.BuildingTypes.WeaponSmith:
@@ -1693,8 +1702,8 @@ namespace MapEditor
                 for (int tileY = 0; tileY < MapsFile.TileY; tileY++)
                 {
                     if (File.Exists(Path.Combine(tilesPath, "woodsLarge_" + tileX + "_" + tileY + ".png")))
-                                continue;
-                                
+                        continue;
+
                     byte[,] largeHeightmap = new byte[MapsFile.TileDim * 5, MapsFile.TileDim * 5];
                     byte[,] heightmap = new byte[MapsFile.TileDim, MapsFile.TileDim];
                     Texture2D textureTiles = new Texture2D(MapsFile.TileDim, MapsFile.TileDim);
@@ -1721,7 +1730,7 @@ namespace MapEditor
                                 check = subValue + heightmapVariation;
 
                                 if (check < 4)
-                                check = 4;
+                                    check = 4;
                             }
 
                             if (check < 0)
@@ -1832,7 +1841,7 @@ namespace MapEditor
                     return 0;
             }
 
-            
+
         }
 
         protected void CreateLargeClimatemap()
@@ -1885,7 +1894,7 @@ namespace MapEditor
         protected void SaveCurrentWorld()
         {
             string fileDataPath;
-            
+
             foreach (int modifiedTile in modifiedTiles)
             {
                 fileDataPath = Path.Combine(Path.Combine(Worldmaps.locationsPath, "map" + (modifiedTile).ToString("00000") + ".json"));
@@ -1938,7 +1947,8 @@ namespace MapEditor
                 blockExtension = "RMB";
                 prefix = rmbBlockPrefixes[pref];
             }
-            else{
+            else
+            {
                 blockExtension = "RDB";
                 prefix = rdbBlockLetters[pref];
             }
@@ -1946,14 +1956,13 @@ namespace MapEditor
             blockPath = Path.Combine(testPath, blockExtension);
 
             int index = 0;
-
-            while (blockFileReader.LoadBlock(index, out block))
+            
+            for (int w = 0; w < blocksArray.Length; w++)
             {
-                if (block.Name.StartsWith(prefix) && block.Name.EndsWith(blockExtension))
+                if (blocksArray[w].Item1.StartsWith(prefix) && blocksArray[w].Item1.EndsWith(blockExtension))
                 {
                     blockNames.Add(block.Name);
                 }
-                index++;
             }
 
             if (!Directory.Exists(blockPath))
@@ -1975,7 +1984,7 @@ namespace MapEditor
             }
 
             blockNames.Sort();
-    
+
             return blockNames.ToArray();
         }
 
@@ -2022,7 +2031,7 @@ namespace MapEditor
             dungeon.blocks = new Blocks[5];
             modifiedDungeonBlocks = new List<Blocks>();
 
-            (short, short)[] blockPosition = {(0, -1), (-1, 0), (0, 0), (1, 0), (1, 1)};
+            (short, short)[] blockPosition = { (0, -1), (-1, 0), (0, 0), (1, 0), (1, 1) };
             for (int i = 0; i < dungeon.BlockCount; i++)
             {
                 if (i == 2)
@@ -2284,7 +2293,7 @@ namespace MapEditor
                     int offset = (((MapsFile.MaxMapPixelY - y - 1) * MapsFile.MaxMapPixelX) + x);
                     byte value = SmallHeightmap.GetHeightMapValue(x, y);
                     int terrain;
-                    Color32 colour = new Color32();;
+                    Color32 colour = new Color32(); ;
 
                     if (drawnBuffer.Count > 0 && drawnBuffer.Contains((x, y)))
                     {
@@ -2573,7 +2582,7 @@ namespace MapEditor
                     break;
             }
 
-                    return colour;
+            return colour;
         }
 
         static Color32[] CreatePoliticMap()
@@ -2592,7 +2601,8 @@ namespace MapEditor
                     {
                         colours[offset] = paintBrush;
                     }
-                    else{
+                    else
+                    {
                         colour = GetRegionColour(value);
                         colours[offset] = colour;
                     }
@@ -2883,7 +2893,7 @@ namespace MapEditor
 
         public static int GetMapPixelIDFromPosition(DFPosition position)
         {
-            return (position.X + position.Y * 7680);
+            return (position.X + position.Y * MAPWIDTH);
         }
 
         public static DFLocation GetDFLocationFromPixelData(PixelData sourcePixel)
@@ -2920,7 +2930,7 @@ namespace MapEditor
             createdLocation.Exterior.RecordElement.Header.LocationName = sourcePixel.Name;
             createdLocation.Exterior.BuildingCount = (ushort)sourcePixel.exterior.BuildingCount;
             createdLocation.Exterior.Buildings = new DFLocation.BuildingData[createdLocation.Exterior.BuildingCount];
-            
+
             for (int i = 0; i < createdLocation.Exterior.BuildingCount; i++)
             {
                 createdLocation.Exterior.Buildings[i].NameSeed = (ushort)sourcePixel.exterior.buildings[i].NameSeed;
@@ -3007,7 +3017,8 @@ namespace MapEditor
             ulong counter = 0;
             ushort extValue;
 
-            do{
+            do
+            {
                 if (!Worldmaps.locationIdList.Contains(counter) && !Worldmaps.locationIdList.Contains(counter + 1))
                 {
                     found = true;
@@ -3200,7 +3211,7 @@ namespace MapEditor
                     break;
 
                 default:
-                    break;    
+                    break;
             }
 
             return position;
@@ -3211,7 +3222,7 @@ namespace MapEditor
             Texture2D grayscaleImage = new Texture2D(map.GetLength(0), map.GetLength(1));
             Color32[] grayscaleMap = new Color32[map.GetLength(0) * map.GetLength(1)];
             byte[] grayscaleBuffer = new byte[map.GetLength(0) * map.GetLength(1) * 4];
-            
+
             for (int x = 0; x < map.GetLength(0); x++)
             {
                 for (int y = 0; y < map.GetLength(1); y++)
@@ -3219,7 +3230,7 @@ namespace MapEditor
                     int offset = (((map.GetLength(1) - y - 1) * map.GetLength(0)) + x);
                     int value = map[x, y];
                     byte green = 0;
-                    byte red = 0; 
+                    byte red = 0;
                     byte blue = 0;
                     byte alpha = 255;
 
@@ -3310,7 +3321,7 @@ namespace MapEditor
                     int r = 0;
                     int g = 0;
                     int b = 0;
-                    
+
                     // if (trailType == 1)
                     // {
                     //     value = map[x, y].Item1;
@@ -3319,17 +3330,17 @@ namespace MapEditor
                     //     value = map[x, y].Item2;
                     // else if (map[x, y].Item1 != 0 || map[x, y].Item2 != 0)
                     // {
-                       r = map[x, y].Item1;
-                       g = map[x, y].Item3;
-                       b = map[x, y].Item2;
+                    r = map[x, y].Item1;
+                    g = map[x, y].Item3;
+                    b = map[x, y].Item2;
                     // }
-                    
+
                     // if (trailType == 0)
                     // {
                     //     grayscaleMap[offset] = new Color32((byte)r, (byte)g, (byte)b, 255);
                     // }
                     // else
-                        grayscaleMap[offset] = new Color32((byte)r, (byte)g, (byte)b, 255);
+                    grayscaleMap[offset] = new Color32((byte)r, (byte)g, (byte)b, 255);
                 }
             }
             grayscaleImage.SetPixels32(grayscaleMap);
@@ -3363,7 +3374,7 @@ namespace MapEditor
                         else if (grayscaleMap[offset].r == 255 && grayscaleMap[offset].b == 255)
                             value = (int)grayscaleMap[offset].g + 509;
                     }
-                    else                   
+                    else
                         value = grayscaleMap[offset].r + (grayscaleMap[offset].b * byte.MaxValue);
 
                     matrix[x, y] = value;
@@ -3420,16 +3431,16 @@ namespace MapEditor
                 mapToLoad = "Tamriel_Light.png";
             }
             else
-            { 
+            {
                 mapToLoad = "Tamriel_Dark.png";
             }
 
-            
+
             // ImageConversion.LoadImage(imageToTranslate, File.ReadAllBytes(Path.Combine(path, mapToLoad)));            
             // byte[,] heightMap = new byte [imageToTranslate.width, imageToTranslate.height];
             // heightMap = MapEditor.ConvertToMatrix(imageToTranslate);
 
-            byte[] heightMap = new byte [20481 * 16385];
+            byte[] heightMap = new byte[20481 * 16385];
             heightMap = File.ReadAllBytes(Path.Combine(path, "Tamriel_Light.data"));
 
             // for (int x = 0; x < imageToTranslate.width; x++)
@@ -3442,18 +3453,18 @@ namespace MapEditor
                 byte analyzedPixel = heightMap[i];
 
                 if (analyzedPixel > topValue)
-                        topValue = analyzedPixel;
+                    topValue = analyzedPixel;
 
                 if (analyzedPixel < bottomValue)
-                        bottomValue = analyzedPixel;
+                    bottomValue = analyzedPixel;
             }
-                    // byte analyzedPixel = heightMap[x, y];
+            // byte analyzedPixel = heightMap[x, y];
 
-                    // if (analyzedPixel > topValue)
-                    //     topValue = analyzedPixel;
+            // if (analyzedPixel > topValue)
+            //     topValue = analyzedPixel;
 
-                    // if (analyzedPixel < bottomValue)
-                    //     bottomValue = analyzedPixel;
+            // if (analyzedPixel < bottomValue)
+            //     bottomValue = analyzedPixel;
             //     }
             // }
 
@@ -3461,7 +3472,7 @@ namespace MapEditor
             EditorGUILayout.LabelField("Highest Point: ", topValue.ToString());
             EditorGUILayout.LabelField("Lowest Point", bottomValue.ToString());
         }
-    }    
+    }
 
     /// <summary>
     /// File containing regions and locations data
@@ -3506,7 +3517,7 @@ namespace MapEditor
         static Worldmaps()
         {
             Worldmap = LoadWorldMap();
-            WholeWM = JsonConvert.DeserializeObject<Worldmap[]>(File.ReadAllText(Path.Combine(MapEditor.testPath, "Maps.json")));
+            // WholeWM = JsonConvert.DeserializeObject<Worldmap[]>(File.ReadAllText(Path.Combine(MapEditor.testPath, "Maps.json")));
             // Debug.Log("Enumerating maps from constructor");
             mapDict = EnumerateMaps();
         }
@@ -3671,7 +3682,8 @@ namespace MapEditor
 
             ulong id = MapsFile.GetMapPixelID(mapPixelX, mapPixelY);
             int index = GetTileIndex(mapPixelX, mapPixelY);
-            
+
+            // Debug.Log("index: " + index + ", id: " + id);
             if (Worldmaps.Worldmap[index].MapIdLookup != null && Worldmaps.Worldmap[index].MapIdLookup.ContainsKey(id))
             {
                 summaryOut.ID = id;
@@ -3698,6 +3710,11 @@ namespace MapEditor
             int x = (int)(mapId % MapsFile.MaxMapPixelX);
             int y = (int)(mapId / MapsFile.MaxMapPixelX);
             return GetTileIndex(x, y);
+        }
+
+        public static int GetTileIndex(DFPosition position)
+        {
+            return GetTileIndex(position.X, position.Y);
         }
 
         /// <summary>
@@ -3778,8 +3795,7 @@ namespace MapEditor
             {
                 for (int x = 0; x < MapsFile.TileX; x++)
                 {
-                    worldMap[index] = JsonConvert.DeserializeObject<Worldmap>(File.ReadAllText(Path.Combine(Worldmaps.locationsPath, "map" + (x + y * MapsFile.TileX).ToString("00000") + ".json")));
-                    index++;
+                    worldMap[x + y * MapsFile.TileX] = JsonConvert.DeserializeObject<Worldmap>(File.ReadAllText(Path.Combine(Worldmaps.locationsPath, "map" + (x + y * MapsFile.TileX).ToString("00000") + ".json")));
                 }
             }
 
@@ -3849,6 +3865,59 @@ namespace MapEditor
             return dfLocation.Exterior.ExteriorData.BlockNames[index];
         }
 
+        public static int[,] ComposePartialMatrixes(int[][,] partialMatrixes)
+        {
+            int[,] completeMatrix = new int[MapEditor.MAPWIDTH, MapEditor.MAPHEIGHT];
+
+            for (int i = 0; i < partialMatrixes.Length; i++)
+            {
+                for (int y = 0; y < MapEditor.TILESIZE; y++)
+                {
+                    for (int x = 0; x < MapEditor.TILESIZE; x++)
+                    {
+                        completeMatrix[x + (i % (MapEditor.MAPWIDTH / MapEditor.TILESIZE)) * MapEditor.TILESIZE, y + (i / (MapEditor.MAPWIDTH / MapEditor.TILESIZE)) * MapEditor.TILESIZE] = partialMatrixes[i][x, y];
+                    }
+                }
+            }
+
+            return completeMatrix;
+        }
+
+        public static byte[,] ComposePartialMatrixes_Byte(int[][,] partialMatrixes)
+        {
+            byte[,] completeMatrix = new byte[MapEditor.MAPWIDTH, MapEditor.MAPHEIGHT];
+
+            for (int i = 0; i < partialMatrixes.Length; i++)
+            {
+                for (int y = 0; y < MapEditor.TILESIZE; y++)
+                {
+                    for (int x = 0; x < MapEditor.TILESIZE; x++)
+                    {
+                        completeMatrix[x + (i % (MapEditor.MAPWIDTH / MapEditor.TILESIZE)) * MapEditor.TILESIZE, y + (i / (MapEditor.MAPWIDTH / MapEditor.TILESIZE)) * MapEditor.TILESIZE] = (byte)partialMatrixes[i][x, y];
+                    }
+                }
+            }
+
+            return completeMatrix;
+        }
+
+        public static DFPosition ConvertMapIdToDFPosition(ulong mapId)
+        {
+            return new DFPosition((int)(mapId % MapEditor.MAPWIDTH), (int)(mapId / MapEditor.MAPWIDTH));
+        }
+
+        public static DFPosition GetDFPositionFromRelPosAndTileProg(int x, int y, int tileProg)
+        {
+            x = x + (tileProg % (MapEditor.MAPWIDTH / MapEditor.TILESIZE)) * MapEditor.TILESIZE;
+            y = y + (tileProg / (MapEditor.MAPWIDTH / MapEditor.TILESIZE)) * MapEditor.TILESIZE;
+            return new DFPosition(x, y);
+        }
+
+        public static ulong ConvertDFPositionToMapId(DFPosition position)
+        {
+            return (ulong)(position.X + position.Y * MapEditor.MAPWIDTH);
+        }
+
         #endregion
     }
 
@@ -3871,9 +3940,13 @@ namespace MapEditor
 
         static ClimateInfo()
         {
-            Texture2D imageToTranslate = new Texture2D(MapsFile.WorldWidth, MapsFile.WorldHeight);
-            ImageConversion.LoadImage(imageToTranslate, File.ReadAllBytes(Path.Combine(MapEditor.testPath, "Climate.png")));            
-            MapEditor.ConvertToMatrix(imageToTranslate, out Climate);
+            Climate = new int[MapEditor.MAPWIDTH, MapEditor.MAPHEIGHT];
+            int[][,] partialMatrixes = new int[(MapEditor.MAPWIDTH / MapEditor.TILESIZE) * (MapEditor.MAPHEIGHT / MapEditor.TILESIZE)][,];
+            for (int i = 0; i < (MapEditor.MAPWIDTH / MapEditor.TILESIZE) * (MapEditor.MAPHEIGHT / MapEditor.TILESIZE); i++)
+            {
+                partialMatrixes[i] = LoadTile(i);
+            }
+            Climate = Worldmaps.ComposePartialMatrixes(partialMatrixes);
         }
 
         public static int[,] ClimateModified;
@@ -3928,9 +4001,9 @@ namespace MapEditor
                     else Debug.Log("Tile " + matrixType + "_" + posX + "_" + posY + ".png succesfully loaded");
 
                     if (matrixType == "climate")
-                        ConvertToMatrix(textureTiles, out textureArray[i]);
+                        textureArray[i] = ConvertToMatrix(textureTiles);
                     else if (matrixType == "trailExp" || matrixType == "trail")
-                        ConvertToMatrix(textureTiles, out textureArray[i], true);
+                        textureArray[i] = ConvertToMatrix(textureTiles, true);
                     // else PoliticData.ConvertToMatrix(textureTiles, out textureArray[i]);
                 }
                 else
@@ -3956,12 +4029,12 @@ namespace MapEditor
             return matrix;
         }
 
-        public static void ConvertToMatrix(Texture2D imageToTranslate, out int[,] matrix, bool isTrail = false)
+        public static int[,] ConvertToMatrix(Texture2D imageToTranslate, bool isTrail = false)
         {
             Color32[] grayscaleMap = imageToTranslate.GetPixels32();
             // byte[] buffer = imageToTranslate.GetRawTextureData();
             // Debug.Log("buffer.Length: " + buffer.Length);
-            matrix = new int[imageToTranslate.width, imageToTranslate.height];
+            int[,] matrix = new int[imageToTranslate.width, imageToTranslate.height];
             for (int x = 0; x < imageToTranslate.width; x++)
             {
                 for (int y = 0; y < imageToTranslate.height; y++)
@@ -3979,6 +4052,23 @@ namespace MapEditor
                     // }
                 }
             }
+            return matrix;
+        }
+
+        public static int ConvertMapPixelToClimate(int x, int y)
+        {
+            return Climate[x, y];
+        }
+
+        public static int[,] LoadTile(int mapProg)
+        {
+            int x = mapProg % (MapEditor.MAPWIDTH / MapEditor.TILESIZE);
+            int y = mapProg / (MapEditor.MAPWIDTH / MapEditor.TILESIZE);
+            Texture2D textureTile = new Texture2D(MapEditor.TILESIZE, MapEditor.TILESIZE);
+            string tileName = string.Concat("climate_", x.ToString(), "_", y.ToString(), ".png");
+            ImageConversion.LoadImage(textureTile, File.ReadAllBytes(Path.Combine(Worldmaps.tilesPath, tileName)));
+
+            return ClimateInfo.ConvertToMatrix(textureTile);
         }
     }
 
@@ -3990,9 +4080,13 @@ namespace MapEditor
 
         static PoliticInfo()
         {
-            Texture2D imageToTranslate = new Texture2D(MapsFile.WorldWidth, MapsFile.WorldHeight);
-            ImageConversion.LoadImage(imageToTranslate, File.ReadAllBytes(Path.Combine(MapEditor.testPath, "Politic.png")));            
-            MapEditor.ConvertToMatrix(imageToTranslate, out Politic);
+            Politic = new int[MapEditor.MAPWIDTH, MapEditor.MAPHEIGHT];
+            int[][,] partialMatrixes = new int[(MapEditor.MAPWIDTH / MapEditor.TILESIZE) * (MapEditor.MAPHEIGHT / MapEditor.TILESIZE)][,];
+            for (int i = 0; i < (MapEditor.MAPWIDTH / MapEditor.TILESIZE) * (MapEditor.MAPHEIGHT / MapEditor.TILESIZE); i++)
+            {
+                partialMatrixes[i] = LoadTile(i);
+            }
+            Politic = Worldmaps.ComposePartialMatrixes(partialMatrixes);
         }
 
         #endregion
@@ -4025,6 +4119,17 @@ namespace MapEditor
             return false;
         }
 
+        public static int[,] LoadTile(int mapProg)
+        {
+            int x = mapProg % (MapEditor.MAPWIDTH / MapEditor.TILESIZE);
+            int y = mapProg / (MapEditor.MAPWIDTH / MapEditor.TILESIZE);
+            Texture2D textureTile = new Texture2D(MapEditor.TILESIZE, MapEditor.TILESIZE);
+            string tileName = string.Concat("politic_", x.ToString(), "_", y.ToString(), ".png");
+            ImageConversion.LoadImage(textureTile, File.ReadAllBytes(Path.Combine(Worldmaps.tilesPath, tileName)));
+
+            return PoliticInfo.ConvertToMatrix(textureTile);
+        }
+
         public static int ConvertMapPixelToRegionIndex(int x, int y)
         {
             int regionIndex = Politic[x, y];
@@ -4034,6 +4139,38 @@ namespace MapEditor
 
             regionIndex -= 128;
             return regionIndex;
+        }
+
+        public static int[,] ConvertToMatrix(Texture2D imageToTranslate)
+        {
+            Color32[] grayscaleMap = imageToTranslate.GetPixels32();
+            // byte[] buffer = imageToTranslate.GetRawTextureData();
+            // Debug.Log("buffer.Length: " + buffer.Length);
+            int[,] matrix = new int[imageToTranslate.width, imageToTranslate.height];
+            for (int x = 0; x < imageToTranslate.width; x++)
+            {
+                for (int y = 0; y < imageToTranslate.height; y++)
+                {
+                    int offset = (((imageToTranslate.height - y - 1) * imageToTranslate.width) + x);
+
+                    int value = 0;
+
+                    if (grayscaleMap[offset].g == grayscaleMap[offset].r && grayscaleMap[offset].g == grayscaleMap[offset].b)
+                        value = (int)grayscaleMap[offset].g;
+                    else if (grayscaleMap[offset].g == 255 && grayscaleMap[offset].b == 255)
+                        value = (int)grayscaleMap[offset].g + grayscaleMap[offset].r;
+                    else if (grayscaleMap[offset].r == 255 && grayscaleMap[offset].b == 255)
+                        value = (int)grayscaleMap[offset].g + 509;
+                    matrix[x, y] = value;
+                }
+            }
+            return matrix;
+        }
+
+        public static int GetRegionIndexFromMapId(ulong mapId)
+        {
+            DFPosition position = Worldmaps.ConvertMapIdToDFPosition(mapId);
+            return ConvertMapPixelToRegionIndex(position.X, position.Y);
         }
 
         #endregion
@@ -4047,10 +4184,13 @@ namespace MapEditor
 
         static SmallHeightmap()
         {
-            Texture2D imageToTranslate = new Texture2D(MapsFile.WorldWidth, MapsFile.WorldHeight);
-            ImageConversion.LoadImage(imageToTranslate, File.ReadAllBytes(Path.Combine(MapEditor.testPath, "Woods.png")));            
-            Woods = MapEditor.ConvertToMatrix(imageToTranslate);
-            // Woods = JsonConvert.DeserializeObject<byte[,]>(File.ReadAllText(Path.Combine(MapEditor.testPath, "Woods.json")));
+            Woods = new byte[MapEditor.MAPWIDTH, MapEditor.MAPHEIGHT];
+            int[][,] partialMatrixes = new int[(MapEditor.MAPWIDTH / MapEditor.TILESIZE) * (MapEditor.MAPHEIGHT / MapEditor.TILESIZE)][,];
+            for (int i = 0; i < (MapEditor.MAPWIDTH / MapEditor.TILESIZE) * (MapEditor.MAPHEIGHT / MapEditor.TILESIZE); i++)
+            {
+                partialMatrixes[i] = LoadTile(i);
+            }
+            Woods = Worldmaps.ComposePartialMatrixes_Byte(partialMatrixes);
         }
 
         #endregion
@@ -4089,6 +4229,34 @@ namespace MapEditor
             return Woods[position.X, position.Y];
         }
 
+        public static int[,] ConvertToMatrix(Texture2D imageToTranslate)
+        {
+            Color32[] grayscaleMap = imageToTranslate.GetPixels32();
+            int[,] matrix = new int[imageToTranslate.width, imageToTranslate.height];
+            for (int x = 0; x < imageToTranslate.width; x++)
+            {
+                for (int y = 0; y < imageToTranslate.height; y++)
+                {
+                    int offset = (((imageToTranslate.height - y - 1) * imageToTranslate.width) + x);
+
+                    byte value = grayscaleMap[offset].g;
+                    matrix[x, y] = (int)value;
+                }
+            }
+            return matrix;
+        }
+
+        public static int[,] LoadTile(int mapProg)
+        {
+            int x = mapProg % (MapEditor.MAPWIDTH / MapEditor.TILESIZE);
+            int y = mapProg / (MapEditor.MAPWIDTH / MapEditor.TILESIZE);
+            Texture2D textureTile = new Texture2D(MapEditor.TILESIZE, MapEditor.TILESIZE);
+            string tileName = string.Concat("woods_", x.ToString(), "_", y.ToString(), ".png");
+            ImageConversion.LoadImage(textureTile, File.ReadAllBytes(Path.Combine(Worldmaps.tilesPath, tileName)));
+
+            return SmallHeightmap.ConvertToMatrix(textureTile);
+        }
+
         #endregion
     }
 
@@ -4110,7 +4278,7 @@ namespace MapEditor
         static TrailsInfo()
         {
             Texture2D imageToTranslate = new Texture2D(MapsFile.WorldWidth, MapsFile.WorldHeight);
-            ImageConversion.LoadImage(imageToTranslate, File.ReadAllBytes(Path.Combine(MapEditor.testPath, "Trails.png")));            
+            ImageConversion.LoadImage(imageToTranslate, File.ReadAllBytes(Path.Combine(MapEditor.testPath, "Trails.png")));
             Trails = MapEditor.ConvertToMatrix(imageToTranslate);
             // Woods = JsonConvert.DeserializeObject<byte[,]>(File.ReadAllText(Path.Combine(MapEditor.testPath, "Woods.json")));
         }
@@ -4141,7 +4309,7 @@ namespace MapEditor
         public int[] regionRaces;
         public int[] regionTemples;
         public int[] regionBorders;
-        public int[][] regionInProvince;        
+        public int[][] regionInProvince;
 
         public WorldStats()
         {
@@ -4167,7 +4335,8 @@ namespace MapEditor
             {
                 if (!FactionToId.ContainsKey(faction.Value.name))
                     FactionToId.Add(faction.Value.name, faction.Key);
-                else {
+                else
+                {
                     FactionToId.Add(faction.Value.name + "_(" + ((FactionFile.FactionIDs)faction.Value.parent).ToString() + ")", faction.Key);
                     int indexSwap = FactionToId[faction.Value.name];
                     FactionFile.FactionData factionSwap = FactionDictionary[indexSwap];
@@ -4194,8 +4363,7 @@ namespace MapEditor
     {
         public enum NameTypes
         {
-            HighRockVanilla,
-            HighRockModern,
+            HighRock,
             Hammerfell,
             Skyrim,
             Reachmen,
@@ -4226,11 +4394,13 @@ namespace MapEditor
 
         public enum WealthyHomeEpithets
         {
-            
-            Court,            
-            Hall,            
-            Manor,            
+
+            Court,
+            Hall,
+            Manor,
             Palace,
+            Villa,
+
         }
 
         public enum FarmsteadEpithets
@@ -4255,8 +4425,16 @@ namespace MapEditor
         {
             Deity,
             Adjectif,
-            Noun,
-            Shrine
+            Noun
+        }
+
+        public enum ShrineParts
+        {
+            Deity = 3,
+            SpecificShrine,
+            Prefix,
+            Suffix,
+            Vanilla
         }
 
         public enum RMBTypes
@@ -4290,7 +4468,6 @@ namespace MapEditor
             Border
         }
 
-        public static string[][][] NamesList;
         public static string[][] DungeonNamesList;
         public static string[][] TempleNamesList;
         public static string[][] RMBNames;
@@ -4298,9 +4475,6 @@ namespace MapEditor
 
         static LocationNamesList()
         {
-            NamesList = new string[Enum.GetNames(typeof(NameTypes)).Length][][];
-            NamesList = JsonConvert.DeserializeObject<string[][][]>(File.ReadAllText(Path.Combine(MapEditor.testPath, "LocationNames.json")));
-
             DungeonNamesList = new string[Enum.GetNames(typeof(DFRegion.DungeonTypes)).Length][];
             DungeonNamesList = JsonConvert.DeserializeObject<string[][]>(File.ReadAllText(Path.Combine(MapEditor.testPath, "DungeonEpithets.json")));
 

@@ -280,7 +280,7 @@ namespace DaggerfallWorkshop.Utility
                     File.WriteAllText(path, jsonRecord);
                 }
             }
-            
+
         }
 
         /// <summary>
@@ -307,7 +307,7 @@ namespace DaggerfallWorkshop.Utility
             try
             {
                 fileType = ParseFileType(filename);
-                
+
             }
             catch
             {
@@ -345,11 +345,11 @@ namespace DaggerfallWorkshop.Utility
                     else
                     {
                         // Debug.Log("Now loading textureNumber: " + textureNumber);
-                        textureFile = new TextureFile(Path.Combine(WorldMaps.mapPath, "Textures", filename), FileUsage.UseMemory, true);
-                        textureFile.LoadPalette(Path.Combine(WorldMaps.mapPath, "Textures", textureFile.PaletteName));
+                        textureFile = new TextureFile(Path.Combine(WorldMaps.mapPath, "Textures", textureNumber.ToString(), filename), FileUsage.UseMemory, true);
+                        textureFile.LoadPalette(Path.Combine(WorldMaps.mapPath, "Textures", textureNumber.ToString(), textureFile.PaletteName));
                         dfBitmap = textureFile.GetCustomDFBitmap(textureNumber, record, frame, TextureReader.MapsPath);
                     }
-                    
+
                     int frameCount = textureFile.GetFrameCount(record);
                     if (createAllFrameTextures && frameCount > 1)
                     {
@@ -384,7 +384,8 @@ namespace DaggerfallWorkshop.Utility
                         imageData.scale = new DFSize();
                         imageData.size = imgFile.GetSize(0);
                     }
-                    else{
+                    else
+                    {
                         filename = filename + ".png";
                         ImgFile fakeHeader = new ImgFile();
                         ImgFile imgFile = new ImgFile(Path.Combine(WorldMaps.mapPath, "Textures", "Races", filename), FileUsage.UseMemory, true);
@@ -417,7 +418,8 @@ namespace DaggerfallWorkshop.Utility
                         imageData.scale = new DFSize();
                         imageData.size = cifFile.GetSize(record);
                     }
-                    else{
+                    else
+                    {
                         filename = filename + "_" + record + "-" + frame + ".png";
                         CifRciFile cifFile = new CifRciFile(Path.Combine(WorldMaps.mapPath, "Textures", "Races", filename), FileUsage.UseMemory, true);
                         cifFile.LoadPalette(Path.Combine(WorldMaps.mapPath, "Textures", "Races", cifFile.PaletteName));
@@ -524,12 +526,13 @@ namespace DaggerfallWorkshop.Utility
         /// Updates Texture2D from DFBitmap data.
         /// </summary>
         /// <param name="imageData">Source ImageData.</param>
-        public static void UpdateTexture(ref ImageData imageData)
+        public static void UpdateTexture(ref ImageData imageData, bool isCustomTexture = false)
         {
             // Get colors array
             Color32[] colors = imageData.dfBitmap.GetColor32((imageData.hasAlpha) ? imageData.alphaIndex : -1);
             if (colors == null)
                 return;
+
 
             // Create new Texture2D
             imageData.texture = GetTexture(colors, imageData.width, imageData.height);

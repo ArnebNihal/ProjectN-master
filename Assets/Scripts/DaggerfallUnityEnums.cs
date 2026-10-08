@@ -581,7 +581,7 @@ namespace DaggerfallWorkshop
         BasicClothing,
         WeaponsAndArmor,
         SteelClothing,      // Formal Brassiere 4
-        YellowClothing,     // Edoric
+        YellowClothing,     // Edoric and Yellow helmets
         LeatherClothing,    // Shoes and boots
         RedClothing,        // Sandals, Vest and others
         BlackClothing,      // Khajiit Suit

@@ -468,7 +468,7 @@ namespace DaggerfallWorkshop.Utility
                 }
                 else if (settings.archive < 50000)
                 {
-                    textureFile = new TextureFile(Path.Combine(MapsPath, "Textures", TextureFile.IndexToFileName(settings.archive)), FileUsage.UseMemory, true);
+                    textureFile = new TextureFile(Path.Combine(MapsPath, "Textures", settings.archive.ToString(), TextureFile.IndexToFileName(settings.archive)), FileUsage.UseMemory, true);
                     settings.textureFile = textureFile;
                 }
                 else

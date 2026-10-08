@@ -251,7 +251,7 @@ namespace DaggerfallWorkshop.Utility.AssetInjection
                     record = 0;
             }
             string fileName = (archive.ToString("0000000") + "_" + record.ToString() + "-" + frame.ToString() + mask + ".png");
-            return TryImportTexture(Path.Combine(WorldMaps.mapPath, "Textures"), fileName, false, textureMap, out tex);
+            return TryImportTexture(Path.Combine(WorldMaps.mapPath, "Textures", archive.ToString()), fileName, false, textureMap, out tex);
         }
 
         /// <summary>
@@ -568,6 +568,7 @@ namespace DaggerfallWorkshop.Utility.AssetInjection
 
             if (archive >= 50000)
                 archive = archive / 100 * 100;
+                
 
             Texture2D tex, emission;
             if (importedTextures.HasImportedTextures = LoadFromCacheOrImport(archive, 0, 0, true, true, out tex, out emission))

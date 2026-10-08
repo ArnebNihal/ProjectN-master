@@ -88,74 +88,76 @@ namespace DaggerfallConnect.Arena2
 
             }
 
-            // public BiogText(List<int> answers, out TextFile.Token[] usedTokens)
-            // {
-            //     JsonConvert.DeserializeObject<BiogText>(File.ReadAllText(Path.Combine(WorldMaps.mapPath, "BiogText.json")));
+            public BiogText(List<int> answers, out TextFile.Token[] usedTokens)
+            {
+                // BiogText biogText = JsonConvert.DeserializeObject<BiogText>(File.ReadAllText(Path.Combine(WorldMaps.mapPath, "BiogText.json")));
 
-            //     List<TextFile.Token> tokenList = new List<TextFile.Token>();
-            //     TextFile.Token[] newBiogTokens, originalBiogTokens, biogPartTokens;
+                // List<TextFile.Token> tokenList = new List<TextFile.Token>();
+                // TextFile.Token[] generalBiogTokens, questionBiogTokens, biogPartTokens;
+                // newBiogTokens = new TextFile.Token[biogText.GeneralBiogs.Length];
+                // newBiogTokens[]
 
-            //     // Adding the first newBiogs, since it should be good for every backstory
-            //     tokenList.Add(newBiogTokens[0]);
+                // // Adding the first newBiogs, since it should be good for every backstory
+                // tokenList.Add(biogText.GeneralBiogs[0]);
 
-            //     if (answers[5] == 1)    // Just a baby when leaving home
-            //         tokenList.Add(newBiogTokens[1]);    // "Or so you were told..."
+                // if (answers[5] == 1)    // Just a baby when leaving home
+                //     tokenList.Add(newBiogTokens[1]);    // "Or so you were told..."
 
-            //     tokenList.Add(originalBiogTokens[0 + backstoryId * 10]);    // First memories
+                // tokenList.Add(originalBiogTokens[0 + backstoryId * 10]);    // First memories
 
-            //     if (answers[5] == 2)    // A child when leaving home
-            //         tokenList.Add(newBiogTokens[2]);    // However your permanence there was short-lived...
+                // if (answers[5] == 2)    // A child when leaving home
+                //     tokenList.Add(newBiogTokens[2]);    // However your permanence there was short-lived...
                 
-            //     tokenList.Add(originalBiogTokens[1 + backstoryId * 10]);    // As you grew...
+                // tokenList.Add(originalBiogTokens[1 + backstoryId * 10]);    // As you grew...
 
-            //     if (answers[5] == 3 || answers[5] == 4) // Adolescent or young adult when leaving home
-            //         tokenList.Add(newBiogTokens[3]);
+                // if (answers[5] == 3 || answers[5] == 4) // Adolescent or young adult when leaving home
+                //     tokenList.Add(newBiogTokens[3]);
 
-            //     for (int i = 0; i < NewBiogs.Length; i++)
-            //     {
-            //         string[] textToToken = NewBiogs[i].Split('*');
-            //         TextFile.Token[] tokens = new TextFile.Token[textToToken.Length];
+                // for (int i = 0; i < NewBiogs.Length; i++)
+                // {
+                //     string[] textToToken = NewBiogs[i].Split('*');
+                //     TextFile.Token[] tokens = new TextFile.Token[textToToken.Length];
 
-            //         for (int j = 0; j < textToToken.Length; j++)
-            //         {
-            //             tokens[j] = new TextFile.Token(TextFile.Formatting.Text, textToToken[j]);
-            //         }
-            //         tokenList.AddRange(tokens.ToList());
-            //     }
-            //     newBiogTokens = tokenList.ToArray();
+                //     for (int j = 0; j < textToToken.Length; j++)
+                //     {
+                //         tokens[j] = new TextFile.Token(TextFile.Formatting.Text, textToToken[j]);
+                //     }
+                //     tokenList.AddRange(tokens.ToList());
+                // }
+                // newBiogTokens = tokenList.ToArray();
 
-            //     tokenList = new List<TextFile.Token>();
-            //     for (int k = 0; k < OriginalBiogs.Length; k++)
-            //     {
-            //         string[] textToToken = NewBiogs[k].Split('*');
-            //         TextFile.Token[] tokens = new TextFile.Token[textToToken.Length];
+                // tokenList = new List<TextFile.Token>();
+                // for (int k = 0; k < OriginalBiogs.Length; k++)
+                // {
+                //     string[] textToToken = NewBiogs[k].Split('*');
+                //     TextFile.Token[] tokens = new TextFile.Token[textToToken.Length];
 
-            //         for (int l = 0; l < textToToken.Length; l++)
-            //         {
-            //             tokens[l] = new TextFile.Token(TextFile.Formatting.Text, textToToken[l]);
-            //         }
-            //         tokenList.AddRange(tokens.ToList());
-            //     }
-            //     originalBiogTokens = tokenList.ToArray();
+                //     for (int l = 0; l < textToToken.Length; l++)
+                //     {
+                //         tokens[l] = new TextFile.Token(TextFile.Formatting.Text, textToToken[l]);
+                //     }
+                //     tokenList.AddRange(tokens.ToList());
+                // }
+                // originalBiogTokens = tokenList.ToArray();
 
-            //     tokenList = new List<TextFile.Token>();
-            //     for (int m = 0; m < NewBiogs.Length; m++)
-            //     {
-            //         string[] textToToken = NewBiogs[m].Split('*');
-            //         TextFile.Token[] tokens = new TextFile.Token[textToToken.Length];
+                // tokenList = new List<TextFile.Token>();
+                // for (int m = 0; m < NewBiogs.Length; m++)
+                // {
+                //     string[] textToToken = NewBiogs[m].Split('*');
+                //     TextFile.Token[] tokens = new TextFile.Token[textToToken.Length];
 
-            //         for (int n = 0; n < textToToken.Length; n++)
-            //         {
-            //             tokens[n] = new TextFile.Token(TextFile.Formatting.Text, textToToken[n]);
-            //         }
-            //         tokenList.AddRange(tokens.ToList());
-            //     }
-            //     biogPartTokens = tokenList.ToArray();
+                //     for (int n = 0; n < textToToken.Length; n++)
+                //     {
+                //         tokens[n] = new TextFile.Token(TextFile.Formatting.Text, textToToken[n]);
+                //     }
+                //     tokenList.AddRange(tokens.ToList());
+                // }
+                // biogPartTokens = tokenList.ToArray();
 
-            //     tokenList = new List<TextFile.Token>();
+                // tokenList = new List<TextFile.Token>();
                 
-
-            // }
+                usedTokens = new TextFile.Token[0];
+            }
         }
 
         public static string BIOGSourceFolder

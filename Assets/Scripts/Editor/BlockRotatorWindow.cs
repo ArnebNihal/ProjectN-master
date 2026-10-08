@@ -16,6 +16,7 @@ using MapEditor;
 using UnityEditor.Localization.Plugins.XLIFF.V12;
 using DaggerfallWorkshop.Game.Serialization;
 using DaggerfallWorkshop.Game.Entity;
+using System.Xml.Linq;
 
 namespace BlockRotator
 {
@@ -28,6 +29,9 @@ namespace BlockRotator
         public const string secondPath = "D:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps/Tamriel/Data";
         public const int regionForUnique = 62;  // To update as more regions get unique blocks
         public const int normalWallChance = 80; // To modify if I feel there are too many/too few special wall blocks
+        public const int MAXXCOORD = 7680;
+        public const int MAXYCOORD = 6144;
+        public const int TILESIZE = 64;
 
         // Dungeon coefficients for the PickDungeonType func
         public const int rare = 7;
@@ -136,8 +140,176 @@ namespace BlockRotator
         public static int selectedBlock = 0;
         public static int selectedRotation = 0;
         public static string[][] availableBlocks;
+        public static int textureArchive = 0;
 
         public static DFRegion.DungeonTypes[] rareDungeons = { DFRegion.DungeonTypes.HarpyNest, DFRegion.DungeonTypes.DragonsDen, DFRegion.DungeonTypes.VolcanicCaves };
+
+        private class TextureFormat
+        {
+            public FileHeader fileHeader;
+            public RecordHeader[] recordHeader;
+            public Record[] record;
+        }
+
+        private struct FileHeader
+        {
+            public long Position;
+            public Int16 RecordCount;
+            public String Name;
+            public int TextureWidth;
+            public int TextureHeight;
+        }
+
+        /// <summary>
+        /// Record header.
+        /// </summary>
+        private struct RecordHeader
+        {
+            public long Position;
+            public Int16 Type1;
+            public Int32 RecordPosition;
+            public Int16 Type2;
+            public Int32 Unknown1;
+            public Int64 NullValue1;
+        }
+
+        /// <summary>
+        /// Record data.
+        /// </summary>
+        private struct Record
+        {
+            public long Position;
+            public Int16 OffsetX;
+            public Int16 OffsetY;
+            public Int16 Width;
+            public Int16 Height;
+            public Int16 Compression;
+            public UInt32 RecordSize;
+            public UInt32 DataOffset;
+            public Boolean IsNormal;
+            public UInt16 FrameCount;
+            public Int16 Unknown1;
+            public Int16 ScaleX;
+            public Int16 ScaleY;
+            public DFBitmap[] Frames;
+        }
+
+        public struct HighRockLocNames
+        {
+            public string[] ClassicPrefix;
+            public string[] ClassicSuffix;
+            public string[] ClassicExtra;
+            public string[] ModernPrefix;
+            public string[] ModernSuffix;
+            public string[] ModernExtra;
+            public string[] Prefix;
+            public string[] Suffix;
+            public string[] SuffixCity;
+            public string[] SuffixCoastal;
+            public string[] SuffixForest;
+            public string[] SuffixIsland;
+            public string[] SuffixMountain;
+            public string[] SuffixPlains;
+            public string[] SuffixRiver;
+            public string[] SuffixSwamp;
+            public string[] SuffixTown;
+            public string[] SuffixValley;
+            public string[] Noun;
+            public string[] Adjective;
+            public string[] Geo;
+            public string[] GeoCave;
+            public string[] GeoCoastal;
+            public string[] GeoDesert;
+            public string[] GeoForest;
+            public string[] GeoIsland;
+            public string[] GeoLake;
+            public string[] GeoMountain;
+            public string[] GeoRiver;
+            public string[] GeoSwamp;
+            public string[] CivCity;
+            public string[] CivTown;
+            public string[] Extra;
+        }
+
+        public struct HammerfellLocNames
+        {
+            public string[] ClassicPrefix;
+            public string[] ClassicSuffix1;
+            public string[] ClassicSuffix2;
+            public string[] ClassicExtra;
+            public string[] Prefix;
+            public string[] Suffix;
+            public string[] Interfix;
+            public string[] Noun;
+            public string[] Adjective;
+            public string[] Name;
+            public string[] Number;
+            public string[] Verb;
+            public string[] Geo;
+            public string[] GeoCave;
+            public string[] GeoCoastal;
+            public string[] GeoDesert;
+            public string[] GeoIsland;
+            public string[] GeoLake;
+            public string[] GeoMountain;
+            public string[] GeoRiver;
+            public string[] CivCity;
+            public string[] CivTown;
+            public string[] Extra;
+        }
+
+        public struct SkyrimLocNames
+        {
+            public string[] Prefix;
+            public string[] Suffix;
+            public string[] Extra;
+        }
+
+        public struct ReachLocNames
+        {
+            public string[] Prefix;
+            public string[] Suffix;
+            public string[] Extra;
+        }
+
+        public struct MorrowindLocNames
+        {
+            public string[] Prefix;
+            public string[] Suffix;
+            public string[] Extra;
+        }
+
+        public struct OrsiniumLocNames
+        {
+            public string[] Prefix;
+            public string[] Interfix;
+            public string[] Suffix;
+        }
+
+        public struct DwemeriLocNames
+        {
+            public string[] Prefix;
+            public string[] Interfix;
+            public string[] Suffix;
+            public string[] Noun;
+        }
+
+        public struct GeoLocations
+        {
+            public bool City;
+            public bool Town;
+            public bool Coastal;
+            public bool Forest;
+            public bool Island;
+            public bool Mountain;
+            public bool Plains;
+            public bool River;
+            public bool Swamp;
+            public bool Valley;
+            public bool Cave;
+            public bool Desert;
+            public bool Lake;
+        }
 
         [MenuItem(menuPath)]
         static void Init()
@@ -154,6 +326,8 @@ namespace BlockRotator
             handleUniques = false;
 
             availableBlocks = new string[blockPrefixes.Length][];
+
+            worldData = JsonConvert.DeserializeObject<WorldSettings>(File.ReadAllText(Path.Combine(testPath, "WorldData.json")));
 
             for (int i = 0; i < blockPrefixes.Length; i++)
             {
@@ -320,6 +494,27 @@ namespace BlockRotator
             if (GUILayout.Button("Correct Region Indexes", GUILayout.MaxWidth(200.0f)))
             {
                 CorrectRegionIndexes();
+            }
+
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("Create Texture File", GUILayout.MaxWidth(200.0f)))
+            {
+                CreateTextureFiles(textureArchive);
+            }
+            textureArchive = EditorGUILayout.IntField("Archive: ", textureArchive);
+            EditorGUILayout.EndHorizontal();
+
+            if (GUILayout.Button("Create LocName Blank File", GUILayout.MaxWidth(200.0f)))
+            {
+                DwemeriLocNames dwemerLocNames = new DwemeriLocNames();
+                string path = Path.Combine(testPath, "LocationNames", "Dwemer.json");
+                var jsonBlock = JsonConvert.SerializeObject(dwemerLocNames, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+                File.WriteAllText(path, jsonBlock);
+            }
+
+            if (GUILayout.Button("Calculate stuff regarding maps", GUILayout.MaxWidth(200.0f)))
+            {
+                CalculateStuffRegardingMaps();
             }
         }
 
@@ -1927,7 +2122,6 @@ namespace BlockRotator
         public static void ConvertToNewBlockFormat()
         {
             Worldmap mapTile = new Worldmap();
-            worldData = JsonConvert.DeserializeObject<WorldSettings>(File.ReadAllText(Path.Combine("D:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps", "WorldData.json")));
 
             dungeonNamesList = new string[Enum.GetNames(typeof(DFRegion.DungeonTypes)).Length][];
             dungeonNamesList = JsonConvert.DeserializeObject<string[][]>(File.ReadAllText(Path.Combine(testPath, "Tamriel", "DungeonEpithets.json")));
@@ -1941,9 +2135,9 @@ namespace BlockRotator
             string provChar;
             bool blockChanged;
 
-            for (int y = 0; y < 6144 / 64; y++)
+            for (int y = 0; y < MAXYCOORD / TILESIZE; y++)
             {
-                for (int x = 0; x < 7680 / 64; x++)
+                for (int x = 0; x < MAXXCOORD / TILESIZE; x++)
                 {
                     mapTile = JsonConvert.DeserializeObject<Worldmap>(File.ReadAllText(Path.Combine(testPath, "Locations", "map" + (x + y * MapsFile.TileX).ToString("00000") + ".json")));
                     // Debug.Log("Working on mapTile " + x + ", " + y);
@@ -2416,7 +2610,7 @@ namespace BlockRotator
                             mapTile.Locations[i].Exterior.ExteriorData.BlockNames[j] = blockName;
                         }
 
-                        mapTile.Locations[i].Exterior.Buildings = RegenerateBuildingsArray(mapTile.Locations[i].Exterior.ExteriorData.BlockNames, mapTile.Locations[i].RegionIndex, mapTile.Locations[i].Name, mapTile.Locations[i].MapTableData.LocationType, out mapTile.Locations[i].Exterior.BuildingCount);
+                        mapTile.Locations[i].Exterior.Buildings = RegenerateBuildingsArray(mapTile.Locations[i].Exterior.ExteriorData.BlockNames, mapTile.Locations[i].RegionIndex, mapTile.Locations[i].Name, mapTile.Locations[i].MapTableData.LocationType, out mapTile.Locations[i].Exterior.BuildingCount, out mapTile.Locations[i].MapTableData.Key);
 
                         // Roadside Tavern needs to change their name to one of the tavern's (picking the one with highest quality)
                         if (mapTile.Locations[i].MapTableData.LocationType == DFRegion.LocationTypes.Tavern)
@@ -2483,9 +2677,9 @@ namespace BlockRotator
 
             Worldmap mapTile = new Worldmap();
 
-            for (int y = 0; y < 6144 / 64; y++)
+            for (int y = 0; y < MAXYCOORD / TILESIZE; y++)
             {
-                for (int x = 0; x < 7680 / 64; x++)
+                for (int x = 0; x < MAXXCOORD / TILESIZE; x++)
                 {
                     mapTile = JsonConvert.DeserializeObject<Worldmap>(File.ReadAllText(Path.Combine(testPath, "Locations", "map" + (x + y * MapsFile.TileX).ToString("00000") + ".json")));
 
@@ -2611,9 +2805,9 @@ namespace BlockRotator
             int[][] newBlockLimits = JsonConvert.DeserializeObject<int[][]>(File.ReadAllText(Path.Combine(testPath, "newBlockLimits.json")));
             List<string>[][] blocksUsed = JsonConvert.DeserializeObject<List<string>[][]>(File.ReadAllText(Path.Combine(testPath, "BlockUsed.json")));
 
-            for (int y = 0; y < 6144 / 64; y++)
+            for (int y = 0; y < MAXYCOORD / TILESIZE; y++)
             {
-                for (int x = 0; x < 7680 / 64; x++)
+                for (int x = 0; x < MAXXCOORD / TILESIZE; x++)
                 {
                     mapTile = JsonConvert.DeserializeObject<Worldmap>(File.ReadAllText(Path.Combine(testPath, "Locations", "map" + (x + y * MapsFile.TileX).ToString("00000") + ".json")));
                     // Debug.Log("Working on mapTile " + x + ", " + y);
@@ -2688,7 +2882,7 @@ namespace BlockRotator
                             }
                         }
                         if (somethingChanged)
-                            mapTile.Locations[i].Exterior.Buildings = RegenerateBuildingsArray(mapTile.Locations[i].Exterior.ExteriorData.BlockNames, mapTile.Locations[i].RegionIndex, mapTile.Locations[i].Name, mapTile.Locations[i].MapTableData.LocationType, out mapTile.Locations[i].Exterior.BuildingCount);
+                            mapTile.Locations[i].Exterior.Buildings = RegenerateBuildingsArray(mapTile.Locations[i].Exterior.ExteriorData.BlockNames, mapTile.Locations[i].RegionIndex, mapTile.Locations[i].Name, mapTile.Locations[i].MapTableData.LocationType, out mapTile.Locations[i].Exterior.BuildingCount, out mapTile.Locations[i].MapTableData.Key);
                     }
 
                     var json = JsonConvert.SerializeObject(mapTile, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
@@ -2795,9 +2989,9 @@ namespace BlockRotator
                 }
             }
 
-            for (int y = 0; y < 6144 / 64; y++)
+            for (int y = 0; y < MAXYCOORD / TILESIZE; y++)
             {
-                for (int x = 0; x < 7680 / 64; x++)
+                for (int x = 0; x < MAXXCOORD / TILESIZE; x++)
                 {
                     Worldmap mapTile = JsonConvert.DeserializeObject<Worldmap>(File.ReadAllText(Path.Combine(testPath, "Locations", "map" + (x + y * MapsFile.TileX).ToString("00000") + ".json")));
 
@@ -2829,22 +3023,22 @@ namespace BlockRotator
             for (int h = 0; h < 408; h++)
                 borders[h] = new List<int>();
 
-            for (int y = 0; y < 6144 / 64; y++)
+            for (int y = 0; y < MAXYCOORD / TILESIZE; y++)
             {
-                for (int x = 0; x < 7680 / 64; x++)
+                for (int x = 0; x < MAXXCOORD / TILESIZE; x++)
                 {
-                    for (int i = 0; i < 64; i++)
+                    for (int i = 0; i < TILESIZE; i++)
                     {
-                        for (int j = 0; j < 64; j++)
+                        for (int j = 0; j < TILESIZE; j++)
                         {
-                            int ics = j + x * 64;
-                            int ipsilon = i + y * 64;
+                            int ics = j + x * TILESIZE;
+                            int ipsilon = i + y * TILESIZE;
                             int currentReg = PoliticInfo.Politic[ics, ipsilon];
                             if (currentReg == 0) currentReg = 31;
                             else currentReg -= 128;
 
                             int eastReg = 0;
-                            if (ics + 1 >= 7680)
+                            if (ics + 1 >= MAXXCOORD)
                                 eastReg = currentReg;
                             else
                             {
@@ -2854,7 +3048,7 @@ namespace BlockRotator
                             }
 
                             int southReg = 0;
-                            if (ipsilon + 1 >= 6144)
+                            if (ipsilon + 1 >= MAXYCOORD)
                                 southReg = currentReg;
                             else
                             {
@@ -2907,14 +3101,131 @@ namespace BlockRotator
             File.WriteAllText(Path.Combine(testPath, "WorldData.json"), json);
         }
 
+        public static void CreateTextureFiles(int archive)
+        {
+            string fileName = string.Empty;
+            string frameFN = string.Empty;
+            string xmlFN = string.Empty;
+
+            int lastRecordIndex = 0;
+
+            bool hasFrame = false;
+            int frameNum = 0;
+
+            List<Record> recordList = new List<Record>();
+
+            for (int i = 0; i < 100; i++)
+            {
+                fileName = archive.ToString("0000000") + "_" + i.ToString() + "-0.png";
+                if (!File.Exists(Path.Combine(testPath, "Textures", archive.ToString(), fileName)))
+                {
+                    recordList.Add(new Record());
+                    continue;
+                }
+
+                frameFN = archive.ToString("0000000") + "_" + i.ToString() + "-1.png";
+                if (File.Exists(Path.Combine(testPath, "Textures", archive.ToString(), frameFN)))
+                    hasFrame = true;
+
+                if (hasFrame)
+                {
+                    do
+                    {
+                        frameNum++;
+                        frameFN = archive.ToString("0000000") + "_" + i.ToString() + "-" + (frameNum + 1).ToString() + ".png";
+                    }
+                    while (File.Exists(Path.Combine(testPath, "Textures", archive.ToString(), frameFN)));
+                }
+
+                byte[] fileBytes = File.ReadAllBytes(Path.Combine(testPath, "Textures", archive.ToString(), fileName));
+                Texture2D texture = new Texture2D(1, 1);
+                texture.LoadImage(fileBytes);
+
+                Record record = new Record();
+                record.Position = 1;
+                record.OffsetX = 100;
+                record.OffsetY = 100;
+                record.Width = (short)texture.width;
+                record.Height = (short)texture.height;
+                record.Compression = 0;
+                record.RecordSize = (uint)(record.Width * record.Height);
+                record.DataOffset = 0;
+                record.IsNormal = false;
+                record.FrameCount = (ushort)frameNum;
+                record.Unknown1 = 0;
+
+                xmlFN = archive.ToString("0000000") + "_" + i.ToString() + "-0.xml";
+                if (File.Exists(Path.Combine(testPath, "Textures", archive.ToString(), xmlFN)))
+                {
+                    XElement xml = XElement.Load(Path.Combine(testPath, "Textures", archive.ToString(), xmlFN));
+                    Debug.Log("Reading xml for archive " + archive + ", record " + i);
+                    record.ScaleX = (short)((float)xml.Element("scaleX") * 256.0f);
+                    record.ScaleY = (short)((float)xml.Element("scaleY") * 256.0f);
+                }
+                else
+                {
+                    record.ScaleX = 0;
+                    record.ScaleY = 0;
+                }
+                record.Frames = null;
+
+                recordList.Add(record);
+
+                lastRecordIndex = i;
+            }
+            ;
+
+            List<RecordHeader> recordHeaderList = new List<RecordHeader>();
+            for (int j = 0; j <= lastRecordIndex; j++)
+            {
+                recordHeaderList.Add(new RecordHeader());
+            }
+            recordList.RemoveRange(lastRecordIndex + 1, recordList.Count - (lastRecordIndex + 1));
+
+            TextureFormat textureFormat = new TextureFormat();
+            textureFormat.fileHeader.Position = 0;
+            textureFormat.fileHeader.RecordCount = (short)(lastRecordIndex + 1);
+            textureFormat.fileHeader.Name = "Insert description for your own good";
+            textureFormat.fileHeader.TextureWidth = 100;
+            textureFormat.fileHeader.TextureHeight = 100;
+
+            textureFormat.recordHeader = recordHeaderList.ToArray();
+            textureFormat.record = recordList.ToArray();
+
+            string path = Path.Combine(testPath, "Textures", "TEXTURE." + archive.ToString("0000000"));
+            var json = JsonConvert.SerializeObject(textureFormat, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+            File.WriteAllText(path, json);
+        }
+
+        public static void CalculateStuffRegardingMaps()
+        {
+            Worldmap map = new Worldmap();
+            worldData = JsonConvert.DeserializeObject<WorldSettings>(File.ReadAllText(Path.Combine(testPath, "WorldData.json")));
+
+            for (int y = 0; y < MAXYCOORD; y++)
+            {
+                for (int x = 0; x < MAXXCOORD; x++)
+                {
+                    map = JsonConvert.DeserializeObject<Worldmap>(File.ReadAllText(Path.Combine(testPath, "Locations", "map" + (x + y * MapsFile.TileX).ToString("00000") + ".json")));
+                    // Debug.Log("Working on mapTile " + x + ", " + y);
+
+                    if (map.LocationCount <= 0)
+                    {
+                        map.DiscardMapTile();
+                        continue;
+                    }
+                }
+            }
+        }
+
         public static void CorrectRegionIndexes()
         {
             Worldmap mapTile = new Worldmap();
             worldData = JsonConvert.DeserializeObject<WorldSettings>(File.ReadAllText(Path.Combine("D:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps", "WorldData.json")));
 
-            for (int y = 0; y < 6144 / 64; y++)
+            for (int y = 0; y < MAXYCOORD / TILESIZE; y++)
             {
-                for (int x = 0; x < 7680 / 64; x++)
+                for (int x = 0; x < MAXXCOORD / TILESIZE; x++)
                 {
                     mapTile = JsonConvert.DeserializeObject<Worldmap>(File.ReadAllText(Path.Combine(testPath, "Locations", "map" + (x + y * MapsFile.TileX).ToString("00000") + ".json")));
 
@@ -3012,7 +3323,7 @@ namespace BlockRotator
             }
 
             if (varCounter > 0)
-                newWallProg += (12 * varCounter);
+                newWallProg += 12 * varCounter;
 
             return newWallProg;
         }
@@ -3231,7 +3542,7 @@ namespace BlockRotator
             int dungeonNameStructure;
             int title;
             int gender;
-            int bankType; ;
+            int bankType;
             int nameType;
             string resultingName;
 
@@ -3264,9 +3575,7 @@ namespace BlockRotator
             nameType = UnityEngine.Random.Range(0, 3);
 
             // This should generate a random gender and, at the same time, make it coordinated with title
-            if (title % 2 == 0)
-                gender = 1;
-            else gender = 0;
+            gender = title % 2;
 
             // Debug.Log("Picking name for dungeonType " + (DFRegion.DungeonTypes)dungeonType);
             switch (dungeonType)
@@ -3299,10 +3608,11 @@ namespace BlockRotator
 
                 case (int)DFRegion.DungeonTypes.OrcStronghold:
                 case (int)DFRegion.DungeonTypes.HumanStronghold:
+
                     selectedEpithet = UnityEngine.Random.Range(0, dungeonNamesList[dungeonType].Length);
                     // Debug.Log("selectedEpithet: " + dungeonNamesList[dungeonType][selectedEpithet] + " (" + selectedEpithet + ")");
 
-                    // If we're generating a Orc Stronghold, change the bankType to orc's
+                    // If we're generating an Orc Stronghold, change the bankType to orc's
                     if (dungeonType == (int)DFRegion.DungeonTypes.OrcStronghold)
                         bankType = 13;
 
@@ -3326,7 +3636,7 @@ namespace BlockRotator
                             return resultingName;
 
                         case 2:     // (surname) (epithet)
-                            resultingName = string.Concat("The ", (dungeonNamesList[dungeonType][selectedEpithet]).ToString(), " ", GetName(0, gender, bankType));
+                            resultingName = string.Concat("The ", (dungeonNamesList[dungeonType][selectedEpithet]).ToString(), " ", GetName(1, gender, bankType));
                             return resultingName;
 
                         case 3:     // (name)'s (epithet)
@@ -3344,12 +3654,13 @@ namespace BlockRotator
                         case 0:     // The (surname) (epithet)
                             resultingName = string.Concat("The ", GetName(1, gender, bankType), " ", dungeonNamesList[dungeonType][selectedEpithet]);
                             return resultingName;
+
                         case 1:     // The (name) (epithet);
                             resultingName = string.Concat("The ", GetName(0, gender, bankType), " ", dungeonNamesList[dungeonType][selectedEpithet]);
                             return resultingName;
 
-                        case 2:     // The (epithet) of (name);
-                            resultingName = string.Concat("The ", dungeonNamesList[dungeonType][selectedEpithet], " of ", GetName(nameType, gender, bankType));
+                        case 2:     // The (epithet) of (nameORsurname);
+                            resultingName = string.Concat("The ", dungeonNamesList[dungeonType][selectedEpithet], " of ", GetName(3, gender, bankType));
                             return resultingName;
 
                         case 3:     // (name)'s (epithet);
@@ -3850,25 +4161,26 @@ namespace BlockRotator
             }
         }
 
-        public static DFLocation.BuildingData[] RegenerateBuildingsArray(string[] blocks, int regionInd, string locName, DFRegion.LocationTypes locType, out ushort buildingCount)
+        public static DFLocation.BuildingData[] RegenerateBuildingsArray(string[] blocks, int regionInd, string locName, DFRegion.LocationTypes locType, out ushort buildingCount, out uint locationKey)
         {
             List<DFLocation.BuildingData> regBuildData = new List<DFLocation.BuildingData>();
             List<int> nameseedUsed = new List<int>();
             buildingCount = 0;
-
-            // This is used for one of the many useless things I thought about:
-            // if in a block two buildings have the same type AND quality, they
-            // get the same name. This was to make those Hammerfell "double taverns"
-            // make a little more sense, but maybe will have some other kind of future
-            // use? Who knows...
-            List<(int, int)> sameNameBuilding = new List<(int, int)>();
             short sectorCounter = 0;
+            locationKey = 0;
 
             for (int i = 0; i < blocks.Length; i++)
             {
                 Debug.Log("Regeneratin building list for block " + blocks[i]);
                 string path = Path.Combine(testPath, "RMB", GetGenericBlockName(blocks[i], true));
                 DFBlock block = JsonConvert.DeserializeObject<DFBlock>(File.ReadAllText(path));
+
+                // This is used for one of the many useless things I thought about:
+                // if in a block two buildings have the same type AND quality, they
+                // get the same name. This was to make those Hammerfell "double taverns"
+                // make a little more sense, but maybe will have some other kind of future
+                // use? Who knows...
+                List<(int, int)> sameNameBuilding = new List<(int, int)>();
 
                 for (int j = 0; j < block.RmbBlock.FldHeader.BuildingDataList.Length; j++)
                 {
@@ -3910,7 +4222,7 @@ namespace BlockRotator
                         }
                         else
                         {
-                            if (UnityEngine.Random.Range(0, 2) == 0)
+                            if (UnityEngine.Random.Range(0, 10) != 0)
                             {
                                 building.FactionId = (ushort)worldData.regionTemples[regionInd];
                             }
@@ -3923,6 +4235,23 @@ namespace BlockRotator
                     building.BuildingType = block.RmbBlock.FldHeader.BuildingDataList[j].BuildingType;
 
                     regBuildData.Add(building);
+
+                    locationKey |= GenerateLocationsWindow.GetPartialKey(building);
+                }
+
+                if (locType == DFRegion.LocationTypes.DungeonLabyrinth ||
+                locType == DFRegion.LocationTypes.DungeonKeep ||
+                locType == DFRegion.LocationTypes.DungeonRuin ||
+                locType == DFRegion.LocationTypes.DungeonMinor)
+                {
+                    short entrances = -1;
+                    for (int e = 0; e < block.RmbBlock.MiscFlatObjectRecords.Length; e++)
+                    {
+                        if (block.RmbBlock.MiscFlatObjectRecords[e].TextureArchive == 199 &&
+                            block.RmbBlock.MiscFlatObjectRecords[e].TextureRecord == 10)
+                            entrances++;
+                    }
+                    locationKey = (uint)entrances;
                 }
             }
 
@@ -4178,8 +4507,8 @@ namespace BlockRotator
 
         public static GovernmentType GetGovernmentType(ulong mapId)
         {
-            int x = (int)mapId % 7680;
-            int y = (int)mapId / 7680;
+            int x = (int)mapId % MAXXCOORD;
+            int y = (int)mapId / MAXXCOORD;
             // Debug.Log("x: " + x + ", y: " + y + ", regionIndex: " + PoliticInfo.ConvertMapPixelToRegionIndex(x, y) + ", region name: " + WorldInfo.WorldSetting.RegionNames[PoliticInfo.ConvertMapPixelToRegionIndex(x, y)]);
             FactionFile.FactionData region = FactionAtlas.FactionDictionary[FactionAtlas.FactionToId[ConvertFactionName(WorldInfo.WorldSetting.RegionNames[PoliticInfo.ConvertMapPixelToRegionIndex(x, y)])]];
             int governmentType = (region.ruler + 1) / 2;
