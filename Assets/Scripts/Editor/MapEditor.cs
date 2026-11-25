@@ -168,8 +168,8 @@ namespace MapEditor
 
         public string worldSavePath;
         public string sourceFilesPath;
-        public const string testPath = "D:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps/";
-        public const string arena2Path = "D:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/";
+        public const string testPath = "C:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps/";
+        public const string arena2Path = "C:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/";
         public int lastDungeonType = -1;
         public int availableBlocks = 0;
         public int availableDBlocks = 0;
@@ -1692,7 +1692,7 @@ namespace MapEditor
         protected void CreateLargeHeightmap()
         {
             int heightmapVariation;
-            const string tilesPath = "D:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps/Tiles";
+            const string tilesPath = "C:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps/Tiles";
 
             // Texture2D textureTiles = new Texture2D(MapsFile.TileDim, MapsFile.TileDim);
             // ImageConversion.LoadImage(textureTiles, File.ReadAllBytes(Path.Combine(testPath, "Woods.png")));
@@ -1775,7 +1775,7 @@ namespace MapEditor
 
                     return (heightmapVariationUnit * 5 * randomPositiveNegative);
 
-                case (int)MapsFile.Climates.Desert2:        // Mid-low variation
+                case (int)MapsFile.Climates.Savannah:        // Mid-low variation
                 case (int)MapsFile.Climates.Subtropical:
                 case (int)MapsFile.Climates.Woodlands:
                 case (int)MapsFile.Climates.Maquis:
@@ -1793,7 +1793,7 @@ namespace MapEditor
                     return (heightmapVariationUnit * 5 * randomPositiveNegative);
 
                 case (int)MapsFile.Climates.Rainforest:     // Mid variation
-                case (int)MapsFile.Climates.HauntedWoodlands:
+                case (int)MapsFile.Climates.Steppes:
                     if (randomRange <= 10)
                         return 0;
                     if (randomRange <= 25)
@@ -2545,7 +2545,7 @@ namespace MapEditor
                     colour = new Color32(217, 217, 217, (byte)mapAlphaChannel);
                     break;
 
-                case 225:   // Desert2
+                case 225:   // Savannah
                     colour = new Color32(255, 255, 255, (byte)mapAlphaChannel);
                     break;
 
@@ -3511,8 +3511,9 @@ namespace MapEditor
         public static Worldmap[] WholeWM;
         public static Dictionary<ulong, MapSummary> mapDict;
         public static List<ulong> locationIdList;
-        public static string tilesPath = "D:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps/Tiles";
-        public static string locationsPath = "D:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps/Locations";
+        public static string mapPath = "C:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps";
+        public static string tilesPath = "C:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps/Tiles";
+        public static string locationsPath = "C:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps/Locations";
 
         static Worldmaps()
         {

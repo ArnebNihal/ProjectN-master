@@ -1382,7 +1382,7 @@ namespace DaggerfallWorkshop.Utility
                     switch (climate)
                     {
                         case (int)MapsFile.Climates.Desert:
-                        case (int)MapsFile.Climates.Desert2:
+                        case (int)MapsFile.Climates.Savannah:
                             encounterTableIndex = 20;
                             break;
                         case (int)MapsFile.Climates.Mountain:
@@ -1400,7 +1400,7 @@ namespace DaggerfallWorkshop.Utility
                         case (int)MapsFile.Climates.Maquis:
                             encounterTableIndex = 32;
                             break;
-                        case (int)MapsFile.Climates.HauntedWoodlands:
+                        case (int)MapsFile.Climates.Steppes:
                             encounterTableIndex = 35;
                             break;
 
@@ -1416,7 +1416,7 @@ namespace DaggerfallWorkshop.Utility
                         switch (climate)
                         {
                             case (int)MapsFile.Climates.Desert:
-                            case (int)MapsFile.Climates.Desert2:
+                            case (int)MapsFile.Climates.Savannah:
                                 encounterTableIndex = 21;
                                 break;
                             case (int)MapsFile.Climates.Mountain:
@@ -1434,7 +1434,7 @@ namespace DaggerfallWorkshop.Utility
                             case (int)MapsFile.Climates.Maquis:
                                 encounterTableIndex = 33;
                                 break;
-                            case (int)MapsFile.Climates.HauntedWoodlands:
+                            case (int)MapsFile.Climates.Steppes:
                                 encounterTableIndex = 36;
                                 break;
 
@@ -1448,7 +1448,7 @@ namespace DaggerfallWorkshop.Utility
                         switch (climate)
                         {
                             case (int)MapsFile.Climates.Desert:
-                            case (int)MapsFile.Climates.Desert2:
+                            case (int)MapsFile.Climates.Savannah:
                                 encounterTableIndex = 22;
                                 break;
                             case (int)MapsFile.Climates.Mountain:
@@ -1466,7 +1466,7 @@ namespace DaggerfallWorkshop.Utility
                             case (int)MapsFile.Climates.Maquis:
                                 encounterTableIndex = 34;
                                 break;
-                            case (int)MapsFile.Climates.HauntedWoodlands:
+                            case (int)MapsFile.Climates.Steppes:
                                 encounterTableIndex = 37;
                                 break;
 

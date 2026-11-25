@@ -380,8 +380,8 @@ namespace MapEditor
                     EditorGUILayout.LabelField(((float)currentRegionData.climates[(int)MapsFile.Climates.Desert - (int)MapsFile.Climates.Ocean] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
                     GUILayout.EndHorizontal();
                     GUILayout.BeginHorizontal();
-                    EditorGUILayout.LabelField("Desert2: ", "");
-                    EditorGUILayout.LabelField(((float)currentRegionData.climates[(int)MapsFile.Climates.Desert2 - (int)MapsFile.Climates.Ocean] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
+                    EditorGUILayout.LabelField("Savannah: ", "");
+                    EditorGUILayout.LabelField(((float)currentRegionData.climates[(int)MapsFile.Climates.Savannah - (int)MapsFile.Climates.Ocean] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
                     GUILayout.EndHorizontal();
                     GUILayout.BeginHorizontal();
                     EditorGUILayout.LabelField("Mountain: ", "");
@@ -409,7 +409,7 @@ namespace MapEditor
                     GUILayout.EndHorizontal();
                     GUILayout.BeginHorizontal();
                     EditorGUILayout.LabelField("Haunted Woodlands: ", "");
-                    EditorGUILayout.LabelField(((float)currentRegionData.climates[(int)MapsFile.Climates.HauntedWoodlands - (int)MapsFile.Climates.Ocean] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
+                    EditorGUILayout.LabelField(((float)currentRegionData.climates[(int)MapsFile.Climates.Steppes - (int)MapsFile.Climates.Ocean] * 100.0f / (float)currentRegionData.surface).ToString(), "%");
                     GUILayout.EndHorizontal();
                 }
                 else
@@ -664,7 +664,7 @@ namespace MapEditor
             {
                 genOptions.locationDensity[i] = 0;
 
-                for (int j = 0; j <= ((int)MapsFile.Climates.HauntedWoodlands - (int)MapsFile.Climates.Ocean); j++)
+                for (int j = 0; j <= ((int)MapsFile.Climates.Steppes - (int)MapsFile.Climates.Ocean); j++)
                 {
                     genOptions.locationDensity[i] += (GenerateLocationsWindow.locationDensity[j, i] * GenerateLocationsWindow.governmentModifier[(RegionManager.currentRegionData.governType + 1) / 2, i] * ((float)RegionManager.currentRegionData.climates[j] * 100.0f / (float)RegionManager.currentRegionData.surface)) / 100.0f;
                 }

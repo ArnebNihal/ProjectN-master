@@ -31,14 +31,17 @@ namespace DaggerfallWorkshop.Game
         const int numPersonOutfitVariants = 4;  // there are 4 outfit variants per climate 
         const int numPersonFaceVariants = 24;   // there are 24 face variants per outfit variant
 
-        int[] maleRedguardFaceRecordIndex = new int[] { 336, 312, 336, 312 };   // matching textures 381, 382, 383, 384 from MobilePersonBillboard class texture definition
-        int[] femaleRedguardFaceRecordIndex = new int[] { 144, 144, 120, 96 };  // matching texture 395, 396, 397, 398 from MobilePersonBillboard class texture definition
+        int[] maleBretonFaceRecordIndex = new int[] { 192, 216, 288, 240 };     // matching texture 385, 386, 391, 394 from MobilePersonBillboard class texture definition
+        int[] femaleBretonFaceRecordIndex = new int[] { 72, 72, 24, 72 };       // matching texture 453, 454, 455, 456 from MobilePersonBillboard class texture definition
+
+        int[] maleRedguardFaceRecordIndex = new int[] { 336, 312, 336, 336 };   // matching textures 381, 382, 383, 384 from MobilePersonBillboard class texture definition
+        int[] femaleRedguardFaceRecordIndex = new int[] { 144, 120, 120, 96 };  // matching texture 395, 396, 397, 398 from MobilePersonBillboard class texture definition
 
         int[] maleNordFaceRecordIndex = new int[] { 240, 264, 168, 192 };       // matching texture 387, 388, 389, 390 from MobilePersonBillboard class texture definition
         int[] femaleNordFaceRecordIndex = new int[] { 72, 0, 48, 0 };          // matching texture 392, 393, 451, 452 from MobilePersonBillboard class texture definition
 
-        int[] maleBretonFaceRecordIndex = new int[] { 192, 216, 288, 240 };     // matching texture 385, 386, 391, 394 from MobilePersonBillboard class texture definition
-        int[] femaleBretonFaceRecordIndex = new int[] { 72, 72, 24, 72 };       // matching texture 453, 454, 455, 456 from MobilePersonBillboard class texture definition
+        int[] maleOrcFaceRecordIndex = new int[] { 0, 5, 10, 0 };
+        int[] femaleOrcFaceRecordIndex = new int[] { 15, 20, 25, 15 };
 
         static PlayerGPS playerGPS;
         int populationRaces;
@@ -53,6 +56,12 @@ namespace DaggerfallWorkshop.Game
             Redguard = 2,
             Nord = 3,
             DarkElf = 4,
+            HighElf = 5,
+            WoodElf = 6,
+            Khajiit = 7,
+            Argonian = 8,
+            Imperial = 9,
+            Orc = 10
         }
 
         private Races race = Races.Breton;                      // race of the npc
@@ -142,8 +151,8 @@ namespace DaggerfallWorkshop.Game
 
             populationRaces = WorldData.WorldSetting.regionRaces[playerGPS.CurrentRegionIndex];
             mainPopulationRace = populationRaces / 100;
-            secondaryPopulationRace = (populationRaces - mainPopulationRace * 100) / 10;
-            tertiaryPopulationRace = populationRaces - (mainPopulationRace * 100 + secondaryPopulationRace * 10);
+            secondaryPopulationRace = populationRaces % 100 / 10;
+            tertiaryPopulationRace = populationRaces % 10;
         }
 
         #endregion
@@ -178,7 +187,7 @@ namespace DaggerfallWorkshop.Game
                 // Randomize gender
                 gender = (UnityEngine.Random.Range(0, 2) == 1) ? Genders.Female : Genders.Male;
                 // Set outfit variant for npc
-                personOutfitVariant = UnityEngine.Random.Range(0, numPersonOutfitVariants);
+                personOutfitVariant = -1;
                 IsGuard = false;
             }
             // Set race (set current race before calling this function with property Race)
@@ -209,7 +218,7 @@ namespace DaggerfallWorkshop.Game
                     populationSelected = tertiaryPopulationRace;
                 else
                 {
-                    populationSelected = UnityEngine.Random.Range(0, 10);
+                    populationSelected = UnityEngine.Random.Range(1, 11);
                 }
             }
             else if (playerGPS.CurrentLocationType == DFRegion.LocationTypes.TownCity)
@@ -222,7 +231,7 @@ namespace DaggerfallWorkshop.Game
                     populationSelected = tertiaryPopulationRace;
                 else
                 {
-                    populationSelected = UnityEngine.Random.Range(0, 10);
+                    populationSelected = UnityEngine.Random.Range(1, 11);
                 }
             }
             else if (playerGPS.CurrentLocationType == DFRegion.LocationTypes.TownHamlet)
@@ -235,7 +244,7 @@ namespace DaggerfallWorkshop.Game
                     populationSelected = tertiaryPopulationRace;
                 else
                 {
-                    populationSelected = UnityEngine.Random.Range(0, 10);
+                    populationSelected = UnityEngine.Random.Range(1, 11);
                 }
             }
             else{
@@ -247,33 +256,35 @@ namespace DaggerfallWorkshop.Game
                 else if (populationSelected < 99)
                     populationSelected = tertiaryPopulationRace;
                 else
-                    populationSelected = UnityEngine.Random.Range(0, 10);
+                    populationSelected = UnityEngine.Random.Range(1, 11);
             }
 
-            switch((FactionFile.FactionRaces)populationSelected)
-            {
-                case FactionFile.FactionRaces.Redguard:
-                    return Races.Redguard;
-                case FactionFile.FactionRaces.Nord:
-                    return Races.Nord;
-                case FactionFile.FactionRaces.DarkElf:
-                    return Races.DarkElf;
-                case FactionFile.FactionRaces.Argonian:
-                    return Races.Argonian;
-                case FactionFile.FactionRaces.HighElf:
-                    return Races.HighElf;
-                case FactionFile.FactionRaces.Imperial:
-                    return Races.Imperial;
-                case FactionFile.FactionRaces.Khajiit:
-                    return Races.Khajiit;
-                case FactionFile.FactionRaces.Orc:
-                    return Races.Orc;
-                case FactionFile.FactionRaces.WoodElf:
-                    return Races.WoodElf;
-                case FactionFile.FactionRaces.Breton:
-                default:
-                    return Races.Breton;
-            }
+            return (Races)(--populationSelected);
+
+            // switch((Races)populationSelected)
+            // {
+            //     case Races.Redguard:
+            //         return Races.Redguard;
+            //     case Races.Nord:
+            //         return Races.Nord;
+            //     case Races.DarkElf:
+            //         return Races.DarkElf;
+            //     case Races.Argonian:
+            //         return Races.Argonian;
+            //     case Races.HighElf:
+            //         return Races.HighElf;
+            //     case Races.Imperial:
+            //         return Races.Imperial;
+            //     case Races.Khajiit:
+            //         return Races.Khajiit;
+            //     case Races.Orc:
+            //         return Races.Orc;
+            //     case Races.WoodElf:
+            //         return Races.WoodElf;
+            //     case Races.Breton:
+            //     default:
+            //         return Races.Breton;
+            // }
         }
 
         /// <summary>
@@ -342,7 +353,7 @@ namespace DaggerfallWorkshop.Game
         {
             if (random)
             {
-                if (UnityEngine.Random.Range(0, 100) % 2 == 0)
+                if (DFRandom.rand() % 2 == 0)
                     return NameHelper.BankTypes.Breton;
                 else return NameHelper.BankTypes.BretonModern;
             }
@@ -423,10 +434,10 @@ namespace DaggerfallWorkshop.Game
 
             // get face record id to use (randomize portrait for current person outfit variant)
             int personFaceVariant = UnityEngine.Random.Range(0, numPersonFaceVariants);
-            this.personFaceRecordId = recordIndices[personOutfitVariant] + personFaceVariant;
+            // this.personFaceRecordId = recordIndices[personOutfitVariant] + personFaceVariant;
 
             // set billboard to correct race, gender and outfit variant
-            Asset.SetPerson(race, gender, personOutfitVariant, IsGuard, personFaceVariant, personFaceRecordId);
+            Asset.SetPerson(race, gender, ref personOutfitVariant, IsGuard, personFaceVariant, out this.personFaceRecordId);
         }
 
         /// <summary>

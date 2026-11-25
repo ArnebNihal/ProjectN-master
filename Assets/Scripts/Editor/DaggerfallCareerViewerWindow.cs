@@ -580,8 +580,8 @@ namespace DaggerfallWorkshop
                     });
                     GUILayoutHelper.Horizontal(() =>
                     {
-                        EditorGUILayout.LabelField("Desert2");
-                        EditorGUILayout.SelectableLabel(selectedCareer.Desert2.ToString(), EditorStyles.textField, GUILayout.Height(EditorGUIUtility.singleLineHeight));
+                        EditorGUILayout.LabelField("Savannah");
+                        EditorGUILayout.SelectableLabel(selectedCareer.Savannah.ToString(), EditorStyles.textField, GUILayout.Height(EditorGUIUtility.singleLineHeight));
                     });
                     GUILayoutHelper.Horizontal(() =>
                     {
@@ -615,8 +615,8 @@ namespace DaggerfallWorkshop
                     });
                     GUILayoutHelper.Horizontal(() =>
                     {
-                        EditorGUILayout.LabelField("HauntedWoodlands");
-                        EditorGUILayout.SelectableLabel(selectedCareer.HauntedWoodlands.ToString(), EditorStyles.textField, GUILayout.Height(EditorGUIUtility.singleLineHeight));
+                        EditorGUILayout.LabelField("Steppes");
+                        EditorGUILayout.SelectableLabel(selectedCareer.Steppes.ToString(), EditorStyles.textField, GUILayout.Height(EditorGUIUtility.singleLineHeight));
                     });
                     GUILayoutHelper.Horizontal(() =>
                     {

@@ -430,6 +430,7 @@ namespace DaggerfallWorkshop
                         y,
                         location.MapTableData.MapId,
                         location.LocationIndex,
+                        false,
                         dfUnity.Option_RMBGroundPlane,
                         dfUnity.Option_CityBlockPrefab,
                         summary.NatureBillboardBatch,

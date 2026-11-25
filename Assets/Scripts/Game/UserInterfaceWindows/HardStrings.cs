@@ -36,14 +36,14 @@ namespace DaggerfallWorkshop.Game.UserInterfaceWindows
         public const string spellAbsorption = "spellAbsorption";
         public const string ocean = "ocean";
         public const string desert = "desert";
-        public const string desert2 = "desert2";
+        public const string savannah = "savannah";
         public const string mountain = "mountain";
         public const string rainforest = "rainforest";
         public const string swamp = "swamp";
         public const string subtropical = "subtropical";
         public const string mountainWoods = "mountainWoods";
         public const string woodlands = "woodlands";
-        public const string hauntedWoodlands = "hauntedWoodlands";
+        public const string steppes = "steppes";
         public const string maquis = "maquis";
         public const string animals = "animals";
         public const string daedra = "daedra";

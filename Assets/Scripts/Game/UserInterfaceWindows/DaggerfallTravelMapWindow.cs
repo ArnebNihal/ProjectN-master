@@ -831,7 +831,7 @@ namespace DaggerfallWorkshop.Game.UserInterfaceWindows
                             colour = new Color32(217, 217, 217, mapAlphaChannel);
                             break;
 
-                        case 225:   // Desert2
+                        case 225:   // Savannah
                             colour = new Color32(255, 255, 255, mapAlphaChannel);
                             break;
 

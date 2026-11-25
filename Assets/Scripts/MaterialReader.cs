@@ -398,7 +398,8 @@ namespace DaggerfallWorkshop
             // Try to import a material from mods, otherwise create a standard material
             // and import textures from Daggerfall files and loose files.
             if (!TextureReplacement.TextureExistsAmongLooseFiles(archive, record, frame) &&
-                TextureReplacement.TryImportMaterial(archive, record, frame, out material))
+                TextureReplacement.TryImportMaterial(archive, record, frame, out material) &&
+                archive > 999)
             {
                 results = TextureReplacement.MakeResults(material, archive, record);
                 TextureReplacement.AssignFiltermode(material);
@@ -486,7 +487,6 @@ namespace DaggerfallWorkshop
             {
                 // If we have no texture file, this means this is a non-classic texture
                 // Just use the albedo texture directly
-                Debug.Log("archive: " + archive + ", record: " + record);
                 DFSize scale = new DFSize(1, 1);
                 // DFSize scale = results.textureFile.GetScale(record);
                 recordSizes = new Vector2[1] { new Vector2(results.albedoMap.width, results.albedoMap.height) };
@@ -599,7 +599,7 @@ namespace DaggerfallWorkshop
                 material.name = string.Format("TEXTURE.{0:000} [Atlas]", archive);
             else if (archive < 10000)
                 material.name = string.Format("TEXTURE.{0:0000} [Atlas]", archive);
-            else material.name = string.Format("TEXTURE.{0:00000} [Atlas]", archive);
+            else material.name = string.Format("TEXTURE.{0:0000000} [Atlas]", archive);
 
             GetTextureResults results = textureReader.GetTexture2DAtlas(settings, AlphaTextureFormat);
 

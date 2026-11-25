@@ -411,6 +411,7 @@ namespace DaggerfallWorkshop.Utility
             ref DFBlock blockData,
             Transform flatsParent,
             ulong mapId,
+            int randSeed,
             int locationIndex,
             DaggerfallBillboardBatch animalsBillboardBatch = null,
             TextureAtlasBuilder miscBillboardsAtlas = null,
@@ -421,6 +422,9 @@ namespace DaggerfallWorkshop.Utility
                 return;
 
             bool randomiseStuff = int.TryParse(blockData.Name.Substring(3, 1), out int uselessValue);
+            UnityEngine.Random.InitState(Convert.ToInt32(randSeed));
+            int counter = 0;
+            DFBlock.RmbBlockFlatObjectRecord[] swapObj = new DFBlock.RmbBlockFlatObjectRecord[blockData.RmbBlock.MiscFlatObjectRecords.Length];
 
             // Add block flats
             foreach (DFBlock.RmbBlockFlatObjectRecord obj in blockData.RmbBlock.MiscFlatObjectRecords)
@@ -429,57 +433,279 @@ namespace DaggerfallWorkshop.Utility
                 if (obj.TextureArchive == TextureReader.LightsTextureArchive)
                     continue;
 
-                DFBlock.RmbBlockFlatObjectRecord swapObj;
-                swapObj = ApplyFlags(obj, mapId, locationIndex);
+                (int, int, int, int) flatCategories = GetBillboardParameters(obj.TextureArchive, obj.TextureRecord);
+                swapObj[counter] = ApplyFlags(obj, mapId, locationIndex, flatCategories);
 
                 // Calculate position
                 Vector3 billboardPosition = new Vector3(
-                    obj.XPos,
-                    -obj.YPos + blockFlatsOffsetY,
-                    obj.ZPos + BlocksFile.RMBDimension) * MeshReader.GlobalScale;
+                    swapObj[counter].XPos,
+                    -swapObj[counter].YPos + blockFlatsOffsetY,
+                    swapObj[counter].ZPos + BlocksFile.RMBDimension) * MeshReader.GlobalScale;
                 
-                GameObject go = MeshReplacement.ImportCustomFlatGameobject(obj.TextureArchive, obj.TextureRecord, billboardPosition, flatsParent);
+                GameObject go = MeshReplacement.ImportCustomFlatGameobject(swapObj[counter].TextureArchive, swapObj[counter].TextureRecord, billboardPosition, flatsParent);
                 if (go == null)
                 {
                     // Add standalone billboard gameobject
-                    go = GameObjectHelper.CreateDaggerfallBillboardGameObject(obj.TextureArchive, obj.TextureRecord, flatsParent);
+                    go = GameObjectHelper.CreateDaggerfallBillboardGameObject(swapObj[counter].TextureArchive, swapObj[counter].TextureRecord, flatsParent);
                     go.transform.position = billboardPosition;
                     AlignBillboardToBase(go);
                 }
 
                 // Add animal sound
-                if (obj.TextureArchive == TextureReader.AnimalsTextureArchive)
-                    GameObjectHelper.AddAnimalAudioSource(go, obj.TextureRecord);
+                if (swapObj[counter].TextureArchive == TextureReader.AnimalsTextureArchive)
+                    GameObjectHelper.AddAnimalAudioSource(go, swapObj[counter].TextureRecord);
 
                 // If flat record has a non-zero faction id, then it's an exterior NPC
-                if (obj.FactionID != 0)
+                if (swapObj[counter].FactionID != 0)
                 {
                     // Add RMB data to billboard
                     Billboard dfBillboard = go.GetComponent<Billboard>();
                     if (dfBillboard != null)
-                        dfBillboard.SetRMBPeopleData(obj.FactionID, obj.Flags, obj.Position);
+                        dfBillboard.SetRMBPeopleData(swapObj[counter].FactionID, swapObj[counter].Flags, swapObj[counter].Position);
 
                     // Add StaticNPC behaviour
                     StaticNPC npc = go.AddComponent<StaticNPC>();
-                    npc.SetLayoutData(obj, mapId, locationIndex);
+                    npc.SetLayoutData(swapObj[counter], mapId, locationIndex);
 
-                    QuestMachine.Instance.SetupIndividualStaticNPC(go, obj.FactionID);
+                    QuestMachine.Instance.SetupIndividualStaticNPC(go, swapObj[counter].FactionID);
                 }
+                counter++;
+            }
+            blockData.RmbBlock.MiscFlatObjectRecords = swapObj;
+        }
+
+        public static (int, int, int, int) GetBillboardParameters(int archive, int record)
+        {
+            if (archive == 199) return (-1, -1, -1, -1);
+            int key = archive * 10000 + record * 10;
+            // Debug.Log("key: " + key);
+            int value = GameObjectHelper.billboardDict[key];
+            int item4 = value % 100;                
+            int item3 = value / 100 % 100;
+            int item2 = value / 10000 % 100;
+            int item1 = value / 1000000 % 100;
+            return (item1, item2, item3, item4);
+        }
+
+        public static DFBlock.RmbBlockFlatObjectRecord ApplyFlags(DFBlock.RmbBlockFlatObjectRecord flat, ulong mapId, int locationIndex, (int, int, int, int) flatParameters)
+        {
+            switch (flatParameters.Item1)
+            {
+                case 0:     // People
+                    return ApplyFlagsToPeople(flat, mapId, locationIndex, flatParameters);
+                case 1:     // Interior
+                    return ApplyFlagsToInterior(flat, flatParameters);
+                case 2:     // Fauna
+                    return ApplyFlagsToFauna(flat, flatParameters);
+                case 3:     // Misc exterior stuff
+                    return ApplyFlagsToExterior(flat, flatParameters);
+                case 4:     // Plants and other stuff
+                    switch (flatParameters.Item2)
+                    {
+                        case 0:
+                            return ApplyFlagsToCrops(flat, mapId, flatParameters);
+                        case 1:
+                        case 2:
+                        case 3:
+                            return ApplyFlagsToFlora(flat, flatParameters);
+                        case 4:
+                        case 5:
+                            // Seasonal crops and trees - to implement
+                            return flat;
+                    }
+                    break;
+            }
+            return flat;
+        }
+
+        public static DFBlock.RmbBlockFlatObjectRecord ConvertTupleBillboardToFlatObject(DFBlock.RmbBlockFlatObjectRecord flat, (int, int) billboard)
+        {
+            flat.TextureArchive = billboard.Item1;
+            flat.TextureRecord = billboard.Item2;
+            return flat;
+        }
+
+        public static DFBlock.RmbBlockFlatObjectRecord ApplyFlagsToPeople(DFBlock.RmbBlockFlatObjectRecord flat, ulong mapId, int locationIndex, (int, int, int, int) flatParameters)
+        {
+            Debug.Log("Applying flags to " + flat.TextureArchive + ", " + flat.TextureRecord + ", mapId: " + mapId);
+            bool randomNPC = flat.Flags % 2 > 0;
+            if (!randomNPC) return flat;
+            bool randomRace = (flat.Flags >> 6) % 2 > 0;
+            
+            int races = WorldData.WorldSetting.regionRaces[PoliticData.ConvertMapIdToRegionIndex(mapId)];
+            if (randomRace)            
+            {                
+                int selectedRace = ConvertWorldDataRaceToFlatRace(GetNPCRace(races, PoliticData.GetLocTypeFromMapId(mapId, locationIndex, out byte townAttributes), townAttributes));
+                Debug.Log("flatParameters.Item1: " + flatParameters.Item1 + ", flatParameters.Item2: " + flatParameters.Item2 + "Selected race: " + selectedRace + "original race value: " + races);
+                if (GameObjectHelper.billboardType[flatParameters.Item1][flatParameters.Item2][selectedRace].Length > 0)
+                    return ConvertTupleBillboardToFlatObject(flat, GameObjectHelper.billboardType[flatParameters.Item1][flatParameters.Item2][selectedRace][UnityEngine.Random.Range(0, GameObjectHelper.billboardType[flatParameters.Item1][flatParameters.Item2][selectedRace].Length)]);
+            }
+
+            if (GameObjectHelper.billboardType[flatParameters.Item1][flatParameters.Item2][flatParameters.Item3].Length > 0)
+                return ConvertTupleBillboardToFlatObject(flat, GameObjectHelper.billboardType[flatParameters.Item1][flatParameters.Item2][flatParameters.Item3][UnityEngine.Random.Range(0, GameObjectHelper.billboardType[flatParameters.Item1][flatParameters.Item2][flatParameters.Item3].Length)]);
+            else return flat;
+        }
+
+        public static int ConvertWorldDataRaceToFlatRace(int worldDataRace)
+        {
+            switch (worldDataRace)
+            {
+                case 1:
+                case 2:
+                case 3:
+                case 4:
+                case 5:
+                case 6:
+                case 7:
+                case 8:
+                case 9:
+                case 10:
+                default:
+                    return worldDataRace - 1;                
             }
         }
 
-        public static DFBlock.RmbBlockFlatObjectRecord ApplyFlags(DFBlock.RmbBlockFlatObjectRecord flat, ulong mapId, int locationIndex)
+        public static DFBlock.RmbBlockFlatObjectRecord ApplyFlagsToInterior(DFBlock.RmbBlockFlatObjectRecord flat, (int, int, int, int) flatParameters)
         {
-            bool randomNPC = flat.Flags % 2 > 0;
-            if (!randomNPC) return flat;
-            bool female = (flat.Flags >> 4) % 2 > 0;
-            bool randomRace = (flat.Flags >> 6) % 2 > 0;
+            bool randomItem = flat.Flags % 2 > 0;
+            if (!randomItem) return flat;
+            return ConvertTupleBillboardToFlatObject(flat, GameObjectHelper.billboardType[flatParameters.Item1][flatParameters.Item2][flatParameters.Item3][UnityEngine.Random.Range(0, GameObjectHelper.billboardType[flatParameters.Item1][flatParameters.Item2][flatParameters.Item3].Length)]);
+        }
 
-            if (randomRace)
+        public static DFBlock.RmbBlockFlatObjectRecord ApplyFlagsToFauna(DFBlock.RmbBlockFlatObjectRecord flat, (int, int, int, int) flatParameters)
+        {
+            bool randomFauna = flat.Flags % 2 > 0;
+            if (!randomFauna) return flat;
+            bool randomType = (flat.Flags >> 4) % 2 > 0;
+            int region = flatParameters.Item2;
+            int faunaType = flatParameters.Item3;
+            FlatCategories.IndexStartType startType = GetFaunaType(flatParameters.Item2, flatParameters.Item3, out bool petAndLiveStock);
+            if (randomType)
             {
-                int races = WorldData.WorldSetting.regionRaces[PoliticData.ConvertMapIdToRegionIndex(mapId)];
-                int selectedRace = GetNPCRace(races, PoliticData.GetLocTypeFromMapId(mapId, locationIndex, out byte townAttributes), townAttributes);
+                if (startType != FlatCategories.IndexStartType.NotToRandomise)
+                {
+                    region = GetRegionFaunaType(out bool peculiarRegion);
+                    faunaType = PickFaunaType(region, startType, petAndLiveStock, peculiarRegion);
+                }
             }
+            Debug.Log("randomType: " + randomType + ", faunaType: " + faunaType + ", flatParameters: " + flatParameters);
+            // if (startType == FlatCategories.IndexStartType.Livestock)
+            // {
+            //     UnityEngine.Random.InitState(Convert.ToInt32(mapId + (ulong)flat.TextureRecord));
+            //     return ConvertTupleBillboardToFlatObject(flat, GameObjectHelper.billboardType[flatParameters.Item1][flatParameters.Item2][randomType][UnityEngine.Random.Range(0, GameObjectHelper.billboardType[flatParameters.Item1][flatParameters.Item2][randomType].Length)]);
+            // }
+            return ConvertTupleBillboardToFlatObject(flat, GameObjectHelper.billboardType[flatParameters.Item1][region][faunaType][UnityEngine.Random.Range(0, GameObjectHelper.billboardType[flatParameters.Item1][region][faunaType].Length)]);
+        }
+
+        public static int GetRegionFaunaType(out bool peculiarRegion)
+        {
+            peculiarRegion = FlatCategories.regionsWithPeculiarStuff.Contains(GameManager.Instance.PlayerGPS.CurrentRegionIndex);
+            for (int i = 0; i < Enum.GetNames(typeof(ProvinceNames)).Length; i++)
+            {
+                if (WorldData.WorldSetting.regionInProvince[i].Contains(GameManager.Instance.PlayerGPS.CurrentRegionIndex))
+                    return i - 1;
+            }
+            return -1;            
+        }
+
+        // Get the type of fauna (pet, livestock, wild or "not to randomise")
+        public static FlatCategories.IndexStartType GetFaunaType(int region, int faunaType, out bool isLivestockToo)
+        {
+            FlatCategories.IndexStartType startType = FlatCategories.IndexStartType.NotToRandomise;
+            isLivestockToo = false;
+            for (int i = 0; i < Enum.GetNames(typeof(FlatCategories.IndexStartType)).Length; i++)
+            {
+                if (FlatCategories.provincialStartEnd[region][i].Item1 <= faunaType &&
+                    FlatCategories.provincialStartEnd[region][i].Item2 >= faunaType)
+                {
+                    startType = (FlatCategories.IndexStartType)i;
+                    if (startType == FlatCategories.IndexStartType.Pet)
+                    {
+                        if (FlatCategories.provincialStartEnd[region][i + 1].Item1 <= faunaType &&
+                            FlatCategories.provincialStartEnd[region][i + 1].Item2 >= faunaType)
+                            isLivestockToo = true;
+                    }
+                    break;
+                }
+            }
+            return startType;
+        }
+
+        // Randomise or pick the fauna type to utilie based on fauna categories
+        public static int PickFaunaType(int region, FlatCategories.IndexStartType faunaType, bool petAndLiveStock = false, bool peculiarRegion = false)
+        {
+            bool isPickable = peculiarRegion && FlatCategories.regionalStartEnd[region][(int)faunaType].Item1 > -1;
+            int randomIndex;
+            int rangeIncrease = 0;
+            if (isPickable)
+                rangeIncrease = FlatCategories.regionalStartEnd[region][(int)faunaType].Item2 - FlatCategories.regionalStartEnd[region][(int)faunaType].Item1 + 1;
+            switch (faunaType)
+            {
+                case FlatCategories.IndexStartType.Pet:
+                    if (petAndLiveStock)
+                    {
+                        if (isPickable)
+                        {
+                            rangeIncrease = FlatCategories.regionalStartEnd[region][(int)FlatCategories.IndexStartType.Pet].Item2 - FlatCategories.regionalStartEnd[region][(int)FlatCategories.IndexStartType.Livestock].Item1 + 1;
+                            randomIndex = UnityEngine.Random.Range(FlatCategories.provincialStartEnd[region][(int)FlatCategories.IndexStartType.Livestock].Item1, FlatCategories.provincialStartEnd[region][(int)FlatCategories.IndexStartType.Pet].Item2 + rangeIncrease);
+                            if (randomIndex <= FlatCategories.provincialStartEnd[region][(int)FlatCategories.IndexStartType.Pet].Item2)
+                                return randomIndex;
+                            else
+                                return randomIndex - FlatCategories.provincialStartEnd[region][(int)FlatCategories.IndexStartType.Pet].Item2 + (FlatCategories.regionalStartEnd[region][(int)FlatCategories.IndexStartType.Pet].Item2 - 1);
+                        }
+                        else return UnityEngine.Random.Range(FlatCategories.provincialStartEnd[region][(int)FlatCategories.IndexStartType.Livestock].Item1, FlatCategories.provincialStartEnd[region][(int)FlatCategories.IndexStartType.Pet].Item2 + 1);
+                    }
+                    else if (isPickable)
+                    {
+                        randomIndex = UnityEngine.Random.Range(FlatCategories.provincialStartEnd[region][(int)FlatCategories.IndexStartType.Pet].Item1, FlatCategories.provincialStartEnd[region][(int)FlatCategories.IndexStartType.Pet].Item2 + rangeIncrease);
+                        if (randomIndex <= FlatCategories.provincialStartEnd[region][(int)FlatCategories.IndexStartType.Pet].Item2)
+                            return randomIndex;
+                        else return randomIndex - FlatCategories.provincialStartEnd[region][(int)FlatCategories.IndexStartType.Pet].Item2 + (FlatCategories.regionalStartEnd[region][(int)FlatCategories.IndexStartType.Pet].Item2 - 1);
+                    }
+                    else return UnityEngine.Random.Range(FlatCategories.provincialStartEnd[region][(int)FlatCategories.IndexStartType.Pet].Item1, FlatCategories.provincialStartEnd[region][(int)FlatCategories.IndexStartType.Pet].Item2 + 1);
+                default:
+                    if (isPickable)
+                    {
+                        randomIndex = UnityEngine.Random.Range(FlatCategories.provincialStartEnd[region][(int)faunaType].Item1, FlatCategories.provincialStartEnd[region][(int)faunaType].Item2 + rangeIncrease);
+                        if (randomIndex <= FlatCategories.provincialStartEnd[region][(int)faunaType].Item2)
+                            return randomIndex;
+                        else return randomIndex - FlatCategories.provincialStartEnd[region][(int)faunaType].Item2 + (FlatCategories.regionalStartEnd[region][(int)faunaType].Item2 - 1);
+                    }
+                    else return UnityEngine.Random.Range(FlatCategories.provincialStartEnd[region][(int)faunaType].Item1, FlatCategories.provincialStartEnd[region][(int)faunaType].Item2 + 1);
+            }
+        }
+
+        public static DFBlock.RmbBlockFlatObjectRecord ApplyFlagsToExterior(DFBlock.RmbBlockFlatObjectRecord flat, (int, int, int, int) flatParameters)
+        {
+            bool randomExterior = flat.Flags % 2 > 0;
+            if (!randomExterior)
+                return flat;
+            return ConvertTupleBillboardToFlatObject(flat, GameObjectHelper.billboardType[flatParameters.Item1][flatParameters.Item2][flatParameters.Item3][UnityEngine.Random.Range(0, GameObjectHelper.billboardType[flatParameters.Item1][flatParameters.Item2][flatParameters.Item3].Length)]);
+        }
+
+        public static DFBlock.RmbBlockFlatObjectRecord ApplyFlagsToCrops(DFBlock.RmbBlockFlatObjectRecord flat, ulong mapId, (int, int, int, int) flatParameters)
+        {
+            bool randomCrop = flat.Flags % 2 > 0;
+            if (!randomCrop)
+            {
+                return ConvertTupleBillboardToFlatObject(flat, GameObjectHelper.billboardType[flatParameters.Item1][flatParameters.Item2][flatParameters.Item3][UnityEngine.Random.Range(0, GameObjectHelper.billboardType[flatParameters.Item1][flatParameters.Item2][flatParameters.Item3].Length)]);
+            }
+            // Re-initialising the seed should make all the crops of the same type to change to different types, but still being homogeneous. Test required.
+            UnityEngine.Random.InitState(Convert.ToInt32(mapId + (ulong)flat.TextureRecord));
+            int randomType = UnityEngine.Random.Range(0, GameObjectHelper.billboardType[flatParameters.Item1][flatParameters.Item2].Length);
+            return ConvertTupleBillboardToFlatObject(flat, GameObjectHelper.billboardType[flatParameters.Item1][flatParameters.Item2][randomType][UnityEngine.Random.Range(0, GameObjectHelper.billboardType[flatParameters.Item1][flatParameters.Item2][randomType].Length)]);
+        }
+
+        public static DFBlock.RmbBlockFlatObjectRecord ApplyFlagsToFlora(DFBlock.RmbBlockFlatObjectRecord flat, (int, int, int, int) flatParameters)
+        {
+            bool randomFlora = flat.Flags % 2 > 0;
+            if (!randomFlora) return flat;
+            bool randomType = (flat.Flags >> 4) % 2 > 0;
+            int floraType = flatParameters.Item2;
+            
+            if (randomType)
+                floraType = UnityEngine.Random.Range(1, 4);
+            return ConvertTupleBillboardToFlatObject(flat, GameObjectHelper.billboardType[flatParameters.Item1][flatParameters.Item2][floraType][UnityEngine.Random.Range(0, GameObjectHelper.billboardType[flatParameters.Item1][flatParameters.Item2][floraType].Length)]);
         }
 
         public static int GetNPCRace(int races, DFRegion.LocationTypes settlement, byte townAttributes)
@@ -487,7 +713,6 @@ namespace DaggerfallWorkshop.Utility
             int diceRoll = UnityEngine.Random.Range(0, 100);
             if (townAttributes % 2 > 0) diceRoll += 10;        // Port town
             if ((townAttributes >> 1) % 2 > 0) diceRoll += 10; // Capital
-            int raceCat = 0;
 
             switch (settlement)
             {
@@ -495,7 +720,7 @@ namespace DaggerfallWorkshop.Utility
                     if (diceRoll < 50)
                         return races / 100;
                     else if (diceRoll < 75)
-                        return races % 100 / 10;
+                        return races / 10 % 10;
                     else if (diceRoll < 90)
                         return races % 10;
                     break;
@@ -504,21 +729,21 @@ namespace DaggerfallWorkshop.Utility
                     if (diceRoll < 75)
                         return races / 100;
                     else if (diceRoll < 90)
-                        return races % 100 / 10;
+                        return races / 10 % 10;
                     else if (diceRoll < 98)
-                        raceCat = 2;
+                        return races % 10;
                     break;
 
                 default:
                     if (diceRoll < 90)
                         return races / 100;
                     else if (diceRoll < 96)
-                        return races % 100 / 10;
+                        return races / 10 % 10;
                     else if (diceRoll < 99)
                         return races % 10;
                     break;
             }
-            return UnityEngine.Random.Range(0, 10);
+            return UnityEngine.Random.Range(1, 11);
         }
 
         /// <summary>
@@ -768,7 +993,6 @@ namespace DaggerfallWorkshop.Utility
                 {
                     // Get block name
                     string blockName = contentReader.BlockFileReader.CheckName(WorldMaps.GetRmbBlockName(location, x, y));
-                    Debug.Log("blockName got: " + blockName);
 
                     // Get block data
                     DFBlock block;

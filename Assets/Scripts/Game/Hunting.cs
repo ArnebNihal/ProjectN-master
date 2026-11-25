@@ -162,7 +162,7 @@ namespace DaggerfallWorkshop.Game
                 case 3:
                 case 2:
                 case 1:
-                    if (climate == (int)MapsFile.Climates.Subtropical || climate == (int)MapsFile.Climates.Desert || climate == (int)MapsFile.Climates.Desert2)
+                    if (climate == (int)MapsFile.Climates.Subtropical || climate == (int)MapsFile.Climates.Desert || climate == (int)MapsFile.Climates.Savannah)
                     {
                         if (roll > 2)
                         {
@@ -246,7 +246,7 @@ namespace DaggerfallWorkshop.Game
 
             climate = GameManager.Instance.PlayerGPS.CurrentClimateIndex;
 
-            if ((climate == (int)MapsFile.Climates.Desert || climate == (int)MapsFile.Climates.Desert2))
+            if ((climate == (int)MapsFile.Climates.Desert || climate == (int)MapsFile.Climates.Savannah))
             {
                 DesertHuntingRoll();
             }
@@ -258,7 +258,7 @@ namespace DaggerfallWorkshop.Game
             {
                 SwampHuntingRoll();
             }
-            else if ((climate == (int)MapsFile.Climates.Woodlands || climate == (int)MapsFile.Climates.HauntedWoodlands))
+            else if ((climate == (int)MapsFile.Climates.Woodlands || climate == (int)MapsFile.Climates.Steppes))
             {
                 WoodsHuntingRoll();
             }
@@ -1132,7 +1132,7 @@ namespace DaggerfallWorkshop.Game
             int count = 1;
 
             //Desert monster
-            if ((climate == (int)MapsFile.Climates.Desert || climate == (int)MapsFile.Climates.Desert2) || climate == (int)MapsFile.Climates.Subtropical)
+            if ((climate == (int)MapsFile.Climates.Desert || climate == (int)MapsFile.Climates.Savannah) || climate == (int)MapsFile.Climates.Subtropical)
             {
                 if (roll < 2)
                 {
@@ -1176,7 +1176,7 @@ namespace DaggerfallWorkshop.Game
                 }
             }
             //Forest Monster
-            else if (climate == (int)MapsFile.Climates.Woodlands || climate == (int)MapsFile.Climates.HauntedWoodlands)
+            else if (climate == (int)MapsFile.Climates.Woodlands || climate == (int)MapsFile.Climates.Steppes)
             {
 
                 if (roll < 2)

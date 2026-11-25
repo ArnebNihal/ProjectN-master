@@ -264,7 +264,7 @@ namespace DaggerfallWorkshop.Game
             switch (climate)
             {
                 case MapsFile.Climates.Desert:
-                case MapsFile.Climates.Desert2:
+                case MapsFile.Climates.Savannah:
                 case MapsFile.Climates.Rainforest:
                 case MapsFile.Climates.Subtropical:
                 case MapsFile.Climates.Maquis:  // Why?

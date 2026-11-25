@@ -137,7 +137,7 @@ namespace DaggerfallWorkshop.Utility
                     // Nature sets with snow
                     case DFLocation.ClimateTextureSet.Nature_TemperateWoodland:
                     case DFLocation.ClimateTextureSet.Nature_WoodlandHills:
-                    case DFLocation.ClimateTextureSet.Nature_HauntedWoodlands:
+                    case DFLocation.ClimateTextureSet.Nature_Steppes:
                     case DFLocation.ClimateTextureSet.Nature_Mountains:
                         ci.supportsWinter = true;
                         break;
@@ -372,8 +372,8 @@ namespace DaggerfallWorkshop.Utility
                     return ClimateNatureSets.TemperateWoodland;
                 case DFLocation.ClimateTextureSet.Nature_WoodlandHills:
                     return ClimateNatureSets.WoodlandHills;
-                case DFLocation.ClimateTextureSet.Nature_HauntedWoodlands:
-                    return ClimateNatureSets.HauntedWoodlands;
+                case DFLocation.ClimateTextureSet.Nature_Steppes:
+                    return ClimateNatureSets.Steppes;
                 case DFLocation.ClimateTextureSet.Nature_Mountains:
                     return ClimateNatureSets.Mountains;
                 case DFLocation.ClimateTextureSet.Nature_Maquis:
@@ -417,8 +417,8 @@ namespace DaggerfallWorkshop.Utility
                 case ClimateNatureSets.WoodlandHills:
                     textureSet = DFLocation.ClimateTextureSet.Nature_WoodlandHills;
                     break;
-                case ClimateNatureSets.HauntedWoodlands:
-                    textureSet = DFLocation.ClimateTextureSet.Nature_HauntedWoodlands;
+                case ClimateNatureSets.Steppes:
+                    textureSet = DFLocation.ClimateTextureSet.Nature_Steppes;
                     break;
                 case ClimateNatureSets.Mountains:
                     textureSet = DFLocation.ClimateTextureSet.Nature_Mountains;
@@ -441,7 +441,7 @@ namespace DaggerfallWorkshop.Utility
                 {
                     case ClimateNatureSets.TemperateWoodland:
                     case ClimateNatureSets.WoodlandHills:
-                    case ClimateNatureSets.HauntedWoodlands:
+                    case ClimateNatureSets.Steppes:
                     case ClimateNatureSets.Mountains:
                         archive += 1;
                         break;

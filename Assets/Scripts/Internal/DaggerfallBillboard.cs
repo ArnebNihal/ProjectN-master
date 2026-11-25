@@ -268,6 +268,7 @@ namespace DaggerfallWorkshop
             // }
             else if (dfUnity.MaterialReader.AtlasTextures)
             {
+                
                 material = dfUnity.MaterialReader.GetMaterialAtlas(
                     archive,
                     0,

@@ -261,6 +261,7 @@ namespace DaggerfallConnect
             Interior_MiscFurniture = 90,
 
             // Nature sets
+            Nature_Savannah = 5,
             Nature_RainForest = 500,
             Nature_SubTropical = 501,
             Nature_Swamp = 502,
@@ -269,8 +270,8 @@ namespace DaggerfallConnect
             Nature_TemperateWoodland_Snow = 505,
             Nature_WoodlandHills = 506,
             Nature_WoodlandHills_Snow = 507,
-            Nature_HauntedWoodlands = 508,
-            Nature_HauntedWoodlands_Snow = 509,
+            Nature_Steppes = 508,
+            Nature_Steppes_Snow = 509,
             Nature_Mountains = 510,
             Nature_Mountains_Snow = 511,
             Nature_Maquis = 1030,

@@ -203,7 +203,7 @@ namespace DaggerfallWorkshop.Game.Weather
             switch (mapClimate)
             {
                 case MapsFile.Climates.Desert:
-                case MapsFile.Climates.Desert2:
+                case MapsFile.Climates.Savannah:
                     return Desert.GetWeather(season);
                 case MapsFile.Climates.Mountain:
                 case MapsFile.Climates.MountainWoods:
@@ -216,7 +216,7 @@ namespace DaggerfallWorkshop.Game.Weather
                 case MapsFile.Climates.Subtropical:
                     return Subtropical.GetWeather(season);
                 case MapsFile.Climates.Woodlands:
-                case MapsFile.Climates.HauntedWoodlands:
+                case MapsFile.Climates.Steppes:
                 case MapsFile.Climates.Maquis:
                     return Woodlands.GetWeather(season);
             }

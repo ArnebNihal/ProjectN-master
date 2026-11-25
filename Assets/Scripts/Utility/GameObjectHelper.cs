@@ -22,6 +22,7 @@ using DaggerfallWorkshop.Game.Questing;
 using DaggerfallWorkshop.Game.Serialization;
 using DaggerfallWorkshop.Game.Utility;
 using DaggerfallWorkshop.Utility.AssetInjection;
+using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 
@@ -44,7 +45,8 @@ namespace DaggerfallWorkshop.Utility
         }
 
         public static (int, int)[][][][] billboardType = FlatCategories.InitialiseBillboardType();
-        public static Dictionary<int, int> billboardDict = JsonConvert.DeserializeObject<Dictionary<int, int>>(Path.Combine(WorldMaps.mapPath, "flatDict.json"));;
+        public static string mapPath = "C:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps";
+        public static Dictionary<int, int> billboardDict = JsonConvert.DeserializeObject<Dictionary<int, int>>(File.ReadAllText(Path.Combine(mapPath, "flatDict.json")));
 
         // Animal sounds range. Matched to classic.
         const float animalSoundMaxDistance = 768 * MeshReader.GlobalScale;
@@ -474,6 +476,7 @@ namespace DaggerfallWorkshop.Utility
             int layoutY,
             ulong mapId,
             int locationIndex,
+            bool usedForBackdrop = false,
             bool addGroundPlane = true,
             DaggerfallRMBBlock cloneFrom = null,
             DaggerfallBillboardBatch natureBillboardBatch = null,
@@ -504,7 +507,8 @@ namespace DaggerfallWorkshop.Utility
                 miscBillboardAtlas,
                 miscBillboardBatch,
                 climateNature,
-                climateSeason);
+                climateSeason,
+                usedForBackdrop);
 
             return go;
         }
@@ -526,7 +530,8 @@ namespace DaggerfallWorkshop.Utility
             TextureAtlasBuilder miscBillboardAtlas = null,
             DaggerfallBillboardBatch miscBillboardBatch = null,
             ClimateNatureSets climateNature = ClimateNatureSets.TemperateWoodland,
-            ClimateSeason climateSeason = ClimateSeason.Summer)
+            ClimateSeason climateSeason = ClimateSeason.Summer,
+            bool usedForBackdrop = false)
         {
             // Get DaggerfallUnity
             DaggerfallUnity dfUnity = DaggerfallUnity.Instance;
@@ -573,10 +578,12 @@ namespace DaggerfallWorkshop.Utility
             RMBLayout.AddLights(ref blockData, flatsNode.transform, lightsNode.transform, lightsBillboardBatch);
 
             // Layout nature billboards
-            RMBLayout.AddNatureFlats(ref blockData, flatsNode.transform, mapId + (ulong)(layoutX + layoutY * 8), natureBillboardBatch, climateNature, climateSeason);
+            if (!usedForBackdrop)
+                RMBLayout.AddNatureFlats(ref blockData, flatsNode.transform, mapId + (ulong)(layoutX + layoutY * 8), natureBillboardBatch, climateNature, climateSeason);
 
             // Layout all other flats
-            RMBLayout.AddMiscBlockFlats(ref blockData, flatsNode.transform, mapId, locationIndex, animalsBillboardBatch, miscBillboardAtlas, miscBillboardBatch);
+            if (!usedForBackdrop)
+                RMBLayout.AddMiscBlockFlats(ref blockData, flatsNode.transform, mapId, (int)(mapId + (ulong)(layoutX + layoutY * 8)), locationIndex, animalsBillboardBatch, miscBillboardAtlas, miscBillboardBatch);
 
             // Layout any subrecord exterior flats
             RMBLayout.AddExteriorBlockFlats(ref blockData, flatsNode.transform, lightsNode.transform, mapId, locationIndex, climateNature, climateSeason);

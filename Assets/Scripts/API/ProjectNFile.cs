@@ -65,9 +65,9 @@ namespace DaggerfallConnect.Arena2
         public static WorldMap[] WorldMap;
         public static Dictionary<ulong, MapSummary> mapDict;
         public static string mapPath =  Path.Combine(DaggerfallUnity.Instance.Arena2Path, "Maps");
-        public static string tilesPath = Path.Combine(DaggerfallUnity.Instance.Arena2Path, "Maps/Tiles");
-        public static string locationPath = Path.Combine(DaggerfallUnity.Instance.Arena2Path, "Maps/Locations");
-        public static string texturePath = Path.Combine(DaggerfallUnity.Instance.Arena2Path, "Maps/Textures");
+        public static string tilesPath = Path.Combine(DaggerfallUnity.Instance.Arena2Path, "Maps", "Tiles");
+        public static string locationPath = Path.Combine(DaggerfallUnity.Instance.Arena2Path, "Maps", "Locations");
+        public static string texturePath = Path.Combine(DaggerfallUnity.Instance.Arena2Path, "Maps", "Textures");
 
         static WorldMaps()
         {
@@ -112,7 +112,6 @@ namespace DaggerfallConnect.Arena2
                     if (yTile + y == 0) yCor = 0;
                     if (xTile + x >= MapsFile.TileX) xCor = 2;
                     if (yTile + y >= MapsFile.TileY) yCor = 2;
-                    Debug.Log("Loading file " + "map" + ((xTile + x - xCor) + (yTile + y - yCor) * MapsFile.TileX).ToString("00000") + ".json");
                     worldMap[index] = JsonConvert.DeserializeObject<WorldMap>(File.ReadAllText(Path.Combine(mapPath, "Locations", "map" + ((xTile + x - xCor) + (yTile + y - yCor) * MapsFile.TileX).ToString("00000") + ".json")));
                     index++;
                 }
@@ -251,7 +250,6 @@ namespace DaggerfallConnect.Arena2
 
             // Store indices
             dfLocation.RegionIndex = dfLocation.Politic - 128;
-            Debug.Log("dfLocation.RegionIndex: " + dfLocation.RegionIndex);
             dfLocation.RelTileIndex = relTile;
             dfLocation.AbsTileIndex = MapsFile.MapPixelToTile(MapsFile.GetPixelFromPixelID(dfLocation.Exterior.ExteriorData.MapId));
             dfLocation.LocationIndex = location;
@@ -293,7 +291,6 @@ namespace DaggerfallConnect.Arena2
         /// <returns>DFLocation.</returns>
         public static DFLocation GetLocation(string tileName, string locationName)
         {
-            Debug.Log("tileName: " + tileName + ", locationName: " + locationName);
             // Load tile
             WorldMap wMap = new WorldMap();
             wMap = JsonConvert.DeserializeObject<WorldMap>(File.ReadAllText(Path.Combine(locationPath , "map" + tileName + ".json")));
@@ -310,7 +307,6 @@ namespace DaggerfallConnect.Arena2
 
             // Store indices
             dfLocation.RegionIndex = dfLocation.Politic - 128;
-            Debug.Log("dfLocation.RegionIndex: " + dfLocation.RegionIndex);
             // dfLocation.RelTileIndex = relTile;
             dfLocation.AbsTileIndex = MapsFile.MapPixelToTile(MapsFile.GetPixelFromPixelID(dfLocation.Exterior.ExteriorData.MapId));
             dfLocation.LocationIndex = location;
@@ -329,7 +325,6 @@ namespace DaggerfallConnect.Arena2
             WorldMap wMap = new WorldMap();
             int tileNumber = -1;
             int.TryParse(tileName, out tileNumber);
-            Debug.Log("Deserialising tile " + tileNumber);
             wMap = JsonConvert.DeserializeObject<WorldMap>(File.ReadAllText(Path.Combine(locationPath , "map" + tileNumber.ToString("00000") + ".json")));
 
             // Check location exists
@@ -341,7 +336,6 @@ namespace DaggerfallConnect.Arena2
 
             // Store indices
             dfLocation.RegionIndex = dfLocation.Politic - 128;
-            Debug.Log("dfLocation.RegionIndex: " + dfLocation.RegionIndex);
             // dfLocation.RelTileIndex = relTile;
             dfLocation.AbsTileIndex = MapsFile.MapPixelToTile(MapsFile.GetPixelFromPixelID(dfLocation.Exterior.ExteriorData.MapId));
             dfLocation.LocationIndex = locationIndex;
@@ -508,7 +502,6 @@ namespace DaggerfallConnect.Arena2
 
             for (int region = 0; region < 9; region++)
             {
-                Debug.Log("Enumerating relTile n." + region);
                 DFRegion dfRegion = WorldMaps.ConvertWorldMapsToDFRegion(region);
                 for (int location = 0; location < dfRegion.LocationCount; location++)
                 {
@@ -581,8 +574,6 @@ namespace DaggerfallConnect.Arena2
             //     var json = JsonConvert.SerializeObject(regionTiles, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
             //     File.WriteAllText(fileDataPath, json);
             // }
-
-            Debug.Log("Returning result");
             return mapDictSwap;
         }
 
@@ -934,7 +925,6 @@ namespace DaggerfallConnect.Arena2
         public static byte[,] GetTextureMatrix(string matrixType = "woods")
         {
             DFPosition position = WorldMaps.LocalPlayerGPS.CurrentMapPixel;
-            Debug.Log("position: " + position);
             int xPos = position.X / MapsFile.TileDim;
             int yPos = position.Y / MapsFile.TileDim;
             byte[,] matrix = new byte[MapsFile.TileDim * 3, MapsFile.TileDim * 3];
@@ -951,7 +941,6 @@ namespace DaggerfallConnect.Arena2
                 if (posY >= MapsFile.TileY) posY = MapsFile.TileY - 1;
 
                 Texture2D textureTiles = new Texture2D(MapsFile.TileDim, MapsFile.TileDim);
-                Debug.Log("Loading tile " + posX + ", " + posY);
                 ImageConversion.LoadImage(textureTiles, File.ReadAllBytes(Path.Combine(WorldMaps.tilesPath, matrixType + "_" + posX + "_" + posY + ".png")));
                 ConvertToMatrix(textureTiles, out textureArray[i]);
             }
@@ -1151,7 +1140,7 @@ namespace DaggerfallConnect.Arena2
 
         static WorldData()
         {
-            WorldSetting = JsonConvert.DeserializeObject<WorldSettings>(File.ReadAllText(Path.Combine("D:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps", "WorldData.json")));
+            WorldSetting = JsonConvert.DeserializeObject<WorldSettings>(File.ReadAllText(Path.Combine("C:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps", "WorldData.json")));
         }
     }
 
@@ -1185,7 +1174,7 @@ namespace DaggerfallConnect.Arena2
 
         static FactionsAtlas()
         {
-            FactionDictionary = JsonConvert.DeserializeObject<Dictionary<int, FactionFile.FactionData>>(File.ReadAllText(Path.Combine("D:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps", "Faction.json")));
+            FactionDictionary = JsonConvert.DeserializeObject<Dictionary<int, FactionFile.FactionData>>(File.ReadAllText(Path.Combine("C:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps", "Faction.json")));
 
             foreach (KeyValuePair<int, FactionFile.FactionData> faction in FactionDictionary)
             {

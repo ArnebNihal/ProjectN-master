@@ -17,6 +17,9 @@ using UnityEditor.Localization.Plugins.XLIFF.V12;
 using DaggerfallWorkshop.Game.Serialization;
 using DaggerfallWorkshop.Game.Entity;
 using System.Xml.Linq;
+using DaggerfallWorkshop.Utility.AssetInjection;
+using DaggerfallWorkshop.Utility;
+using UnityEngine.TestTools.Constraints;
 
 namespace BlockRotator
 {
@@ -25,8 +28,8 @@ namespace BlockRotator
         static BlockRotatorWindow blockRotatorWindow;
         const string windowTitle = "Block Rotator";
         const string menuPath = "Daggerfall Tools/Block Rotator";
-        public const string testPath = "D:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps";
-        public const string secondPath = "D:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps/Tamriel/Data";
+        public const string testPath = "C:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps";
+        public const string secondPath = "C:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps/Tamriel/Data";
         public const int regionForUnique = 62;  // To update as more regions get unique blocks
         public const int normalWallChance = 80; // To modify if I feel there are too many/too few special wall blocks
         public const int MAXXCOORD = 7680;
@@ -45,10 +48,13 @@ namespace BlockRotator
         public static int provinceIndex;
         public static int regionIndex;
         public static WorldSettings worldData;
+        public static int textureType;
+        public static (int, int)[][][][] billboardType;
 
         public bool blockIntegration = false;
         public static string[][] dungeonNamesList;
         public static string[][] dungeonTypeBlocks;
+        public static Dictionary<int, int> flatDictionary = new Dictionary<int, int>();
 
         public static string[] blockPrefixes = {
             "TVR", "GEN", "RES", "WEA", "ARM", "ALC", "BAN", "BOO",
@@ -68,7 +74,7 @@ namespace BlockRotator
 
         public static string[] rmbBlockClimate = {
             "ZA", "ZL", "ZM", "ZS", "ZN",     // Good for every region
-            "AA", "AL", "AM", "AS", "AN",     // High Rock, Rainforest, Swamp, Desert2...
+            "AA", "AL", "AM", "AS", "AN",     // High Rock, Rainforest, Swamp, Savannah...
             "BA", "BL", "BM", "BS", "BN",     // Desert
             "GA", "GL", "GM", "GS", "GN"      // Subtropical, but to re-design, since it's a copy/paste of the "B" group
         };
@@ -134,6 +140,7 @@ namespace BlockRotator
         public static bool blockToggle;
         public static bool rotationToggle;
         public static bool handleUniques;
+        public static bool isMobileTexture;
 
         public static int blockType = 0;
         public static int climateType = 0;
@@ -311,6 +318,15 @@ namespace BlockRotator
             public bool Lake;
         }
 
+        public enum FlatTypes
+        {
+            Billboard,
+            MobileNPC,
+            Enemy
+        }
+
+        public static string[] flatTypes = Enum.GetNames(typeof(FlatTypes)).ToArray();
+
         [MenuItem(menuPath)]
         static void Init()
         {
@@ -326,6 +342,7 @@ namespace BlockRotator
             handleUniques = false;
 
             availableBlocks = new string[blockPrefixes.Length][];
+            billboardType = FlatCategories.InitialiseBillboardType();
 
             worldData = JsonConvert.DeserializeObject<WorldSettings>(File.ReadAllText(Path.Combine(testPath, "WorldData.json")));
 
@@ -499,10 +516,26 @@ namespace BlockRotator
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("Create Texture File", GUILayout.MaxWidth(200.0f)))
             {
-                CreateTextureFiles(textureArchive);
+                CreateTextureFile();
             }
             textureArchive = EditorGUILayout.IntField("Archive: ", textureArchive);
+            isMobileTexture = EditorGUILayout.ToggleLeft("Mobile Texture", isMobileTexture, GUILayout.MaxWidth(150.0f));
+            textureType = EditorGUILayout.Popup("Texture Type: ", textureType, flatTypes);
             EditorGUILayout.EndHorizontal();
+
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("Create Billboard Dictionary", GUILayout.MaxWidth(200.0f)))
+            {
+                CreateBillboardDictionary();
+            }
+            EditorGUILayout.EndHorizontal();
+
+            // EditorGUILayout.BeginHorizontal();
+            // if (GUILayout.Button("Create StartEnd Dictionaries", GUILayout.MaxWidth(200.0f)))
+            // {
+            //     CreateStartEndDictionaries();
+            // }
+            // EditorGUILayout.EndHorizontal();
 
             if (GUILayout.Button("Create LocName Blank File", GUILayout.MaxWidth(200.0f)))
             {
@@ -515,6 +548,11 @@ namespace BlockRotator
             if (GUILayout.Button("Calculate stuff regarding maps", GUILayout.MaxWidth(200.0f)))
             {
                 CalculateStuffRegardingMaps();
+            }
+
+            if (GUILayout.Button("Set Default Billboard Flags", GUILayout.MaxWidth(200.0f)))
+            {
+                SetDefaultBillboardFlags();
             }
         }
 
@@ -2800,7 +2838,7 @@ namespace BlockRotator
         {
             Debug.Log("Integrating New Blocks");
             Worldmap mapTile = new Worldmap();
-            worldData = JsonConvert.DeserializeObject<WorldSettings>(File.ReadAllText(Path.Combine("D:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps", "WorldData.json")));
+            worldData = JsonConvert.DeserializeObject<WorldSettings>(File.ReadAllText(Path.Combine("C:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps", "WorldData.json")));
             int[][] oldBlockLimits = JsonConvert.DeserializeObject<int[][]>(File.ReadAllText(Path.Combine(testPath, "oldBlockLimits.json")));
             int[][] newBlockLimits = JsonConvert.DeserializeObject<int[][]>(File.ReadAllText(Path.Combine(testPath, "newBlockLimits.json")));
             List<string>[][] blocksUsed = JsonConvert.DeserializeObject<List<string>[][]>(File.ReadAllText(Path.Combine(testPath, "BlockUsed.json")));
@@ -2909,7 +2947,7 @@ namespace BlockRotator
 
         public static void CalculatePopulationProportion()
         {
-            WorldSettings worldData = JsonConvert.DeserializeObject<WorldSettings>(File.ReadAllText(Path.Combine("D:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps", "WorldData.json")));
+            WorldSettings worldData = JsonConvert.DeserializeObject<WorldSettings>(File.ReadAllText(Path.Combine("C:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps", "WorldData.json")));
 
             for (int i = 0; i < worldData.RegionNames.Length; i++)
             {
@@ -3017,7 +3055,7 @@ namespace BlockRotator
         public static void ListSimpleBorders()
         {
             // Debug.Log("Listing simple borders");
-            worldData = JsonConvert.DeserializeObject<WorldSettings>(File.ReadAllText(Path.Combine("D:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps", "WorldData.json")));
+            worldData = JsonConvert.DeserializeObject<WorldSettings>(File.ReadAllText(Path.Combine("C:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps", "WorldData.json")));
 
             List<int>[] borders = new List<int>[408];
             for (int h = 0; h < 408; h++)
@@ -3101,7 +3139,7 @@ namespace BlockRotator
             File.WriteAllText(Path.Combine(testPath, "WorldData.json"), json);
         }
 
-        public static void CreateTextureFiles(int archive)
+        public static void CreateTextureFile()
         {
             string fileName = string.Empty;
             string frameFN = string.Empty;
@@ -3109,92 +3147,323 @@ namespace BlockRotator
 
             int lastRecordIndex = 0;
 
-            bool hasFrame = false;
-            int frameNum = 0;
-
             List<Record> recordList = new List<Record>();
 
-            for (int i = 0; i < 100; i++)
+            string path = Path.Combine(testPath, "Textures", "TEXTURE." + textureArchive.ToString("0000000"));
+            TextureFormat prevTextFile = new TextureFormat();
+            CustomMobileTextures prevMobFile = new CustomMobileTextures();
+            bool textFileAlreadyExists = false;
+
+            if (File.Exists(path))
             {
-                fileName = archive.ToString("0000000") + "_" + i.ToString() + "-0.png";
-                if (!File.Exists(Path.Combine(testPath, "Textures", archive.ToString(), fileName)))
-                {
-                    recordList.Add(new Record());
-                    continue;
-                }
-
-                frameFN = archive.ToString("0000000") + "_" + i.ToString() + "-1.png";
-                if (File.Exists(Path.Combine(testPath, "Textures", archive.ToString(), frameFN)))
-                    hasFrame = true;
-
-                if (hasFrame)
-                {
-                    do
-                    {
-                        frameNum++;
-                        frameFN = archive.ToString("0000000") + "_" + i.ToString() + "-" + (frameNum + 1).ToString() + ".png";
-                    }
-                    while (File.Exists(Path.Combine(testPath, "Textures", archive.ToString(), frameFN)));
-                }
-
-                byte[] fileBytes = File.ReadAllBytes(Path.Combine(testPath, "Textures", archive.ToString(), fileName));
-                Texture2D texture = new Texture2D(1, 1);
-                texture.LoadImage(fileBytes);
-
-                Record record = new Record();
-                record.Position = 1;
-                record.OffsetX = 100;
-                record.OffsetY = 100;
-                record.Width = (short)texture.width;
-                record.Height = (short)texture.height;
-                record.Compression = 0;
-                record.RecordSize = (uint)(record.Width * record.Height);
-                record.DataOffset = 0;
-                record.IsNormal = false;
-                record.FrameCount = (ushort)frameNum;
-                record.Unknown1 = 0;
-
-                xmlFN = archive.ToString("0000000") + "_" + i.ToString() + "-0.xml";
-                if (File.Exists(Path.Combine(testPath, "Textures", archive.ToString(), xmlFN)))
-                {
-                    XElement xml = XElement.Load(Path.Combine(testPath, "Textures", archive.ToString(), xmlFN));
-                    Debug.Log("Reading xml for archive " + archive + ", record " + i);
-                    record.ScaleX = (short)((float)xml.Element("scaleX") * 256.0f);
-                    record.ScaleY = (short)((float)xml.Element("scaleY") * 256.0f);
-                }
+                if (!isMobileTexture)
+                    prevTextFile = JsonConvert.DeserializeObject<TextureFormat>(File.ReadAllText(path));
                 else
                 {
-                    record.ScaleX = 0;
-                    record.ScaleY = 0;
+                    prevTextFile = JsonConvert.DeserializeObject<TextureFormat>(File.ReadAllText(path));
+                    // prevMobFile = JsonConvert.DeserializeObject<CustomMobileTextures>(File.ReadAllText(path));
                 }
-                record.Frames = null;
-
-                recordList.Add(record);
-
-                lastRecordIndex = i;
+                textFileAlreadyExists = true;
             }
-            ;
+
+            int recCounter = 0;
+
+            switch (textureType)
+            {
+                case (int)FlatTypes.Billboard:
+                case (int)FlatTypes.Enemy:
+                    DirectoryInfo dirInfo = new DirectoryInfo(Path.Combine(testPath, "Textures", textureArchive.ToString()));
+                    FileInfo[] fileInfo = dirInfo.GetFiles("*.png");
+                    List<string> textureList = new List<string>();
+                    List<string> textureSwapList = new List<string>();
+                    List<int> progressiveList = new List<int>();
+
+                    int recordCounter = 0;
+                    foreach (FileInfo texture in fileInfo)
+                    {
+                        if (int.TryParse(texture.Name.Substring(texture.Name.IndexOf("_") + 1, 3), out int recordValue) ||
+                            int.TryParse(texture.Name.Substring(texture.Name.IndexOf("_") + 1, 2), out recordValue) ||
+                            int.TryParse(texture.Name.Substring(texture.Name.IndexOf("_") + 1, 1), out recordValue))
+                            Debug.Log("recordValue: " + recordValue);
+
+                        // while (recordValue > recordCounter)
+                        // {
+                        //     textureList.Add("EMPTY");
+                        //     recordCounter++;
+                        // }
+                        int.TryParse(texture.Name.Substring(texture.Name.Length - 5, 1), out int frameValue);
+                        if (frameValue != 0)
+                            continue;
+                        progressiveList.Add(recordValue);
+                        if (recordCounter < recordValue) recordCounter = recordValue;
+                        textureSwapList.Add(texture.Name);
+                    }
+                    for (int i = 0; i < (recordCounter + 1); i++)
+                    {
+                        if (progressiveList.Contains(i))
+                        {
+                            int index = progressiveList.IndexOf(i);
+                            textureList.Add(textureSwapList[index]);
+                            Debug.Log("Adding " + textureSwapList[index] + " to textureList");
+                        }
+                        else
+                        {
+                            textureList.Add("EMPTY");
+                            Debug.Log("Adding EMPTY to textureList");
+                        }
+                    }
+                    foreach (string text in textureList)
+                    {
+                        // fileName = textureArchive.ToString("0000000") + "_" + recCounter.ToString() + "-0.png";
+                        int frameCounter = 0;
+                        bool hasFrame = false;
+                        int frameNum = 1;
+                        bool isEmpty = false;
+
+                        if (text.Equals("EMPTY"))
+                            isEmpty = true;
+
+                        Record record = new Record();
+                        if (!isEmpty)
+                        {
+                            if (int.TryParse(text.Substring(text.IndexOf("_") + 1, 3), out int recordValue) ||
+                            int.TryParse(text.Substring(text.IndexOf("_") + 1, 2), out recordValue) ||
+                            int.TryParse(text.Substring(text.IndexOf("_") + 1, 1), out recordValue))
+                                Debug.Log("recordValue: " + recordValue);
+
+                            frameFN = text.Substring(0, text.Length - 5) + "-" + frameNum.ToString() + ".png";
+                            if (File.Exists(Path.Combine(testPath, "Textures", textureArchive.ToString(), frameFN)))
+                                hasFrame = true;
+
+                            if (hasFrame)
+                            {
+                                do
+                                {
+                                    frameCounter = frameNum;
+                                    frameNum++;
+                                    frameFN = text.Substring(0, text.Length - 5) + "-" + frameNum.ToString() + ".png";
+                                }
+                                while (File.Exists(Path.Combine(testPath, "Textures", textureArchive.ToString(), frameFN)));
+                            }
+
+                            byte[] fileBytes = File.ReadAllBytes(Path.Combine(testPath, "Textures", textureArchive.ToString(), text));
+                            Texture2D texture = new Texture2D(1, 1);
+                            texture.LoadImage(fileBytes);
+
+                            record.Position = 1;
+                            record.OffsetX = 100;
+                            record.OffsetY = 100;
+                            record.Width = (short)texture.width;
+                            record.Height = (short)texture.height;
+                            record.Compression = 0;
+                            record.RecordSize = (uint)(record.Width * record.Height);
+                            record.DataOffset = 0;
+                            record.IsNormal = false;
+                            record.FrameCount = (ushort)(frameCounter + 1);
+                            record.Unknown1 = 0;
+
+                            xmlFN = text.Substring(0, text.Length - 5) + "-0.xml";
+                            if (File.Exists(Path.Combine(testPath, "Textures", textureArchive.ToString(), xmlFN)))
+                            {
+                                XElement xml = XElement.Load(Path.Combine(testPath, "Textures", textureArchive.ToString(), xmlFN));
+                                //  Debug.Log("Reading xml for textureArchive " + textureArchive + ", record " + recCounter);
+                                record.ScaleX = (short)((float)xml.Element("scaleX") * 256.0f);
+                                record.ScaleY = (short)((float)xml.Element("scaleY") * 256.0f);
+                            }
+                            else if (textFileAlreadyExists && prevTextFile.record.Length > recCounter)
+                            {
+                                record.ScaleX = prevTextFile.record[recordValue].ScaleX;
+                                record.ScaleY = prevTextFile.record[recordValue].ScaleY;
+                            }
+                            else
+                            {
+                                record.ScaleX = 0;
+                                record.ScaleY = 0;
+                            }
+
+                            if (hasFrame)
+                            {
+                                record.Frames = new DFBitmap[frameCounter + 1];
+                                for (int i = 0; i < frameCounter + 1; i++)
+                                    record.Frames[i] = null;
+                            }
+                            else
+                                record.Frames = null;
+                        }
+                        else
+                        {
+                            record.Position = 1;
+                            record.OffsetX = 100;
+                            record.OffsetY = 100;
+                            record.Width = 0;
+                            record.Height = 0;
+                            record.Compression = 0;
+                            record.RecordSize = 0;
+                            record.DataOffset = 0;
+                            record.IsNormal = false;
+                            record.FrameCount = 0;
+                            record.Unknown1 = 0;
+                        }
+
+                        recordList.Add(record);
+
+                        lastRecordIndex = recordCounter;
+                        // fileName = textureArchive.ToString("0000000") + "_" + recCounter.ToString() + "-0.png";
+                    }
+                    break;
+
+                case (int)FlatTypes.MobileNPC:
+                    int archiveCounter;
+                    bool isGenericSet;
+                    do
+                    {
+                        if (recCounter != 0 && recCounter != 5)
+                        {
+                            archiveCounter = 0;
+                            fileName = textureArchive.ToString("0000000") + "_" + recCounter.ToString() + "-0.png";
+                            isGenericSet = true;
+                        }
+                        else
+                        {
+                            archiveCounter = 1;
+                            fileName = (textureArchive + archiveCounter).ToString("0000000") + "_" + recCounter.ToString() + "-0.png";
+                            isGenericSet = false;
+                        }
+
+                        int frameCounter = 0;
+                        bool hasFrame = false;
+                        int frameNum = 1;
+
+                        frameFN = (textureArchive + archiveCounter).ToString("0000000") + "_" + recCounter.ToString() + "-" + frameNum.ToString() + ".png";
+                        if (File.Exists(Path.Combine(testPath, "Textures", textureArchive.ToString(), frameFN)))
+                            hasFrame = true;
+
+                        if (hasFrame)
+                        {
+                            do
+                            {
+                                frameCounter = frameNum;
+                                frameNum++;
+                                frameFN = (textureArchive + archiveCounter).ToString("0000000") + "_" + recCounter.ToString() + "-" + frameNum.ToString() + ".png";
+                            }
+                            while (File.Exists(Path.Combine(testPath, "Textures", textureArchive.ToString(), frameFN)));
+                        }
+
+                        byte[] fileBytes = File.ReadAllBytes(Path.Combine(testPath, "Textures", textureArchive.ToString(), fileName));
+                        Texture2D texture = new Texture2D(1, 1);
+                        texture.LoadImage(fileBytes);
+
+                        Record record = new Record();
+                        record.Position = 1;
+                        record.OffsetX = 100;
+                        record.OffsetY = 100;
+                        record.Width = (short)texture.width;
+                        record.Height = (short)texture.height;
+                        record.Compression = 0;
+                        record.RecordSize = (uint)(record.Width * record.Height);
+                        record.DataOffset = 0;
+                        record.IsNormal = false;
+                        record.FrameCount = (ushort)(frameCounter + 1);
+                        record.Unknown1 = 0;
+
+                        xmlFN = textureArchive.ToString("0000000") + "_" + recCounter.ToString() + "-0.xml";
+                        if (File.Exists(Path.Combine(testPath, "Textures", textureArchive.ToString(), xmlFN)))
+                        {
+                            XElement xml = XElement.Load(Path.Combine(testPath, "Textures", textureArchive.ToString(), xmlFN));
+                            Debug.Log("Reading xml for textureArchive " + textureArchive + ", record " + recCounter);
+                            record.ScaleX = (short)((float)xml.Element("scaleX") * 256.0f);
+                            record.ScaleY = (short)((float)xml.Element("scaleY") * 256.0f);
+                        }
+                        else if (textFileAlreadyExists)
+                        {
+                            record.ScaleX = prevTextFile.record[recCounter].ScaleX;
+                            record.ScaleY = prevTextFile.record[recCounter].ScaleY;
+                        }
+                        else
+                        {
+                            record.ScaleX = 0;
+                            record.ScaleY = 0;
+                        }
+
+                        if (hasFrame)
+                        {
+                            record.Frames = new DFBitmap[frameCounter + 1];
+                            for (int i = 0; i < frameCounter + 1; i++)
+                                record.Frames[i] = null;
+                        }
+                        else
+                            record.Frames = null;
+
+                        recordList.Add(record);
+
+                        recCounter++;
+                        lastRecordIndex = recCounter;
+                        if (recCounter != 0 && recCounter != 5)
+                            archiveCounter = 0;
+                        else archiveCounter = 1;
+
+                        // if (recCounter == 6)
+                        // {
+                        //     recCounter = 0;
+                        //     archiveCounter++;
+                        // }
+                        fileName = (textureArchive + archiveCounter).ToString("0000000") + "_" + recCounter.ToString() + "-0.png";
+                    }
+                    while (File.Exists(Path.Combine(testPath, "Textures", textureArchive.ToString(), fileName)));
+                    break;
+            }
 
             List<RecordHeader> recordHeaderList = new List<RecordHeader>();
-            for (int j = 0; j <= lastRecordIndex; j++)
+            for (int j = 0; j < (lastRecordIndex + 1); j++)
             {
                 recordHeaderList.Add(new RecordHeader());
             }
-            recordList.RemoveRange(lastRecordIndex + 1, recordList.Count - (lastRecordIndex + 1));
 
-            TextureFormat textureFormat = new TextureFormat();
-            textureFormat.fileHeader.Position = 0;
-            textureFormat.fileHeader.RecordCount = (short)(lastRecordIndex + 1);
-            textureFormat.fileHeader.Name = "Insert description for your own good";
-            textureFormat.fileHeader.TextureWidth = 100;
-            textureFormat.fileHeader.TextureHeight = 100;
+            if (!isMobileTexture)
+            {
+                TextureFormat textureFormat = new TextureFormat();
+                textureFormat.fileHeader.Position = 0;
+                textureFormat.fileHeader.RecordCount = (short)(lastRecordIndex + 1);
+                if (textFileAlreadyExists && !prevTextFile.fileHeader.Name.Equals("Insert description for your own good"))
+                    textureFormat.fileHeader.Name = prevTextFile.fileHeader.Name;
+                else textureFormat.fileHeader.Name = "Insert description for your own good";
+                textureFormat.fileHeader.TextureWidth = 100;
+                textureFormat.fileHeader.TextureHeight = 100;
 
-            textureFormat.recordHeader = recordHeaderList.ToArray();
-            textureFormat.record = recordList.ToArray();
+                textureFormat.recordHeader = recordHeaderList.ToArray();
+                textureFormat.record = recordList.ToArray();
 
-            string path = Path.Combine(testPath, "Textures", "TEXTURE." + archive.ToString("0000000"));
-            var json = JsonConvert.SerializeObject(textureFormat, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
-            File.WriteAllText(path, json);
+                // string path = Path.Combine(testPath, "Textures", "TEXTURE." + textureArchive.ToString("0000000"));
+                var json = JsonConvert.SerializeObject(textureFormat, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+                File.WriteAllText(path, json);
+            }
+            else
+            {
+                CustomMobileTextures mobTexture = new CustomMobileTextures();
+                if (textFileAlreadyExists && !prevTextFile.fileHeader.Name.Equals("Insert description for your own good"))
+                    mobTexture.Name = prevTextFile.fileHeader.Name;
+                else mobTexture.Name = "Insert description for your own good";
+                mobTexture.Records = (short)lastRecordIndex;
+                mobTexture.Frames = new int[mobTexture.Records];
+                for (int k = 0; k < mobTexture.Records; k++)
+                    mobTexture.Frames[k] = recordList[k].FrameCount;
+                mobTexture.isEmissive = false;
+                mobTexture.Size = new int[mobTexture.Records * 2];
+                for (int l = 0; l < mobTexture.Records; l++)
+                {
+                    mobTexture.Size[l * 2] = recordList[l].Width;
+                    mobTexture.Size[l * 2 + 1] = recordList[l].Height;
+                }
+                mobTexture.Scale = new float[mobTexture.Records * 2];
+                for (int m = 0; m < mobTexture.Records; m++)
+                {
+                    mobTexture.Scale[m * 2] = recordList[m].ScaleX;
+                    mobTexture.Scale[m * 2 + 1] = recordList[m].ScaleY;
+                }
+
+                var json = JsonConvert.SerializeObject(mobTexture, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+                File.WriteAllText(path, json);
+            }
         }
 
         public static void CalculateStuffRegardingMaps()
@@ -3221,7 +3490,7 @@ namespace BlockRotator
         public static void CorrectRegionIndexes()
         {
             Worldmap mapTile = new Worldmap();
-            worldData = JsonConvert.DeserializeObject<WorldSettings>(File.ReadAllText(Path.Combine("D:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps", "WorldData.json")));
+            worldData = JsonConvert.DeserializeObject<WorldSettings>(File.ReadAllText(Path.Combine("C:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps", "WorldData.json")));
 
             for (int y = 0; y < MAXYCOORD / TILESIZE; y++)
             {
@@ -4325,7 +4594,7 @@ namespace BlockRotator
                             return normal;
                     }
 
-                case MapsFile.Climates.Desert2:
+                case MapsFile.Climates.Savannah:
                     switch (dungType)
                     {
                         case DFRegion.DungeonTypes.BarbarianStronghold:
@@ -4394,7 +4663,7 @@ namespace BlockRotator
                         default:
                             return normal;
                     }
-                case MapsFile.Climates.HauntedWoodlands:
+                case MapsFile.Climates.Steppes:
                     switch (dungType)
                     {
                         case DFRegion.DungeonTypes.HarpyNest:
@@ -4657,7 +4926,7 @@ namespace BlockRotator
                 case ProvinceNames.BlackMarsh:
                     return (int)Races.Argonian;
                 default:
-                    return (int)Races.Undetermined;
+                    return (int)Races.None;
             }
         }
 
@@ -4949,5 +5218,1299 @@ namespace BlockRotator
 
             return (float)(Math.Sqrt((Math.Pow(absX, 2.0f) + Math.Pow(absY, 2.0f))));
         }
+
+        private void CreateBillboardDictionary()
+        {
+            Dictionary<int, int> billTypeDict = new Dictionary<int, int>();
+
+            for (int i = 0; i < billboardType.Length; i++)
+            {
+                for (int j = 0; j < billboardType[i].Length; j++)
+                {
+                    for (int k = 0; k < billboardType[i][j].Length; k++)
+                    {
+                        for (int l = 0; l < billboardType[i][j][k].Length; l++)
+                        {
+                            int key = billboardType[i][j][k][l].Item1 * 10000 + billboardType[i][j][k][l].Item2 * 10; // dict key is archive * 10000 + record * 10; last digit rotates to account for those flats present in more than one category.
+                            int value = l + k * 100 + j * 10000 + i * 1000000;
+
+                            while (billTypeDict.ContainsKey(key))
+                            {
+                                key++;
+                                if (key % 10 == 0)
+                                {
+                                    Debug.Log("Same billobard present in more than 10 categories, cannot handle");
+                                    break;
+                                }
+                            }
+                            billTypeDict.Add(key, value);
+                        }
+                    }
+                }
+            }
+
+            string path = Path.Combine(Worldmaps.mapPath, "flatDict.json");
+            var flatDict = JsonConvert.SerializeObject(billTypeDict, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+            File.WriteAllText(path, flatDict);
+            Debug.Log("Flat dictionaries created");
+        }
+
+        private void SetDefaultBillboardFlags()
+        {
+            DirectoryInfo dirInfo = new DirectoryInfo(Path.Combine(testPath, "RMB"));
+            FileInfo[] fileInfo = dirInfo.GetFiles("*.RMB.json");
+            List<string> blockList = new List<string>();
+
+            flatDictionary = JsonConvert.DeserializeObject<Dictionary<int, int>>(File.ReadAllText(Path.Combine(testPath, "flatDict.json")));
+
+            Debug.Log("fileInfo.Length: " + fileInfo.Length);
+
+            foreach (FileInfo block in fileInfo)
+            {
+                if (!int.TryParse(block.Name.Substring(3, 1), out int zeroValue))
+                    continue;
+                blockList.Add(block.Name);
+            }
+
+            foreach (string blockName in blockList)
+            {
+                DFBlock block = JsonConvert.DeserializeObject<DFBlock>(File.ReadAllText(Path.Combine(testPath, "RMB", blockName)));
+                Debug.Log("Working on " + blockName);
+
+                for (int a = 0; a < block.RmbBlock.SubRecords.Length; a++)
+                {
+                    for (int b = 0; b < block.RmbBlock.SubRecords[a].Exterior.BlockFlatObjectRecords.Length; b++)
+                    {
+                        AssignFlag(ref block.RmbBlock.SubRecords[a].Exterior.BlockFlatObjectRecords[b].TextureArchive, 
+                                   ref block.RmbBlock.SubRecords[a].Exterior.BlockFlatObjectRecords[b].TextureRecord,
+                                   block.RmbBlock.FldHeader.BuildingDataList[a].BuildingType,
+                                   ref block.RmbBlock.SubRecords[a].Exterior.BlockFlatObjectRecords[b].Flags,
+                                   ref block.RmbBlock.SubRecords[a].Exterior.BlockFlatObjectRecords[b].FactionID,
+                                   false);
+                    }
+                    for (int c = 0; c < block.RmbBlock.SubRecords[a].Exterior.BlockPeopleRecords.Length; c++)
+                    {
+                        AssignFlag(ref block.RmbBlock.SubRecords[a].Exterior.BlockPeopleRecords[c].TextureArchive, 
+                                   ref block.RmbBlock.SubRecords[a].Exterior.BlockPeopleRecords[c].TextureRecord,
+                                   block.RmbBlock.FldHeader.BuildingDataList[a].BuildingType,
+                                   ref block.RmbBlock.SubRecords[a].Exterior.BlockPeopleRecords[c].Flags,
+                                   ref block.RmbBlock.SubRecords[a].Exterior.BlockPeopleRecords[c].FactionID,
+                                   false);
+                    }
+                    for (int d = 0; d < block.RmbBlock.SubRecords[a].Interior.BlockFlatObjectRecords.Length; d++)
+                    {
+                        AssignFlag(ref block.RmbBlock.SubRecords[a].Interior.BlockFlatObjectRecords[d].TextureArchive, 
+                                   ref block.RmbBlock.SubRecords[a].Interior.BlockFlatObjectRecords[d].TextureRecord,
+                                   block.RmbBlock.FldHeader.BuildingDataList[a].BuildingType,
+                                   ref block.RmbBlock.SubRecords[a].Interior.BlockFlatObjectRecords[d].Flags,
+                                   ref block.RmbBlock.SubRecords[a].Interior.BlockFlatObjectRecords[d].FactionID,
+                                   true);
+                    }
+                    for (int e = 0; e < block.RmbBlock.SubRecords[a].Exterior.BlockPeopleRecords.Length; e++)
+                    {
+                        AssignFlag(ref block.RmbBlock.SubRecords[a].Interior.BlockFlatObjectRecords[e].TextureArchive, 
+                                   ref block.RmbBlock.SubRecords[a].Interior.BlockFlatObjectRecords[e].TextureRecord,
+                                   block.RmbBlock.FldHeader.BuildingDataList[a].BuildingType,
+                                   ref block.RmbBlock.SubRecords[a].Interior.BlockFlatObjectRecords[e].Flags,
+                                   ref block.RmbBlock.SubRecords[a].Interior.BlockFlatObjectRecords[e].FactionID,
+                                   true);
+                    }
+                }
+
+                var jsonBlock = JsonConvert.SerializeObject(block, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+                File.WriteAllText(Path.Combine(testPath, "RMB" , blockName), jsonBlock);
+            }
+        }
+
+        private void AssignFlag(ref int archive, ref int record, DFLocation.BuildingTypes buildingType, ref byte flag, ref short faction, bool isInterior)
+        {
+            if (archive == 199) return;     // Skipping markers (for now)
+            if (archive == 56790)
+            {
+                if (record == 0 || (record > 17 && record < 24) || record == 25)
+                    record = 1;
+            }
+            if (archive == 100)
+            {
+                switch (record)
+                {
+                    case 0:
+                        archive = 206;
+                        record = 33;
+                        break;
+                    case 1:
+                        archive = 206;
+                        record = 34;
+                        break;
+                    case 9:
+                        archive = 206;
+                        record = 32;
+                        break;
+                    case 23:
+                        archive = 206;
+                        record = 0;
+                        break;
+                }
+            }
+            if (archive == 101)
+            {
+                switch (record)
+                {
+                    case 11:
+                        archive = 210;
+                        record = 2;
+                        break;
+                }
+            }
+            if (archive == 253 && record == 2)
+            {
+                archive = 211;
+                record = 0;
+            }
+            if (archive == 1010)
+                archive = 10010;
+            if (archive == 1021)
+                archive = 10021;
+            if (archive == 1022)
+                archive = 10022;
+            if (archive == 1025)
+                archive = 10025;
+            if (archive == 1210)
+            {
+                switch (record)
+                {
+                    case 16:
+                    case 17:
+                    case 18:
+                    case 19:
+                    case 20:
+                        archive = 10021;
+                        break;
+                }
+            }
+
+            int key = ArchiveRecordToFlatKey(archive, record);
+            Debug.Log("Searching for " + key + " into flatDictionary.json");
+            
+            int value = 0;
+            if (!flatDictionary.ContainsKey(key))
+            {
+                Debug.Log("Didn't find dictionary key " + key);
+                return;
+            }
+            value = flatDictionary[key];
+            DecomposeFlatValue(value, out int category, out int type, out int subtype, out int exact);
+            int startingFlagValue = flag;
+
+            switch (category)
+            {
+                case 0:     // People
+                    switch (type)
+                    {
+                        case 0:
+                        case 1:
+                            if (flag == 0 || flag == 7 || flag == 17)
+                            {
+                                if (buildingType == DFLocation.BuildingTypes.Tavern)
+                                    flag = 109;
+                                else
+                                {
+                                    flag = (byte)(isInterior ? 75 : 67);
+                                }
+                            }
+                            break;
+                        case 2:
+                            if (flag == 0 || flag == 6 || flag == 1)
+                            {
+                                switch (key)
+                                {
+                                    case 1820040:
+                                    case 1820420:
+                                    case 1820430:
+                                    case 1840150:
+                                    case 12000060:
+                                    case 100120040:
+                                    case 100120050:
+                                    case 100120100:
+                                    case 100170030:
+                                        flag = (byte)(isInterior ? 75 : 67);
+                                        break;
+                                    case 1820380:
+                                    case 1820520:
+                                    case 1820530:
+                                    case 1860050:
+                                    case 100120010:
+                                    case 100140050:
+                                    case 100140040:
+                                        flag = (byte)(isInterior ? 91 : 83);
+                                        break;
+                                }
+                                break;
+                            }
+                            faction = 514;
+                            break;
+                        case 3:
+                            if (flag == 0 || flag == 1 || flag == 9 || flag == 13)
+                                flag = (byte)(isInterior ? 75 : 67);
+                            break;
+                        case 4:
+                            if (flag == 0 || flag == 33)
+                                flag = (byte)(isInterior ? 91 : 83);
+                            break;
+                        case 5:
+                            if (flag == 0 || flag == 5)
+                                flag = (byte)(isInterior ? 79 : 67);
+                            faction = 510;
+                            break;
+                        case 6:
+                            if (flag == 0 || flag == 41)
+                                flag = (byte)(isInterior ? 95 : 83);
+                            break;
+                        case 7:
+                            if (flag == 0 || flag == 17)
+                            {
+                                if (archive == 10017 && record == 2)
+                                    flag = (byte)(isInterior ? 95 : 83);
+                                else flag = (byte)(isInterior ? 79 : 67);
+                            }
+                            break;
+                        case 8:
+                            if (flag == 0 || flag == 17)
+                                flag = (byte)(isInterior ? 75 : 67);
+                            break;
+                        case 9:
+                            if (flag == 0 || flag == 17)
+                            {
+                                switch (key)
+                                {
+                                    case 1820360:
+                                    case 1820370:
+                                    case 1820490:
+                                    case 1820510:
+                                    case 1840030:
+                                    case 12000020:
+                                    case 12000510:
+                                        flag = (byte)(isInterior ? 77 : 67);
+                                        break;
+                                    case 1820500:
+                                    case 100180030:
+                                        flag = (byte)(isInterior ? 93 : 83);
+                                        break;
+                                    case 1820520:
+                                    case 1820530:
+                                    case 100180040:
+                                        flag = (byte)(isInterior ? 91 : 83);
+                                        faction = 514;
+                                        break;
+                                    case 100140030:
+                                        flag = (byte)(isInterior ? 75 : 67);
+                                        break;
+                                }
+                                break;
+                            }
+                            if (faction != 514)
+                                faction = 511;
+                            break;
+                        case 10:
+                            if (flag == 0 || flag == 17)
+                                flag = 79;
+                            break;
+                        case 11:
+                            if (flag == 0 || flag == 1)
+                                flag = (byte)(isInterior ? 75 : 67);
+                            faction = 242;
+                            break;
+                        case 12:
+                            if (flag == 0 || flag == 17)
+                            {
+                                switch (key)
+                                {
+                                    case 1770000:
+                                    case 1770010:
+                                    case 1770020:
+                                    case 1770040:
+                                    case 1820400:
+                                    case 12000160:
+                                    case 12000180:
+                                    case 12000210:
+                                    case 100150010:
+                                    case 100150020:
+                                    case 100150030:
+                                        flag = (byte)(isInterior ? 75 : 67);
+                                        break;
+                                    case 1770030:
+                                    case 1820410:
+                                    case 13000020:
+                                    case 13010000:
+                                    case 13060020:
+                                    case 13070060:
+                                    case 100150040:
+                                        flag = (byte)(isInterior ? 91 : 83);
+                                        break;
+                                }
+                            }
+                            faction = 40;
+                            break;
+                        case 13:
+                            if (flag == 0 || flag == 17)
+                            {
+                                switch (record)
+                                {
+                                    case 0:
+                                        flag = 95;
+                                        break;
+                                    case 1:
+                                        flag = 79;
+                                        break;
+                                }
+                            }
+                            faction = 306;
+                            break;
+                        case 14:
+                            if (flag == 0 || flag == 17)
+                            {
+                                switch (record)
+                                {
+                                    case 5:
+                                    case 6:
+                                        flag = (byte)(isInterior ? 93 : 85);
+                                        break;
+                                    case 2:
+                                    case 3:
+                                        flag = (byte)(isInterior ? 77 : 69);
+                                        break;
+                                }
+                            }
+                            faction = 306;
+                            break;
+                        case 15:
+                            if (flag == 0 || flag == 17)
+                            {
+                                flag = 79;
+                            }
+                            faction = 108;
+                            break;
+                        case 16:
+                            if (flag == 0 || flag == 17)
+                            {
+                                switch (record)
+                                {
+                                    case 0:
+                                    case 1:
+                                        flag = (byte)(isInterior ? 77 : 69);
+                                        break;
+                                    case 2:
+                                    case 3:
+                                    case 4:
+                                        flag = (byte)(isInterior ? 93 : 85);
+                                        break;
+                                }
+                            }
+                            faction = 108;
+                            break;
+                        case 17:
+                            if (flag == 0 || flag == 33 || flag == 38)
+                                flag = (byte)(isInterior ? 91 : 83);
+                            faction = 242;
+                            break;
+                        case 18:
+                            if (flag == 0 || flag == 33 || flag == 37)
+                            {
+                                switch (key)
+                                {
+                                    case 1820340:
+                                    case 1840060:
+                                    case 1840070:
+                                    case 1840080:
+                                    case 1840090:
+                                    case 1840100:
+                                    case 1840110:
+                                    case 1840120:
+                                    case 1840130:
+                                    case 1840140:
+                                    case 12000200:
+                                    case 13040010:
+                                    case 13520010:
+                                    case 13520020:
+                                    case 13520030:
+                                    case 100120020:
+                                    case 100180010:
+                                        if (buildingType == DFLocation.BuildingTypes.Tavern)
+                                        {
+                                            flag = 93;
+                                            faction = 512;
+                                        }
+                                        else if (!isInterior)
+                                        {
+                                            flag = 85;
+                                            faction = 512;
+                                        }
+                                        else flag = 91;
+                                        
+                                        break;
+                                    case 1820570:
+                                    case 1820580:
+                                    case 13030000:
+                                    case 13030010:
+                                    case 13030020:
+                                    case 13050010:
+                                    case 13080000:
+                                    case 13500000:
+                                    case 13500010:
+                                    case 100120030:
+                                    case 100180000:
+                                    case 100180020:
+                                        if (buildingType == DFLocation.BuildingTypes.Tavern)
+                                        {
+                                            flag = 77;
+                                            faction = 512;
+                                        }
+                                        else if (!isInterior)
+                                        {
+                                            flag = 69;
+                                            faction = 512;
+                                        }
+                                        else flag = 75;
+                                        break;
+                                }
+                            }
+                            break;
+                        case 19:
+                            if (flag == 0 || flag == 17)
+                            {
+                                switch (key)
+                                {
+                                    case 1770050:
+                                    case 1820590:
+                                        flag = (byte)(isInterior ? 75 : 67);
+                                        break;
+                                    case 100170000:
+                                        flag = (byte)(isInterior ? 91 : 83);
+                                        break;
+                                }
+                                faction = 510;
+                            }
+                            break;
+                        case 20:
+                            if (flag == 0 || flag == 33)
+                            {
+                                switch (key)
+                                {
+                                    case 1810000:
+                                    case 1810020:
+                                    case 1810030:
+                                    case 1830120:
+                                    case 12000470:
+                                    case 13070020:
+                                    case 13510000:
+                                    case 13510010:
+                                    case 13510020:
+                                    case 100140040:
+                                    case 100140080:
+                                    case 100140090:
+                                    case 100140110:
+                                        flag = (byte)(isInterior ? 75 : 67);
+                                        break;
+                                    case 1810010:
+                                    case 1810040:
+                                    case 1810050:
+                                    case 1810060:
+                                    case 1810070:
+                                    case 1820280:
+                                    case 1820320:
+                                    case 1820330:
+                                    case 13000010:
+                                    case 13040000:
+                                    case 13510030:
+                                    case 13510040:
+                                    case 13510050:
+                                    case 13510060:
+                                    case 100140000:
+                                    case 100140010:
+                                    case 100140020:
+                                    case 100140050:
+                                    case 100140060:
+                                    case 100140070:
+                                    case 100140100:
+                                    case 100140120:
+                                        flag = (byte)(isInterior ? 91 : 83);
+                                        break;
+                                }
+                            }
+                            if (buildingType == DFLocation.BuildingTypes.Temple)
+                                faction = 450;
+                            break;
+                        case 21:
+                            if (flag == 0 || flag == 17)
+                                flag = 75;
+                            break;
+                    }
+                    break;
+                case 1:     // Interior
+                    switch (type)
+                    {
+                        case 0:
+                        case 1:
+                        case 2:
+                        case 4:
+                        case 6:
+                        case 9:
+                        case 10:
+                        case 13:
+                            if (flag == 0 || flag == 6 || flag == 17 || flag == 38)
+                            {
+                                switch (key)
+                                {
+                                    case 2040010:
+                                    case 2040020:
+                                    case 2110360:
+                                    case 2140000:
+                                    case 2140010:
+                                    case 2140020:
+                                    case 2140030:
+                                    case 2140040:
+                                    case 2140050:
+                                    case 2140060:
+                                    case 2140070:
+                                    case 2140110:
+                                    case 2140130:
+                                    case 2140140:
+                                    case 2140150:
+                                        flag = (byte)(isInterior ? 13 : 35);
+                                        break;
+                                    case 2120070:
+                                    case 2140080:
+                                        flag = (byte)(isInterior ? 13 : 39);
+                                        break;
+                                    case 2000140:
+                                        flag = (byte)(isInterior ? 14 : 38);
+                                        break;
+                                    case 2000110:
+                                    case 2000130:
+                                    case 2000150:
+                                    case 2000160:
+                                    case 2000180:
+                                    case 2050410:
+                                    case 2110020:
+                                    case 2110210:
+                                    case 2110570:
+                                    case 2180060:
+                                    case 12100240:
+                                    case 100270000:
+                                    case 200140010:
+                                    case 200140020:
+                                    case 200160000:
+                                    case 200170000:
+                                    case 200170010:
+                                    case 200170020:
+                                    case 200170030:
+                                    case 200170040:
+                                    case 200170050:
+                                    case 567900240:
+                                    case 567900260:
+                                        flag = (byte)(isInterior ? 15 : 35);
+                                        break;
+                                    case 2050000:
+                                    case 2110200:
+                                    case 2110300:
+                                    case 2110340:
+                                    case 2110350:
+                                    case 2130020:
+                                    case 2130030:
+                                    case 2130040:
+                                    case 2130050:
+                                    case 2130060:
+                                    case 2130130:
+                                    case 2130140:
+                                    case 2180000:
+                                    case 2180010:
+                                    case 2180020:
+                                    case 2180030:
+                                    case 100250020:
+                                    case 100250040:
+                                    case 200140000:
+                                    case 200510090:
+                                    case 567900020:
+                                    case 567900170:
+                                        flag = (byte)(isInterior ? 15 : 47);
+                                        break;
+                                    case 2000170:                                    
+                                        flag = (byte)(isInterior ? 47 : 47);
+                                        break;
+                                    case 2040060:
+                                    case 2040070:
+                                    case 2040080:
+                                    case 2050080:
+                                    case 2050090:
+                                    case 2050100:
+                                    case 2050170:
+                                    case 2050180:
+                                    case 2050190:
+                                    case 2050200:
+                                    case 2050210:
+                                    case 2050220:
+                                    case 2050230:
+                                    case 2050240:
+                                    case 2050250:
+                                    case 2050260:
+                                    case 2050440:
+                                    case 2110120:
+                                    case 2110130:
+                                    case 2110140:
+                                    case 2110370:
+                                    case 2110380:
+                                    case 2110390:
+                                    case 2140090:
+                                    case 2140100:
+                                    case 2140120:
+                                    case 2160030:
+                                    case 2160060:
+                                    case 2160070:
+                                    case 2160080:
+                                    case 2160090:
+                                    case 2160100:
+                                    case 2160110:
+                                    case 2160120:
+                                    case 2160130:
+                                    case 2160140:
+                                    case 2160150:
+                                    case 2160160:
+                                    case 2160170:
+                                    case 2160180:
+                                    case 2160190:
+                                    case 2160210:
+                                    case 2160300:
+                                    case 100220040:
+                                    case 100240010:
+                                    case 100240020:
+                                    case 100250030:
+                                    case 100270010:
+                                    case 100270060:
+                                    case 100270070:
+                                    case 100270080:
+                                    case 100270090:
+                                    case 100270100:
+                                        flag = (byte)(isInterior ? 47 : 35);
+                                        break;
+                                    case 100270210:
+                                    case 100270220:
+                                        flag = (byte)(isInterior ? 107 : 35);
+                                        break;
+                                    case 2070000:
+                                    case 2070010:
+                                    case 2070020:
+                                        flag = (byte)(isInterior ? 110 : 35);
+                                        break;
+                                    case 1980020:
+                                    case 2040000:
+                                    case 2040030:
+                                    case 2040040:
+                                    case 2040050:
+                                    case 2040090:
+                                    case 2050360:
+                                    case 2050420:
+                                    case 2070030:
+                                    case 2070040:
+                                    case 2070050:
+                                    case 2070060:
+                                    case 2070070:
+                                    case 2070080:
+                                    case 2070090:
+                                    case 2070100:
+                                    case 2070110:
+                                    case 2070120:
+                                    case 2070130:
+                                    case 2070140:
+                                    case 2070150:
+                                    case 2070160:
+                                    case 2110230:
+                                    case 2110240:
+                                    case 2110250:
+                                    case 2110430:
+                                    case 2110440:
+                                    case 2110450:
+                                    case 2110460:
+                                    case 2110480:
+                                    case 2160000:
+                                    case 2160020:
+                                    case 2160040:
+                                    case 2160050:
+                                    case 2160200:
+                                    case 2160220:
+                                    case 2160230:
+                                    case 2160240:
+                                    case 2160250:
+                                    case 2160260:
+                                    case 2160270:
+                                    case 2160280:
+                                    case 2160290:
+                                    case 2160310:
+                                    case 2160320:
+                                    case 2160330:
+                                    case 2160340:
+                                    case 2160350:
+                                    case 2160370:
+                                    case 2160380:
+                                    case 2160390:
+                                    case 2160410:
+                                    case 2160420:
+                                    case 2160430:
+                                    case 2160440:
+                                    case 2160450:
+                                    case 2160460:
+                                    case 2160470:
+                                    case 2540110:
+                                    case 2540120:
+                                    case 2540260:
+                                    case 2540560:
+                                    case 2540270:
+                                    case 2540280:
+                                    case 2540290:
+                                    case 2540300:
+                                    case 2540310:
+                                    case 2540320:
+                                    case 2540330:
+                                    case 4320190:
+                                    case 100270040:
+                                        flag = (byte)(isInterior ? 111 : 35);
+                                        break;
+                                    case 2050290:
+                                    case 2050300:
+                                    case 100270150:
+                                        flag = (byte)(isInterior ? 111 : 47);
+                                        break;
+                                    // Continue from here...
+                                    case 2180040:
+                                    case 100270020:
+                                    case 100270030:
+                                        if (buildingType == DFLocation.BuildingTypes.Tavern) flag = 47;
+                                        else flag = (byte)(isInterior ? 43 : 35);
+                                        break;
+                                    case 2000030:
+                                    case 2050120:
+                                    case 2050130:
+                                    case 2050150:
+                                    case 2050160:
+                                    case 100210180:
+                                    case 100210190:
+                                    case 100210200:
+                                    case 100210210:
+                                    case 100210220:
+                                    case 100210230:
+                                    case 100210240:
+                                    case 100210250:
+                                    case 100210260:
+                                    case 100210270:
+                                    case 100210280:
+                                    case 100210290:
+                                    case 100210300:
+                                    case 100210310:
+                                    case 100210320:
+                                    case 100210330:
+                                    case 100210340:
+                                    case 100210350:
+                                    case 100210360:
+                                    case 100210370:
+                                    case 100210380:
+                                    case 100210390:
+                                    case 200500030:
+                                        if (buildingType == DFLocation.BuildingTypes.Tavern) flag = 47;
+                                        else flag = (byte)(isInterior ? 107 : 35);
+                                        break;
+                                    case 2000000:
+                                    case 2000010:
+                                    case 2000020:
+                                    case 2000040:
+                                    case 2000050:
+                                    case 2000060:
+                                    case 2050110:
+                                    case 2050140:
+                                    case 12100100:
+                                    case 12100110:
+                                    case 12100120:
+                                    case 12100130:
+                                    case 100270110:
+                                    case 100270120:
+                                    case 100270130:
+                                    case 100270140:
+                                    case 100270160:
+                                    case 100270170:
+                                    case 100270180:
+                                    case 100270190:
+                                    case 200500020:
+                                    case 200500090:
+                                    case 200510000:
+                                    case 200510010:
+                                    case 200510020:
+                                    case 200510030:
+                                    case 200510080:
+                                    case 567900010:
+                                    case 567900030:
+                                        if (buildingType == DFLocation.BuildingTypes.Tavern) flag = 47;
+                                        else flag = (byte)(isInterior ? 111 : 35);
+                                        break;
+                                    case 100270200:
+                                    case 200510040:
+                                        if (buildingType == DFLocation.BuildingTypes.Tavern) flag = 111;
+                                        else flag = (byte)(isInterior ? 107 : 35);
+                                        break;
+                                }
+                            }
+                            break;
+                        case 3:
+                            if (flag == 0 || flag == 17)
+                            {
+                                switch (subtype)
+                                {
+                                    case 0:
+                                    case 1:
+                                    case 2:
+                                    case 4:
+                                    case 5:
+                                    case 6:
+                                    case 7:
+                                        if (buildingType == DFLocation.BuildingTypes.Tavern) flag = 47;
+                                        else flag = (byte)(isInterior ? 43 : 35);
+                                        break;
+                                    case 3:
+                                    case 8:
+                                        flag = (byte)(isInterior ? 111 : 35);
+                                        break;
+                                }
+                            }
+                            break;
+                        case 5:
+                            if (flag == 0 || flag == 17)
+                            {
+                                if (subtype == 0)
+                                    flag = (byte)(isInterior ? 15 : 35);
+                                if (subtype == 1)
+                                    flag = (byte)(isInterior ? 47 : 35);
+                            }
+                            break;
+                        case 7:
+                            if (flag == 0 || flag == 17)
+                            {
+                                flag = (byte)(isInterior ? 15 : 35);
+                            }
+                            break;
+                        case 8:
+                            if (flag == 0 || flag == 17)
+                                flag = 15;
+                            break;
+                        case 11:
+                        case 12:
+                            if (flag == 0 || flag == 17)
+                                flag = (byte)(isInterior ? 47 : 35);
+                            break;
+                        case 14:
+                            if (flag == 0 || flag == 17 || flag == 49)
+                            {
+                                switch (key)
+                                {
+                                    case 2100010:
+                                        flag = (byte)(isInterior ? 13 : 5);
+                                        break;
+                                    case 2100280:
+                                    case 2100290:
+                                        flag = (byte)(isInterior ? 13 : 13);
+                                        break;
+                                    case 2100000:
+                                    case 2100020:
+                                    case 2100030:
+                                    case 2100060:
+                                    case 2100190:
+                                    case 2100200:
+                                    case 2100210:
+                                    case 12100050:
+                                    case 12100060:
+                                    case 12100070:
+                                        if (buildingType == DFLocation.BuildingTypes.Temple)
+                                            flag = 15;
+                                        else flag = (byte)(isInterior ? 109 : 5);
+                                        break;
+                                    case 201010100:
+                                        if (buildingType == DFLocation.BuildingTypes.Temple)
+                                            flag = 15;
+                                        else flag = (byte)(isInterior ? 109 : 13);
+                                        break;
+                                    case 2100040:
+                                    case 2100050:
+                                    case 2100140:
+                                    case 2100150:
+                                    case 2100160:
+                                    case 2100170:
+                                    case 2100180:
+                                        flag = (byte)(isInterior ? 109 : 5);
+                                        break;
+                                    case 2100070:
+                                    case 2100080:
+                                    case 2100090:
+                                    case 2100100:
+                                    case 2100110:
+                                    case 2100120:
+                                    case 2100130:
+                                    case 2100220:
+                                    case 2100240:
+                                    case 2100250:
+                                    case 2100260:
+                                    case 2100270:
+                                    case 2100230:
+                                    case 2180050:
+                                    case 201000000:
+                                    case 201000020:
+                                    case 201000040:
+                                    case 201000060:
+                                    case 201000100:
+                                    case 201000110:
+                                        flag = (byte)(isInterior ? 109 : 13);
+                                        break;                                    
+                                }
+                            }
+                            break;
+                        case 15:
+                        case 16:
+                            if (flag == 0 || flag == 17)
+                            {
+                                flag = 15;
+                            }
+                            break;
+                        case 17:
+                            if (flag == 0 || flag == 17 || flag == 49)
+                            {
+                                switch (key)
+                                {
+                                    case 302100010:
+                                        flag = (byte)(isInterior ? 13 : 5);
+                                        break;
+                                    case 302100280:
+                                    case 302100290:
+                                        flag = (byte)(isInterior ? 13 : 13);
+                                        break;
+                                    case 12100050:
+                                    case 12100060:
+                                    case 12100070:
+                                    case 302100000:
+                                    case 302100020:
+                                    case 302100030:
+                                    case 302100060:
+                                    case 302100190:
+                                    case 302100200:
+                                    case 302100210:
+                                        if (buildingType == DFLocation.BuildingTypes.Temple)
+                                            flag = 15;
+                                        else flag = (byte)(isInterior ? 109 : 5);
+                                        break;
+                                    case 201010100:
+                                        if (buildingType == DFLocation.BuildingTypes.Temple)
+                                            flag = 15;
+                                        else flag = (byte)(isInterior ? 109 : 13);
+                                        break;
+                                    case 302100040:
+                                    case 302100050:
+                                    case 302100140:
+                                    case 302100150:
+                                    case 302100160:
+                                    case 302100170:
+                                    case 302100180:
+                                        flag = (byte)(isInterior ? 109 : 5);
+                                        break;
+                                    case 2180050:
+                                    case 201000000:
+                                    case 201000020:
+                                    case 201000040:
+                                    case 201000060:
+                                    case 201000100:
+                                    case 201000110:
+                                    case 302100070:
+                                    case 302100080:
+                                    case 302100090:
+                                    case 302100100:
+                                    case 302100110:
+                                    case 302100120:
+                                    case 302100130:
+                                    case 302100220:
+                                    case 302100240:
+                                    case 302100250:
+                                    case 302100260:
+                                    case 302100270:
+                                    case 302100230:
+                                        flag = (byte)(isInterior ? 109 : 13);
+                                        break;                                    
+                                }
+                            }
+                            break;
+                    }
+                    break;
+                case 2:     // Fauna
+                    if (flag == 0 || flag == 17 || flag == 38)
+                    {
+                        if ((type >= 0 && type <= 8) && 
+                            (subtype == 0))   // Cats
+                            flag = (byte)(isInterior ? 47 : 39);
+                        else if ((type >= 0 && type <= 8) && 
+                            (subtype == 1))   // Dogs
+                            flag = (byte)(isInterior ? 47 : 43);
+                        else if (key == 100100010 || key == 100100790)
+                            flag = (byte)(isInterior ? 31 : 19);
+                        else
+                        {
+                            switch (type)
+                            {
+                                case 0:                 // High Rock
+                                    switch (subtype)
+                                    {
+                                        case 4:     // Pigs
+                                        case 5:     // Chicken
+                                            flag = (byte)(isInterior ? 47 : 43);
+                                            break;
+                                        case 2:     // Horses
+                                        case 3:     // Bovines
+                                        case 6:     // Ovines
+                                            flag = (byte)(isInterior ? 63 : 63);
+                                            break;
+                                        case 7:     // Wild - Large hooved
+                                            flag = 59;
+                                            break;
+                                        case 8:     // Insects
+                                            flag = 51;
+                                            break;
+                                        case 9:     // Rats
+                                            flag = (byte)(isInterior ? 45 : 45);
+                                            break;
+                                        case 10:    // Doves
+                                            flag = (byte)(isInterior ? 47 : 35);
+                                            break;
+                                        case 11:    // Waterfowl
+                                            flag = (byte)(isInterior ? 45 : 43);
+                                            break;
+                                    }
+                                    break;
+                                case 1:             // Hammerfell
+                                    switch (subtype)
+                                    {
+                                        case 2:     // Horses
+                                        case 3:     // Camels
+                                            flag = (byte)(isInterior ? 63 : 63);
+                                            break;
+                                        case 5:     // Chicken
+                                            flag = (byte)(isInterior ? 47 : 43);
+                                            break;
+                                        case 6:     // Wild - Small Monsters
+                                        case 9:     // Riding and War Camels
+                                            flag = (byte)(isInterior ? 43 : 35);
+                                            break;
+                                        case 7:     // Wild - Canids
+                                            flag = (byte)(isInterior ? 47 : 51);
+                                            break;
+                                        case 8:     // Monkeys
+                                            flag = (byte)(isInterior ? 59 : 51);
+                                            break;
+                                        case 10:     // Rats
+                                            flag = (byte)(isInterior ? 45 : 45);
+                                            break;
+                                        case 11:    // Rock Doves
+                                        case 12:    // Jungle Doves
+                                            flag = (byte)(isInterior ? 47 : 35);
+                                            break;
+                                    }
+                                    break;
+                                case 2:             // Skyrim
+                                case 4:             // Sumurset
+                                case 8:             // Cyrodiil
+                                    switch (subtype)
+                                    {
+                                        case 2:         // Horses
+                                        case 3:         // Bovines
+                                        case 5:         // Ovines
+                                            flag = (byte)(isInterior ? 63 : 63);
+                                            break;
+                                        case 4:         // Pigs
+                                            flag = (byte)(isInterior ? 47 : 43);
+                                            break;
+                                        case 6:         // Rats
+                                            flag = (byte)(isInterior ? 45 : 45);
+                                            break;
+                                        case 7:         // Rock Doves
+                                            flag = (byte)(isInterior ? 47 : 35);
+                                            break;
+                                    }
+                                    break;
+                                case 3:             // Morrowind
+                                case 5:             // Valenwood
+                                case 6:             // Elsweyr
+                                case 7:             // Black Marsh
+                                    switch (subtype)
+                                    {
+                                        case 2:         // Horses
+                                        case 3:         // Bovines
+                                            flag = (byte)(isInterior ? 63 : 63);
+                                            break;
+                                        case 4:         // Pigs
+                                            flag = (byte)(isInterior ? 47 : 43);
+                                            break;
+                                        case 5:         // Rats
+                                            flag = (byte)(isInterior ? 45 : 45);
+                                            break;
+                                        case 6:         // Rock Doves
+                                            flag = (byte)(isInterior ? 47 : 35);
+                                            break;
+                                    }
+                                    break;
+                                case 9:             // Alik'r Desert
+                                    switch (subtype)
+                                    {
+                                        case 1:         // Wild - Large Monster
+                                            flag = (byte)(isInterior ? 61 : 59);
+                                            break;
+                                    }
+                                    break;
+                                case 10:            // Dragontail Mountains
+                                    switch (subtype)
+                                    {
+                                        case 0:         // Wild Avian
+                                            flag = (byte)(isInterior ? 61 : 59);
+                                            break;
+                                    }
+                                    break;
+                                case 25:            // Wrothgarian Mountains
+                                    switch (subtype)
+                                    {
+                                        case 0:         // Domestics - Cattle
+                                            flag = (byte)(isInterior ? 63 : 63);
+                                            break;
+                                        case 1:         // Wild - Small Hooved
+                                            flag = 59;
+                                            break;
+                                        case 2:         // Wild - Avian
+                                            flag = (byte)(isInterior ? 61 : 59);
+                                            break;
+                                    }
+                                    break;
+                                case 32:            // Wayrest
+                                    switch (subtype)
+                                    {
+                                        case 0:         // Domestics - Horses
+                                            flag = (byte)(isInterior ? 63 : 63);
+                                            break;
+                                    }
+                                    break;
+                                case 35:            // Orsinium Area
+                                    switch (subtype)
+                                    {
+                                        case 0:         // Orcish Tame Boar
+                                            flag = (byte)(isInterior ? 63 : 63);
+                                            break;
+                                    }
+                                    break;
+                                case 41:            // Northmoor
+                                    switch (subtype)
+                                    {
+                                        case 0:         // Domestics - Cattle
+                                            flag = (byte)(isInterior ? 63 : 63);
+                                            break;
+                                    }
+                                    break;
+                                case 43:            // Alcaire
+                                    switch (subtype)
+                                    {
+                                        case 0:         // Domestics - Horses
+                                        case 1:         // Domestics - Cattle
+                                            flag = (byte)(isInterior ? 63 : 63);
+                                            break;
+                                    }
+                                    break;
+                                case 50:            // Daenia
+                                    switch (subtype)
+                                    {
+                                        case 0:         // Domestics - Pets
+                                            flag = (byte)(isInterior ? 47 : 43);
+                                            break;
+                                    }
+                                    break;
+                                case 68:            // Glenumbra Moors
+                                    switch (subtype)
+                                    {
+                                        case 0:         // Domestics - Horses
+                                            flag = (byte)(isInterior ? 63 : 63);
+                                            break;
+                                    }
+                                    break;
+                            }
+                        }
+                    }
+                    break;
+                case 3:
+                    if (flag == 0 || flag == 17)
+                    {
+                        switch (type)
+                        {
+                            case 0:
+                                switch (subtype)
+                                {
+                                    case 12:
+                                        flag = (byte)(isInterior ? 43 : 35);
+                                        break;
+                                    default:
+                                        flag = 47;
+                                        break;
+                                }
+                                break;
+                            case 1:
+                                switch (subtype)
+                                {
+                                    case 9:
+                                        flag = (byte)(isInterior ? 107 : 109);
+                                        break;
+                                    case 12:
+                                        flag = (byte)(isInterior ? 14 : 14);
+                                        break;
+                                    default:
+                                        flag = 47;
+                                        break;
+                                }
+                                break;
+                        }
+                    }
+                    break;
+                case 4:     // Flora
+                    if (flag == 0 || flag == 17)
+                        flag = 15;
+                    break;
+            }
+            if (flag == startingFlagValue)
+                Debug.Log("Texture " + archive + "." + record + " didn't modify its flag from " + flag);
+        }
+
+        private int ArchiveRecordToFlatKey(int archive, int record)
+        {
+            return archive * 10000 + record * 10;
+        }
+
+        private void DecomposeFlatValue(int value, out int category, out int type, out int subtype, out int exact)
+        {
+            exact = value % 100;
+            subtype = value / 100 % 100;
+            type = value / 10000 % 100;
+            category = value / 1000000 % 100;
+        }
+
+        // private void CreateStartEndDictionaries()
+        // {
+        //     Dictionary<int, (int, int)[]> provSEDict = new Dictionary<int, (int, int)[]>();
+        //     for (int i = 0; i < FlatCategories.provincialStartEnd.GetLength(0); i++)
+        //     {
+        //         (int, int)[] provSingleSE = new (int, int)[Enum.GetNames(typeof(FlatCategories.IndexStartType)).Length];
+        //         for (int j = 0; j < Enum.GetNames(typeof(FlatCategories.IndexStartType)).Length; j++)
+        //             provSingleSE[j] = FlatCategories.provincialStartEnd[i, j];
+
+        //         provSEDict.Add(i, provSingleSE);
+        //     }
+
+        //     string path = Path.Combine(Worldmaps.mapPath, "provincialStartEnd.json");
+        //     var provDict = JsonConvert.SerializeObject(provSEDict, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+        //     File.WriteAllText(path, provDict);
+        //     Debug.Log("Flat dictionaries created");
+        // }
     }
 }

@@ -77,7 +77,7 @@ namespace DaggerfallWorkshop
         Dictionary<ulong, DiscoveredLocation> discoveredLocations = new Dictionary<ulong, DiscoveredLocation>();
 
         Vector3 lastFramePosition;
-        // string arena2Path = "D:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2";
+        // string arena2Path = "C:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2";
 
         static bool startingGame = false;
 
@@ -446,7 +446,7 @@ namespace DaggerfallWorkshop
         /// </summary>
         public Races GetRaceOfCurrentRegion()
         {
-            return (Races) MapsFile.RegionRaces[GameManager.Instance.PlayerGPS.CurrentRegionIndex] + 1;
+            return (Races)(MapsFile.RegionRaces[GameManager.Instance.PlayerGPS.CurrentRegionIndex] / 100) + 1;
         }
 
         /// <summary>

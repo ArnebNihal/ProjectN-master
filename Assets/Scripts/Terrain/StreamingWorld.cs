@@ -842,6 +842,7 @@ namespace DaggerfallWorkshop
                                 location.MapTableData.MapId,
                                 location.LocationIndex,
                                 false,
+                                false,
                                 dfUnity.Option_CityBlockPrefab,
                                 natureBillboardBatch,
                                 lightsBillboardBatch,

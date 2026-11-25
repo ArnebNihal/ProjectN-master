@@ -29,7 +29,7 @@ namespace DaggerfallWorkshop.Game.Utility
         #region Fields
 
         const string nameGenFilename = "NameGen.json";
-        const string mapPath = "D:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps";
+        const string mapPath = "C:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps";
 
         Dictionary<BankTypes, NameBank> bankDict = null;
 
@@ -97,6 +97,7 @@ namespace DaggerfallWorkshop.Game.Utility
         public string FullName(BankTypes type, Genders gender)
         {
             // Get parts
+            Debug.Log("type: " + type + ", gender: " + gender);
             string firstName = FirstName(type, gender);
             string lastName = Surname(type, (int)gender);
 
@@ -124,14 +125,13 @@ namespace DaggerfallWorkshop.Game.Utility
             switch (type)
             {
                 // As of today, these still didn't receive the Ibiss treatement
-                case BankTypes.Breton:
                 case BankTypes.Imperial:
                 case BankTypes.Orc:
                     firstName = GetRandomFirstName(nameBank, gender);
                     break;
 
                 case BankTypes.Nord:
-                    if (UnityEngine.Random.Range(0, 3) == 0)
+                    if (DFRandom.rand() % 3 == 0)
                         firstName = GetRandomFirstName(nameBank, gender);
                     else firstName = GetExpandedNordFirstName(nameBank, gender);
                     break;
@@ -139,14 +139,25 @@ namespace DaggerfallWorkshop.Game.Utility
                 case BankTypes.DarkElf:
                 case BankTypes.HighElf:
                 case BankTypes.WoodElf:
-                case BankTypes.BretonModern:
-                    if (UnityEngine.Random.Range(0, 3) == 0)
+                    uint pickedType = DFRandom.rand() % 7;
+                    if (pickedType == 0)
+                        firstName = GetRandomFirstName(nameBank, gender);
+                    else if (pickedType < 3)
                         firstName = GetRandomFirstName(nameBank, gender);
                     else firstName = GetExpandedFirstName(nameBank, gender);
                     break;
 
+                case BankTypes.Breton:
+                    uint pickedBretonType = DFRandom.rand() % 7;
+                    if (pickedBretonType == 0)
+                        firstName = GetRandomFirstName(bankDict[BankTypes.Breton], gender);
+                    else if (pickedBretonType < 3)
+                        firstName = GetRandomFirstName(bankDict[BankTypes.BretonModern], gender);
+                    else firstName = GetExpandedFirstName(bankDict[BankTypes.BretonModern], gender);
+                    break;
+
                 case BankTypes.Khajiit:
-                    if (UnityEngine.Random.Range(0, 3) == 0)
+                    if (DFRandom.rand() % 3 == 0)
                         firstName = GetRandomFirstName(nameBank, gender);
                     else firstName = GetExpandedKhajiitFirstName(nameBank, gender);
                     break;
@@ -156,7 +167,7 @@ namespace DaggerfallWorkshop.Game.Utility
                     break;
 
                 case BankTypes.Argonian:
-                    if (UnityEngine.Random.Range(0, 3) == 0)
+                    if (DFRandom.rand() % 3 == 0)
                         firstName = GetRandomArgonianName(nameBank, gender);
                     else firstName = GetExpandedArgonianName(nameBank, gender);
                     break;
@@ -181,7 +192,15 @@ namespace DaggerfallWorkshop.Game.Utility
             string lastName = string.Empty;
             switch (type)
             {
-                case BankTypes.Breton:                                                  // These banks all work the same
+                case BankTypes.Breton:                         // These banks all work the same
+                    uint pickedBretonType = DFRandom.rand() % 7;
+                    if (pickedBretonType == 0)
+                        lastName = GetRandomSurname(bankDict[BankTypes.Breton]);
+                    else if (pickedBretonType < 3)
+                        lastName = GetRandomSurname(bankDict[BankTypes.BretonModern]);
+                    else lastName = GetExpandedSurname(bankDict[BankTypes.BretonModern]);
+                    break;
+
                 case BankTypes.Imperial:
                     lastName = GetRandomSurname(nameBank);
                     break;
@@ -189,14 +208,13 @@ namespace DaggerfallWorkshop.Game.Utility
                 case BankTypes.DarkElf:
                 case BankTypes.HighElf:
                 case BankTypes.WoodElf:
-                case BankTypes.BretonModern:
-                    if (UnityEngine.Random.Range(0, 3) == 0)
+                    if (DFRandom.rand() % 3 == 0)
                         lastName = GetRandomSurname(nameBank);
                     else lastName = GetExpandedSurname(nameBank);
                     break;
 
                 case BankTypes.Nord:
-                    if (UnityEngine.Random.Range(0, 3) == 0)
+                    if (DFRandom.rand() % 3 == 0)
                         lastName = GetRandomNordSurname(nameBank, (Genders)gender);
                     else lastName = GetExpandedNordSurname(nameBank, (Genders)gender);
 
@@ -252,9 +270,11 @@ namespace DaggerfallWorkshop.Game.Utility
             // Generate strings
             uint index = DFRandom.rand() % (uint)partsA.Length;
             string stringA = partsA[index];
+            Debug.Log("indexA: " + index);
 
             index = DFRandom.rand() % (uint)partsB.Length;
             string stringB = partsB[index];
+            Debug.Log("indexB: " + index);
 
             return stringA + stringB;
         }
@@ -427,7 +447,7 @@ namespace DaggerfallWorkshop.Game.Utility
 
             // Generate strings
             uint index = DFRandom.rand() % (uint)partsA.Length;
-            string stringA = partsA[index];
+            string stringA = partsA[index];            
 
             index = DFRandom.rand() % (uint)partsB.Length;
             string stringB = partsB[index];
@@ -506,7 +526,7 @@ namespace DaggerfallWorkshop.Game.Utility
             string stringA, stringB, stringC, stringD;
             string hyphen;
             string resultName;
-            int argNameType = UnityEngine.Random.Range(0, 3);
+            int argNameType = (int)DFRandom.rand() % 3;
             int randomSet;
             uint index;
 

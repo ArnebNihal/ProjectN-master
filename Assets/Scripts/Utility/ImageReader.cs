@@ -329,23 +329,22 @@ namespace DaggerfallWorkshop.Utility
             switch (fileType)
             {
                 case ImageTypes.TEXTURE:
-                    Debug.Log("Trying to load file " + filename);
                     int textureNumber;
                     int.TryParse(filename.Substring(8), out textureNumber);
                     TextureFile textureFile;
-                    if (textureNumber < 10000)
+                    if (textureNumber < 1000)
                     {
                         textureFile = new TextureFile(Path.Combine(dfUnity.Arena2Path, filename), FileUsage.UseMemory, true);
                         textureFile.LoadPalette(Path.Combine(dfUnity.Arena2Path, textureFile.PaletteName));
                         dfBitmap = textureFile.GetDFBitmap(record, frame);
 
-                        if (textureNumber == 233 || textureNumber == 234)
-                            PrintTextureRecord(textureFile);
+                        // if (textureNumber == 233 || textureNumber == 234)
+                        //     PrintTextureRecord(textureFile);
                     }
                     else
                     {
                         // Debug.Log("Now loading textureNumber: " + textureNumber);
-                        textureFile = new TextureFile(Path.Combine(WorldMaps.mapPath, "Textures", textureNumber.ToString(), filename), FileUsage.UseMemory, true);
+                        textureFile = new TextureFile(Path.Combine(WorldMaps.mapPath, "Textures", filename), FileUsage.UseMemory, true, true);
                         textureFile.LoadPalette(Path.Combine(WorldMaps.mapPath, "Textures", textureNumber.ToString(), textureFile.PaletteName));
                         dfBitmap = textureFile.GetCustomDFBitmap(textureNumber, record, frame, TextureReader.MapsPath);
                     }
@@ -356,7 +355,9 @@ namespace DaggerfallWorkshop.Utility
                         dfBitmapAllFrames = new DFBitmap[frameCount];
                         for (int i = 0; i < frameCount; i++)
                         {
-                            dfBitmapAllFrames[i] = textureFile.GetDFBitmap(record, i);
+                            if (textureNumber < 1000)
+                                dfBitmapAllFrames[i] = textureFile.GetDFBitmap(record, i);
+                            else dfBitmapAllFrames[i] = textureFile.GetCustomDFBitmap(textureNumber, record, i, TextureReader.MapsPath);
                         }
                     }
                     imageData.offset = textureFile.GetOffset(record, textureNumber);

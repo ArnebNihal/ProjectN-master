@@ -279,14 +279,14 @@ namespace DaggerfallConnect.Arena2
         {
             Ocean = 223,
             Desert = 224,
-            Desert2 = 225,
+            Savannah = 225,
             Mountain = 226,
             Rainforest = 227,
             Swamp = 228,
             Subtropical = 229,
             MountainWoods = 230,
             Woodlands = 231,
-            HauntedWoodlands = 232,
+            Steppes = 232,
             Maquis = 233
         }
 
@@ -539,10 +539,16 @@ namespace DaggerfallConnect.Arena2
                     settings.People = FactionFile.FactionRaces.Breton;
                     break;
                 case (int)Climates.Desert:
-                case (int)Climates.Desert2:
                     settings.ClimateType = DFLocation.ClimateBaseType.Desert;
                     settings.GroundArchive = 2;
                     settings.NatureArchive = (int)DFLocation.ClimateTextureSet.Nature_Desert;
+                    settings.SkyBase = 8;
+                    settings.People = FactionFile.FactionRaces.Redguard;
+                    break;
+                case (int)Climates.Savannah:
+                    settings.ClimateType = DFLocation.ClimateBaseType.Desert;
+                    settings.GroundArchive = 2;
+                    settings.NatureArchive = (int)DFLocation.ClimateTextureSet.Nature_Savannah;
                     settings.SkyBase = 8;
                     settings.People = FactionFile.FactionRaces.Redguard;
                     break;
@@ -588,16 +594,16 @@ namespace DaggerfallConnect.Arena2
                     settings.SkyBase = 16;
                     settings.People = FactionFile.FactionRaces.Breton;
                     break;
-                case (int)Climates.HauntedWoodlands:
+                case (int)Climates.Steppes:
                     settings.ClimateType = DFLocation.ClimateBaseType.Temperate;
                     settings.GroundArchive = 302;
-                    settings.NatureArchive = (int)DFLocation.ClimateTextureSet.Nature_HauntedWoodlands;
+                    settings.NatureArchive = (int)DFLocation.ClimateTextureSet.Nature_Steppes;
                     settings.SkyBase = 16;
                     settings.People = FactionFile.FactionRaces.Breton;
                     break;
                 case (int)Climates.Maquis:
                     settings.ClimateType = DFLocation.ClimateBaseType.Maquis;
-                    settings.GroundArchive = 2;
+                    settings.GroundArchive = 302;
                     settings.NatureArchive = (int)DFLocation.ClimateTextureSet.Nature_Maquis;
                     settings.SkyBase = 24;
                     settings.People = FactionFile.FactionRaces.DarkElf;

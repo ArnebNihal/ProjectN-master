@@ -83,14 +83,14 @@ namespace DaggerfallConnect
         // Climate Survival Proficiency
         public ClimateCompetence Ocean;
         public ClimateCompetence Desert;
-        public ClimateCompetence Desert2;
+        public ClimateCompetence Savannah;
         public ClimateCompetence Mountain;
         public ClimateCompetence Rainforest;
         public ClimateCompetence Swamp;
         public ClimateCompetence Subtropical;
         public ClimateCompetence MountainWoods;
         public ClimateCompetence Woodlands;
-        public ClimateCompetence HauntedWoodlands;
+        public ClimateCompetence Steppes;
         public ClimateCompetence Maquis;
 
         // Attack modifier for enemy groups
@@ -379,14 +379,14 @@ namespace DaggerfallConnect
         {
             Ocean = 1,
             Desert = 2,
-            Desert2 = 4,
+            Savannah = 4,
             Mountain = 8,
             Rainforest = 16,
             Swamp = 32,
             Subtropical = 64,
             MountainWoods = 128,
             Woodlands = 256,
-            HauntedWoodlands = 512,
+            Steppes = 512,
             Maquis = 1024
         }
 
@@ -693,14 +693,14 @@ namespace DaggerfallConnect
 
             this.Ocean = GetSurvivalLevel(ClimateSurvivalFlags.Ocean);
             this.Desert = GetSurvivalLevel(ClimateSurvivalFlags.Desert);
-            this.Desert2 = GetSurvivalLevel(ClimateSurvivalFlags.Desert2);
+            this.Savannah = GetSurvivalLevel(ClimateSurvivalFlags.Savannah);
             this.Mountain = GetSurvivalLevel(ClimateSurvivalFlags.Mountain);
             this.Rainforest = GetSurvivalLevel(ClimateSurvivalFlags.Rainforest);
             this.Swamp = GetSurvivalLevel(ClimateSurvivalFlags.Swamp);
             this.Subtropical = GetSurvivalLevel(ClimateSurvivalFlags.Subtropical);
             this.MountainWoods = GetSurvivalLevel(ClimateSurvivalFlags.MountainWoods);
             this.Woodlands = GetSurvivalLevel(ClimateSurvivalFlags.Woodlands);
-            this.HauntedWoodlands = GetSurvivalLevel(ClimateSurvivalFlags.HauntedWoodlands);
+            this.Steppes = GetSurvivalLevel(ClimateSurvivalFlags.Steppes);
             this.Maquis = GetSurvivalLevel(ClimateSurvivalFlags.Maquis);
 
             this.ArtificialCave = ArtificialCave;

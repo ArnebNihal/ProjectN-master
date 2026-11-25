@@ -100,5 +100,6 @@
             "url": "/Assets/Editor/.Schemas/SpellIcons.schema.json"
         }
     ],
-    "dotnet.server.useOmnisharp": true
+    "dotnet.server.useOmnisharp": true,
+    "dotnet.defaultSolution": "ProjectNsln.slnx"
 }

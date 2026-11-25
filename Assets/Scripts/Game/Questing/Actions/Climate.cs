@@ -30,7 +30,7 @@ namespace DaggerfallWorkshop.Game.Questing.Actions
         {
             get
             {
-                return @"climate (?<climate>desert|desert2|mountain|mountainwoods|rainforest|ocean|swamp|subtropical|woodlands|hauntedwoodlands)"
+                return @"climate (?<climate>desert|Savannah|mountain|mountainwoods|rainforest|ocean|swamp|subtropical|woodlands|steppes)"
                   + @"|climate (?<base>base) (?<climatebase>desert|mountain|temperate|swamp)";
             }
         }
@@ -63,7 +63,7 @@ namespace DaggerfallWorkshop.Game.Questing.Actions
                 action.climateBase = DFLocation.ClimateBaseType.None;
                 if (!Enum.TryParse(match.Groups["climate"].Value, true /*ignore case*/, out action.climate))
                 {
-                    throw new Exception("Climate: Syntax is 'climate desert|desert2|mountain|mountainwoods|rainforest|ocean|swamp|subtropical|woodlands|hauntedwoodlands'");
+                    throw new Exception("Climate: Syntax is 'climate desert|Savannah|mountain|mountainwoods|rainforest|ocean|swamp|subtropical|woodlands|steppes'");
                 }
             }
 

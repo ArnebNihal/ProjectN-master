@@ -512,8 +512,8 @@ namespace DaggerfallWorkshop.Game.UserInterfaceWindows
             if (career.Desert != DFCareer.ClimateCompetence.Normal)
                 specials.Add(survival[career.Desert] + " " + TextManager.Instance.GetLocalizedText(HardStrings.desert));
 
-            if (career.Desert2 != DFCareer.ClimateCompetence.Normal)
-                specials.Add(survival[career.Desert2] + " " + TextManager.Instance.GetLocalizedText(HardStrings.desert2));
+            if (career.Savannah != DFCareer.ClimateCompetence.Normal)
+                specials.Add(survival[career.Savannah] + " " + TextManager.Instance.GetLocalizedText(HardStrings.savannah));
 
             if (career.Mountain != DFCareer.ClimateCompetence.Normal)
                 specials.Add(survival[career.Mountain] + " " + TextManager.Instance.GetLocalizedText(HardStrings.mountain));
@@ -533,8 +533,8 @@ namespace DaggerfallWorkshop.Game.UserInterfaceWindows
             if (career.Woodlands != DFCareer.ClimateCompetence.Normal)
                 specials.Add(survival[career.Woodlands] + " " + TextManager.Instance.GetLocalizedText(HardStrings.woodlands));
 
-            if (career.HauntedWoodlands != DFCareer.ClimateCompetence.Normal)
-                specials.Add(survival[career.HauntedWoodlands] + " " + TextManager.Instance.GetLocalizedText(HardStrings.hauntedWoodlands));
+            if (career.Steppes != DFCareer.ClimateCompetence.Normal)
+                specials.Add(survival[career.Steppes] + " " + TextManager.Instance.GetLocalizedText(HardStrings.steppes));
 
             if (career.Maquis != DFCareer.ClimateCompetence.Normal)
                 specials.Add(survival[career.Maquis] + " " + TextManager.Instance.GetLocalizedText(HardStrings.maquis));

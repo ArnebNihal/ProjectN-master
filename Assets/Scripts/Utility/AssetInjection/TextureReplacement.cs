@@ -77,7 +77,7 @@ namespace DaggerfallWorkshop.Utility.AssetInjection
         public Texture2D[][] EmissionMaps;          // Emission maps for all records and frames.
     }
 
-    public struct CustomEnemyTextures
+    public struct CustomMobileTextures
     {
         public string Name;
         public int Records;
@@ -592,7 +592,14 @@ namespace DaggerfallWorkshop.Utility.AssetInjection
                 // If the archive has a Arena2 texture file, use it to get record and frame count
                 string fileName = TextureFile.IndexToFileName(archive);
                 var textureFile = new TextureFile();
-                if (textureFile.Load(Path.Combine(DaggerfallUnity.Instance.Arena2Path, fileName), FileUsage.UseMemory, true))
+                bool loadSuccessful = false;
+                if (archive < 1000) loadSuccessful = textureFile.Load(Path.Combine(DaggerfallUnity.Instance.Arena2Path, fileName), FileUsage.UseMemory, true);
+                else
+                {
+                    loadSuccessful = true;
+                    textureFile = new TextureFile(Path.Combine(WorldMaps.mapPath, "Textures", fileName), FileUsage.UseMemory, true, true);
+                }
+                if (loadSuccessful)
                 {
                     // Import all textures in this archive
                     importedTextures.Albedo = new Texture2D[textureFile.RecordCount][];
@@ -660,6 +667,7 @@ namespace DaggerfallWorkshop.Utility.AssetInjection
         public static Material GetCustomMobileBillboardMaterial(int archive, MeshFilter meshFilter, ref MobileBillboardImportedTextures importedTextures)
         {
             Texture2D tex, emission;
+            bool isMobileNPC = archive >= 100000;
             // if (importedTextures.HasImportedTextures = LoadFromCacheOrImport(archive, 0, 0, true, true, out tex, out emission))
             // {
                 string renderMode = null;
@@ -676,13 +684,15 @@ namespace DaggerfallWorkshop.Utility.AssetInjection
                 Material material = MakeBillboardMaterial(renderMode);
 
                 string fileName = TextureFile.IndexToFileName(archive);
-                LoadCustomEnemyTexture(Path.Combine(WorldMaps.texturePath, fileName), out CustomEnemyTextures textureFile);
+                LoadCustomMobileTexture(Path.Combine(WorldMaps.texturePath, fileName), out CustomMobileTextures textureFile);
                 List<Texture2D[]> allAlbedo = new List<Texture2D[]>();
                 List<Texture2D[]> allEmission = new List<Texture2D[]>();
                 
                 // Enable emission
                 ToggleEmission(material, textureFile.isEmissive);
 
+                int archiveFolder = archive;
+                if (isMobileNPC) archiveFolder = archive / 100 * 100;
                 for (int rec = 0; rec < textureFile.Records; rec++)
                 {
                     Texture2D[] currentAlbedo = new Texture2D[textureFile.Frames[rec]];
@@ -690,13 +700,15 @@ namespace DaggerfallWorkshop.Utility.AssetInjection
 
                     for (int frame = 0; frame < textureFile.Frames[rec]; frame++)
                     {
-                        byte[] fileBytes = File.ReadAllBytes(Path.Combine(WorldMaps.texturePath, archive.ToString(), archive + "_" + rec + "-" + frame + ".png"));
+                        byte[] fileBytes;
+                        if (isMobileNPC && rec != 0 && rec != 5) fileBytes = File.ReadAllBytes(Path.Combine(WorldMaps.texturePath, archiveFolder.ToString(), archiveFolder.ToString("0000000") + "_" + rec + "-" + frame + ".png"));
+                        else fileBytes = File.ReadAllBytes(Path.Combine(WorldMaps.texturePath, archiveFolder.ToString(), archive.ToString("0000000") + "_" + rec + "-" + frame + ".png"));
                         currentAlbedo[frame] = new Texture2D(1, 1);
                         ImageConversion.LoadImage(currentAlbedo[frame], fileBytes);
                         currentAlbedo[frame].filterMode = FilterMode.Point;
                         if (textureFile.isEmissive)
                         {
-                            byte[] emissiveFileBytes = File.ReadAllBytes(Path.Combine(WorldMaps.texturePath, archive.ToString(), archive + "_" + rec + "-" + frame + "_Emission.png"));
+                            byte[] emissiveFileBytes = File.ReadAllBytes(Path.Combine(WorldMaps.texturePath, archiveFolder.ToString(), archive.ToString("0000000") + "_" + rec + "-" + frame + "_Emission.png"));
                             currentEmissiveAlbedo[frame] = new Texture2D(1, 1);
                             ImageConversion.LoadImage(currentEmissiveAlbedo[frame], fileBytes);
                             currentEmissiveAlbedo[frame].filterMode = FilterMode.Point;
@@ -729,9 +741,9 @@ namespace DaggerfallWorkshop.Utility.AssetInjection
             return material;
         }
 
-        public static bool LoadCustomEnemyTexture(string path, out CustomEnemyTextures textureData)
+        public static bool LoadCustomMobileTexture(string path, out CustomMobileTextures textureData)
         {
-            textureData = JsonConvert.DeserializeObject<CustomEnemyTextures>(File.ReadAllText(path));
+            textureData = JsonConvert.DeserializeObject<CustomMobileTextures>(File.ReadAllText(path));
 
             if (textureData.Records <= 0)
                 return false;
@@ -781,7 +793,7 @@ namespace DaggerfallWorkshop.Utility.AssetInjection
                 size.y *= scale.y;
             }
             else if (archive >= 1500 && archive <= 1750 &&
-                     LoadCustomEnemyTexture(Path.Combine(WorldMaps.texturePath, fileName), out CustomEnemyTextures textureFile))
+                     LoadCustomMobileTexture(Path.Combine(WorldMaps.texturePath, fileName), out CustomMobileTextures textureFile))
             {
                 size.x *= textureFile.Scale[record * 2];
                 size.y *= textureFile.Scale[record * 2 + 1];
@@ -1159,7 +1171,6 @@ namespace DaggerfallWorkshop.Utility.AssetInjection
             if (!path.EndsWith(extension))
                 path += extension;
 
-            // Debug.Log("Importing texture from path " + path);
             if (File.Exists(path))
             {
                 byte[] bytes = File.ReadAllBytes(path);
@@ -1178,7 +1189,6 @@ namespace DaggerfallWorkshop.Utility.AssetInjection
                 return true;
             }
 
-            // Debug.Log("Importing for path " + path + " failed!");
             tex = null;
             return false;
         }

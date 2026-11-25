@@ -98,14 +98,14 @@ namespace DaggerfallWorkshop.Game.UserInterfaceWindows
         {
             HardStrings.ocean,
             HardStrings.desert,
-            HardStrings.desert2,
+            HardStrings.savannah,
             HardStrings.mountain,
             HardStrings.rainforest,
             HardStrings.swamp,
             HardStrings.subtropical,
             HardStrings.mountainWoods,
             HardStrings.woodlands,
-            HardStrings.hauntedWoodlands,
+            HardStrings.steppes,
             HardStrings.maquis
         };
         string[] enemyTypeStringKeys = new string[]
@@ -787,15 +787,15 @@ namespace DaggerfallWorkshop.Game.UserInterfaceWindows
                             break;
                     }
                     break;
-                case HardStrings.desert2:
-                    advantageData.Desert2 = mod;
+                case HardStrings.savannah:
+                    advantageData.Savannah = mod;
                     switch (mod)
                     {
                         case DFCareer.ClimateCompetence.Uncomfortable:
-                            advantageData.UncomfortableClimate |= DFCareer.ClimateSurvivalFlags.Desert2;
+                            advantageData.UncomfortableClimate |= DFCareer.ClimateSurvivalFlags.Savannah;
                             break;
                         case DFCareer.ClimateCompetence.Competent:
-                            advantageData.ClimateSurvival |= DFCareer.ClimateSurvivalFlags.Desert2;
+                            advantageData.ClimateSurvival |= DFCareer.ClimateSurvivalFlags.Savannah;
                             break;
                         default:
                             break;
@@ -885,15 +885,15 @@ namespace DaggerfallWorkshop.Game.UserInterfaceWindows
                             break;
                     }
                     break;
-                case HardStrings.hauntedWoodlands:
-                    advantageData.HauntedWoodlands = mod;
+                case HardStrings.steppes:
+                    advantageData.Steppes = mod;
                     switch (mod)
                     {
                         case DFCareer.ClimateCompetence.Uncomfortable:
-                            advantageData.UncomfortableClimate |= DFCareer.ClimateSurvivalFlags.HauntedWoodlands;
+                            advantageData.UncomfortableClimate |= DFCareer.ClimateSurvivalFlags.Steppes;
                             break;
                         case DFCareer.ClimateCompetence.Competent:
-                            advantageData.ClimateSurvival |= DFCareer.ClimateSurvivalFlags.HauntedWoodlands;
+                            advantageData.ClimateSurvival |= DFCareer.ClimateSurvivalFlags.Steppes;
                             break;
                         default:
                             break;

@@ -36,7 +36,7 @@ namespace DaggerfallWorkshop.Utility
         public const int LightsTextureArchive = 210;
         public const int FixedTreasureFlatsArchive = 216;
         public const int FireWallsArchive = 356;
-        public static string MapsPath = "D:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps";
+        public static string MapsPath = "C:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps";
         //public int[] MiscFlatsTextureArchives = new int[] { 97, 205, 211, 212, 213, 301 };
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace DaggerfallWorkshop.Utility
         /// </summary>
         public string Arena2Path { get; set; }
 
-        
+
 
         /// <summary>
         /// Gets or sets flag to generate mipmaps for textures.
@@ -219,9 +219,8 @@ namespace DaggerfallWorkshop.Utility
 
                 if (settings.archive < 1000)
                     hasReferenceTexture = textureFile.Load(Path.Combine(Arena2Path, TextureFile.IndexToFileName(settings.archive)), FileUsage.UseMemory, true);
-                else{
+                else
                     hasReferenceTexture = textureFile.Load(Path.Combine(MapsPath, "Textures", TextureFile.IndexToFileName(settings.archive)), FileUsage.UseMemory, true);
-                }
             }
             else
             {
@@ -232,9 +231,10 @@ namespace DaggerfallWorkshop.Utility
             // Get starting DFBitmap
             DFSize sz = null;
             DFBitmap srcBitmap;
-            if (settings.archive < 1000)
+            if (settings.archive < 1000)                
                 srcBitmap = hasReferenceTexture ? textureFile.GetDFBitmap(settings.record, settings.frame) : null;
-            else {
+            else
+            {
                 srcBitmap = textureFile.GetCustomDFBitmap(settings.archive, settings.record, settings.frame, MapsPath);
             }
 
@@ -242,7 +242,7 @@ namespace DaggerfallWorkshop.Utility
             Color32[] albedoColors = null;
 
             if (hasReferenceTexture)
-            {                
+            {
                 if (isSpectral)
                 {
                     // Adjust source bitmap to set spectral grays
@@ -255,7 +255,8 @@ namespace DaggerfallWorkshop.Utility
                     // Read direct from source bitmap
                     if (settings.archive < 1000)
                         albedoColors = textureFile.GetColor32(srcBitmap, settings.alphaIndex, settings.borderSize, out sz);
-                    else{
+                    else
+                    {
                         albedoColors = textureFile.GetCustomColor32(srcBitmap, settings.alphaIndex, settings.borderSize, out sz);
                     }
                 }
@@ -334,7 +335,7 @@ namespace DaggerfallWorkshop.Utility
                         emissionMap.SetPixels32(firewallEmissionColors);
                         emissionMap.Apply(true, !settings.stayReadable);
                         resultEmissive = true;
-                    }                    
+                    }
                 }
 
                 // Windows need special handling as only glass parts are emissive
@@ -466,14 +467,14 @@ namespace DaggerfallWorkshop.Utility
                     textureFile = new TextureFile(Path.Combine(Arena2Path, TextureFile.IndexToFileName(settings.archive)), FileUsage.UseMemory, true);
                     settings.textureFile = textureFile;
                 }
-                else if (settings.archive < 50000)
+                else if (settings.archive < 100000)
                 {
-                    textureFile = new TextureFile(Path.Combine(MapsPath, "Textures", settings.archive.ToString(), TextureFile.IndexToFileName(settings.archive)), FileUsage.UseMemory, true);
+                    textureFile = new TextureFile(Path.Combine(MapsPath, "Textures", TextureFile.IndexToFileName(settings.archive)), FileUsage.UseMemory, true, true);
                     settings.textureFile = textureFile;
                 }
                 else
                 {
-                    textureFile = new TextureFile(Path.Combine(MapsPath, "Textures", TextureFile.IndexToFileName(settings.archive / 100 * 100)), FileUsage.UseMemory, true);
+                    textureFile = new TextureFile(Path.Combine(MapsPath, "Textures", TextureFile.IndexToFileName(settings.archive / 100 * 100)), FileUsage.UseMemory, true, true);
                     settings.textureFile = textureFile;
                 }
             }
@@ -560,6 +561,9 @@ namespace DaggerfallWorkshop.Utility
             Texture2D atlasAlbedoMap = new Texture2D(settings.atlasMaxSize, settings.atlasMaxSize, ParseTextureFormat(alphaTextureFormat), MipMaps);
             Rect[] rects = atlasAlbedoMap.PackTextures(albedoTextures.ToArray(), settings.atlasPadding, settings.atlasMaxSize, !stayReadable);
 
+            if (settings.archive >= 1000)
+                rects = GetCustomRects(textureFile);
+
             // Pack normal textures into atlas
             Texture2D atlasNormalMap = null;
             if (hasNormalMaps)
@@ -607,6 +611,23 @@ namespace DaggerfallWorkshop.Utility
             results.isEmissive = hasEmissionMaps;
 
             return results;
+        }
+
+        public Rect[] GetCustomRects(TextureFile textureFile)
+        {
+            List<Rect> rects = new List<Rect>();
+            for (int i = 0; i < textureFile.RecordCount; i++)
+            {
+                DFSize size = textureFile.GetSize(i);
+                if (textureFile.GetFrameCount(i) <= 0)
+                    rects.Add(new Rect(0, 0, size.Width, size.Height));
+                else
+                {
+                    for (int j = 0; j < textureFile.GetFrameCount(i); j++)
+                        rects.Add(new Rect(0, 0, size.Width, size.Height));
+                }
+            }
+            return rects.ToArray();
         }
 
         ///// <summary>
@@ -659,7 +680,7 @@ namespace DaggerfallWorkshop.Utility
 
         //    // Apply the builder
         //    builder.Rebuild(borderSize);
-            
+
         //    return builder;
         //}
 
@@ -691,7 +712,7 @@ namespace DaggerfallWorkshop.Utility
             int x = 0, y = 0;
             Color32[] atlasColors = new Color32[atlasDim * atlasDim];
             for (int record = 0; record < textureFile.RecordCount; record++)
-            {              
+            {
                 // Create base image with gutter
                 DFSize sz;
                 Color32[] albedo = textureFile.GetColor32(record, 0, -1, gutterSize, out sz);

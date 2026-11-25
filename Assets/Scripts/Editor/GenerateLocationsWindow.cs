@@ -170,14 +170,14 @@ namespace MapEditor
         public static float[,] locationDensity = {
             { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },                  // Ocean
             { 0.25f, 0.45f, 0.90f, 0.30f, 0.40f, 0.45f, 1.15f, 0.60f, 0.45f, 0.35f, 0.90f, 0.30f, 1.00f, 0.0f },      // Desert
-            { 0.20f, 0.40f, 0.95f, 0.25f, 0.45f, 0.40f, 1.10f, 0.70f, 0.40f, 0.30f, 1.05f, 0.25f, 1.15f, 0.0f },      // Desert2
+            { 0.20f, 0.40f, 0.95f, 0.25f, 0.45f, 0.40f, 1.10f, 0.70f, 0.40f, 0.30f, 1.05f, 0.25f, 1.15f, 0.0f },      // Savannah
             { 0.15f, 0.40f, 1.00f, 0.90f, 0.45f, 0.25f, 0.70f, 0.70f, 0.30f, 0.15f, 1.05f, 0.30f, 1.15f, 0.0f },      // Mountain
             { 0.25f, 0.55f, 0.95f, 0.70f, 0.40f, 0.45f, 0.75f, 0.60f, 0.35f, 0.30f, 0.90f, 0.40f, 1.00f, 0.0f },      // Rainforest
             { 0.10f, 0.25f, 0.75f, 1.15f, 0.35f, 0.20f, 0.80f, 0.55f, 0.20f, 0.45f, 0.80f, 0.20f, 0.90f, 0.0f },      // Swamp
             { 0.30f, 0.85f, 1.30f, 0.65f, 0.70f, 0.65f, 0.90f, 0.75f, 0.50f, 0.40f, 1.10f, 0.90f, 1.20f, 0.0f },      // Subtropical
             { 0.25f, 0.45f, 0.90f, 1.10f, 0.55f, 0.40f, 0.85f, 0.85f, 0.25f, 0.30f, 1.25f, 0.45f, 1.35f, 0.0f },      // MountainWood
             { 0.30f, 0.90f, 1.35f, 0.95f, 0.80f, 0.60f, 0.75f, 1.20f, 0.30f, 0.95f, 1.60f, 1.10f, 1.70f, 0.0f },      // Woodland
-            { 0.20f, 0.75f, 1.15f, 0.75f, 0.70f, 0.50f, 0.85f, 1.05f, 0.15f, 0.95f, 1.40f, 0.90f, 1.50f, 0.0f }       // HauntedWoodland
+            { 0.20f, 0.75f, 1.15f, 0.75f, 0.70f, 0.50f, 0.85f, 1.05f, 0.15f, 0.95f, 1.40f, 0.90f, 1.50f, 0.0f }       // Steppe
         };                                                                                                        // TODO: Maquis
 
         // governmentModifier list reduction/increase of densities in a [government, locationType] format.
@@ -4044,7 +4044,7 @@ namespace MapEditor
             for (int i = 0; i < farmSize; i++)
             {
                 if (climateNumb + 223 == (int)MapsFile.Climates.Desert ||
-                    climateNumb + 223 == (int)MapsFile.Climates.Desert2 ||
+                    climateNumb + 223 == (int)MapsFile.Climates.Savannah ||
                     climateNumb + 223 == (int)MapsFile.Climates.Subtropical)
                     climateChar = "B";
                 else climateChar = "A";
@@ -4724,7 +4724,7 @@ namespace MapEditor
         protected string GetClimateChar(DFPosition position)
         {
             if (ClimateInfo.Climate[position.X, position.Y] == (int)MapsFile.Climates.Desert ||
-                ClimateInfo.Climate[position.X, position.Y] == (int)MapsFile.Climates.Desert2)
+                ClimateInfo.Climate[position.X, position.Y] == (int)MapsFile.Climates.Savannah)
                 return "B";
 
             if (ClimateInfo.Climate[position.X, position.Y] == (int)MapsFile.Climates.Subtropical)
@@ -5283,7 +5283,7 @@ namespace MapEditor
             {
                 regionOptions.locationDensity[i] = 0;
 
-                for (int j = 0; j <= ((int)MapsFile.Climates.HauntedWoodlands - (int)MapsFile.Climates.Ocean); j++)
+                for (int j = 0; j <= ((int)MapsFile.Climates.Steppes - (int)MapsFile.Climates.Ocean); j++)
                 {
                     regionOptions.locationDensity[i] += (locationDensity[j, i] * governmentModifier[(RegionManager.currentRegionData.governType + 1) / 2, i] * ((float)RegionManager.currentRegionData.climates[j] * 100.0f / (float)RegionManager.currentRegionData.surface)) / 100.0f;
                 }
@@ -5407,7 +5407,7 @@ namespace MapEditor
             switch (climate)
             {
                 case MapsFile.Climates.Desert:
-                case MapsFile.Climates.Desert2:
+                case MapsFile.Climates.Savannah:
                     geoLocations.Desert = true;
                     break;
                 case MapsFile.Climates.Mountain:
@@ -5425,7 +5425,7 @@ namespace MapEditor
                         geoLocations.Valley = true;
                     break;
                 case MapsFile.Climates.Woodlands:
-                case MapsFile.Climates.HauntedWoodlands:
+                case MapsFile.Climates.Steppes:
                     geoLocations.Forest = true;
                     if (altitude < 10)
                         geoLocations.Plains = true;

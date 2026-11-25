@@ -656,7 +656,7 @@ namespace DaggerfallWorkshop
 
             // Create material
             Material material;
-            if (archive > 999 && archive < 2000)
+            if ((archive > 999 && archive < 2000) || archive > 100000)
                 material = TextureReplacement.GetCustomMobileBillboardMaterial(archive, GetComponent<MeshFilter>(), ref summary.ImportedTextures);
             else{
                 material = TextureReplacement.GetMobileBillboardMaterial(archive, GetComponent<MeshFilter>(), ref summary.ImportedTextures) ??

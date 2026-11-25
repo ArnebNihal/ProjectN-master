@@ -100,11 +100,11 @@ namespace DaggerfallWorkshop
         Hammerfell = 2,
         Skyrim = 3,
         Morrowind = 4,
-        Cyrodiil = 5,
-        Sumurset = 6,
-        Valenwood = 7,
-        Elsweyr = 8,
-        BlackMarsh = 9
+        Sumurset = 5,
+        Valenwood = 6,
+        Elsweyr = 7,
+        BlackMarsh = 8,
+        Cyrodiil = 9,
     }
 
     /// <summary>
@@ -226,8 +226,8 @@ namespace DaggerfallWorkshop
         //SnowWoodland,          // TEXTURE.505
         WoodlandHills,           // TEXTURE.506
         //SnowWoodlandHills,     // TEXTURE.507
-        HauntedWoodlands,        // TEXTURE.508
-        //SnowHauntedWoodlands,  // TEXTURE.509
+        Steppes,        // TEXTURE.508
+        //SnowSteppes,  // TEXTURE.509
         Mountains,               // TEXTURE.510
         //SnowMountains,         // TEXTURE.511
         Maquis,                  // TEXTURE.1030

@@ -222,7 +222,7 @@ namespace DaggerfallWorkshop.Game
             {
                 switch (climate)
                 {
-                    case (int)MapsFile.Climates.Desert2:
+                    case (int)MapsFile.Climates.Savannah:
                     case (int)MapsFile.Climates.Desert:
                         climateTxt = "desert dungeon";
                         break;
@@ -234,8 +234,10 @@ namespace DaggerfallWorkshop.Game
                         climateTxt = "swampy dungeon";
                         break;
                     case (int)MapsFile.Climates.Woodlands:
-                    case (int)MapsFile.Climates.HauntedWoodlands:
                         climateTxt = "woodlands dungeon";
+                        break;
+                    case (int)MapsFile.Climates.Steppes:
+                        climateTxt = "steppes dungeon";
                         break;
                     case (int)MapsFile.Climates.MountainWoods:
                     case (int)MapsFile.Climates.Mountain:
@@ -247,7 +249,7 @@ namespace DaggerfallWorkshop.Game
             {
                 switch (climate)
                 {
-                    case (int)MapsFile.Climates.Desert2:
+                    case (int)MapsFile.Climates.Savannah:
                     case (int)MapsFile.Climates.Desert:
                         climateTxt = "the desert";
                         break;
@@ -259,8 +261,10 @@ namespace DaggerfallWorkshop.Game
                         climateTxt = "the swamps";
                         break;
                     case (int)MapsFile.Climates.Woodlands:
-                    case (int)MapsFile.Climates.HauntedWoodlands:
                         climateTxt = "the woodlands";
+                        break;
+                    case (int)MapsFile.Climates.Steppes:
+                        climateTxt = "the steppes";
                         break;
                     case (int)MapsFile.Climates.MountainWoods:
                     case (int)MapsFile.Climates.Mountain:
@@ -411,7 +415,7 @@ namespace DaggerfallWorkshop.Game
             bool isSnowing = GameManager.Instance.WeatherManager.IsSnowing;
             bool isWeather = isRaining || isStorming || isSnowing;
             bool isNight = DaggerfallUnity.Instance.WorldTime.Now.IsNight;
-            bool isDesert = playerGPS.CurrentClimateIndex == (int)MapsFile.Climates.Desert || playerGPS.CurrentClimateIndex == (int)MapsFile.Climates.Desert2 || playerGPS.CurrentClimateIndex == (int)MapsFile.Climates.Subtropical;
+            bool isDesert = playerGPS.CurrentClimateIndex == (int)MapsFile.Climates.Desert || playerGPS.CurrentClimateIndex == (int)MapsFile.Climates.Savannah || playerGPS.CurrentClimateIndex == (int)MapsFile.Climates.Subtropical;
             bool isMountain = playerGPS.CurrentClimateIndex == (int)MapsFile.Climates.Mountain || playerGPS.CurrentClimateIndex == (int)MapsFile.Climates.MountainWoods;
             DaggerfallUnityItem cloak1 = playerEntity.ItemEquipTable.GetItem(EquipSlots.Cloak1);
             DaggerfallUnityItem cloak2 = playerEntity.ItemEquipTable.GetItem(EquipSlots.Cloak2);

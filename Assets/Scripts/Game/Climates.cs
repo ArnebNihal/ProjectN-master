@@ -86,7 +86,7 @@ namespace DaggerfallWorkshop.Game
         {
             switch (playerGPS.CurrentClimateIndex)
             {
-                case (int)MapsFile.Climates.Desert2:
+                case (int)MapsFile.Climates.Savannah:
                     return 50;
                 case (int)MapsFile.Climates.Desert:
                     return 40;
@@ -99,7 +99,7 @@ namespace DaggerfallWorkshop.Game
                     return 10;
                 case (int)MapsFile.Climates.Woodlands:
                     return -10;
-                case (int)MapsFile.Climates.HauntedWoodlands:
+                case (int)MapsFile.Climates.Steppes:
                     return -20;
                 case (int)MapsFile.Climates.MountainWoods:
                     return -30;
@@ -166,7 +166,7 @@ namespace DaggerfallWorkshop.Game
 
                 switch (climate)
                 {
-                    case (int)MapsFile.Climates.Desert2:
+                    case (int)MapsFile.Climates.Savannah:
                         night = 4;
                         break;
                     case (int)MapsFile.Climates.Desert:
@@ -176,7 +176,7 @@ namespace DaggerfallWorkshop.Game
                     case (int)MapsFile.Climates.Subtropical:
                     case (int)MapsFile.Climates.Swamp:
                     case (int)MapsFile.Climates.Woodlands:
-                    case (int)MapsFile.Climates.HauntedWoodlands:
+                    case (int)MapsFile.Climates.Steppes:
                     case (int)MapsFile.Climates.MountainWoods:
                     case (int)MapsFile.Climates.Maquis:
                         night = 1;

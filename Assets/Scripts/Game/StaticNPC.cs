@@ -16,6 +16,7 @@ using DaggerfallConnect.Arena2;
 using DaggerfallWorkshop.Game.Entity;
 using DaggerfallWorkshop.Game.Utility;
 using DaggerfallWorkshop.Game.Questing;
+using DaggerfallWorkshop.Utility;
 
 namespace DaggerfallWorkshop.Game
 {
@@ -202,7 +203,7 @@ namespace DaggerfallWorkshop.Game
             data.billboardArchiveIndex = archive;
             data.billboardRecordIndex = record;
             data.nameSeed = (int)position ^ buildingKey + locationIndex;
-            data.gender = ((flags & 32) == 32) ? Genders.Female : Genders.Male;
+            data.gender = ((flags >> 4) % 2 > 0) ? Genders.Female : Genders.Male;
             data.race = GetRaceFromFaction(factionId);
             data.buildingKey = buildingKey;
             data.mapID = mapId;
@@ -224,7 +225,7 @@ namespace DaggerfallWorkshop.Game
         {
             // Store common layout data
             npcData.hash = GetPositionHash(x, y, z);
-            npcData.flags = (gender == Genders.Male) ? 0 : 32;
+            npcData.flags = (gender == Genders.Male) ? 0 : 16;
             npcData.factionID = factionID;
             npcData.nameSeed = (nameSeed == -1) ? npcData.hash : nameSeed;
             npcData.gender = gender;
@@ -284,7 +285,12 @@ namespace DaggerfallWorkshop.Game
             }
 
             // Store name bank
-            npcData.nameBank = GameManager.Instance.PlayerGPS.GetNameBankOfCurrentRegion();
+            npcData.nameBank = GetNameBankOfStaticNPC(npcData.billboardArchiveIndex, npcData.billboardRecordIndex);
+        }
+
+        NameHelper.BankTypes GetNameBankOfStaticNPC(int archive, int record)
+        {
+            return (NameHelper.BankTypes)(GameObjectHelper.billboardDict[archive * 10000 + record * 10] % 1000 / 100);
         }
 
         /// <summary>
