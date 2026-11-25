@@ -241,7 +241,7 @@ namespace DaggerfallWorkshop.Utility.AssetInjection
             return TryImportTexture(texturesPath, GetName(archive, record, frame, textureMap, dye), false, null, out tex);
         }
 
-        public static bool TryImportCustomTexture(int archive, int record, int frame, DyeColors dye, TextureMap textureMap, out Texture2D tex)
+        public static bool TryImportCustomTexture(int archive, int record, int frame, DyeColors dye, TextureMap textureMap, out Texture2D tex, out byte[] dfBitmap)
         {
             string mask = string.Empty;
             if (textureMap == TextureMap.Mask)
@@ -250,8 +250,8 @@ namespace DaggerfallWorkshop.Utility.AssetInjection
                 if (record < 12)
                     record = 0;
             }
-            string fileName = (archive.ToString("0000000") + "_" + record.ToString() + "-" + frame.ToString() + mask + ".png");
-            return TryImportTexture(Path.Combine(WorldMaps.mapPath, "Textures", archive.ToString()), fileName, false, textureMap, out tex);
+            string fileName = archive.ToString("0000000") + "_" + record.ToString() + "-" + frame.ToString() + mask + ".png";
+            return TryImportCustomTexture(Path.Combine(WorldMaps.mapPath, "Textures", archive.ToString()), fileName, false, textureMap, out tex, out dfBitmap);
         }
 
         /// <summary>
@@ -1130,6 +1130,30 @@ namespace DaggerfallWorkshop.Utility.AssetInjection
             return false;
         }
 
+        private static bool TryImportCustomTexture(string path, string name, bool readOnly, TextureMap? textureMap, out Texture2D tex, out byte[] dfBitmap)
+        {
+            bool isLinear = textureMap != null && IsLinearTextureMap(textureMap.Value);
+            dfBitmap = Array.Empty<byte>();
+            if (DaggerfallUnity.Settings.AssetInjection)
+            {
+                // Seek from loose files
+                if (TryImportCustomTextureFromDisk(Path.Combine(path, name), false, isLinear, readOnly, out tex, out dfBitmap))
+                    return true;
+
+                // Seek from mods
+                if (ModManager.Instance && ModManager.Instance.TryGetAsset(name, null, out tex))
+                {
+                    if (!readOnly && !tex.isReadable)
+                        Debug.LogWarning($"Texture {name} is not readable.");
+
+                    return true;
+                }
+            }
+
+            tex = null;
+            return false;
+        }
+
         /// <summary>
         /// Seek animated texture from modding locations with all frames.
         /// </summary>
@@ -1173,7 +1197,10 @@ namespace DaggerfallWorkshop.Utility.AssetInjection
 
             if (File.Exists(path))
             {
+                Debug.Log("Writing image in byte format for " + path);
                 byte[] bytes = File.ReadAllBytes(path);
+                // string fileDataPath = Path.Combine(WorldMaps.texturePath, "test.json");
+                // File.WriteAllBytes(fileDataPath, bytes);
                 Vector2Int resolution = FindPngResolution(bytes) ?? throw new Exception($"Failed to find PNG resolution for {path}");
                 TextureFormat textureFormat = resolution.x < retroThreshold && resolution.y < retroThreshold ? TextureFormat.ARGB32 : TextureFormat;
 
@@ -1189,6 +1216,39 @@ namespace DaggerfallWorkshop.Utility.AssetInjection
                 return true;
             }
 
+            tex = null;
+            return false;
+        }
+
+        private static bool TryImportCustomTextureFromDisk(string path, bool mipMaps, bool isLinear, bool readOnly, out Texture2D tex, out byte[] dfBitmap)
+        {
+            const int retroThreshold = 256; // Imported textures with a width or height below this threshold will never be compressed to preserve retro appearance
+
+            if (!path.EndsWith(extension))
+                path += extension;
+
+            if (File.Exists(path))
+            {
+                byte[] bytes = File.ReadAllBytes(path);
+                // string fileDataPath = Path.Combine(WorldMaps.texturePath, "test.json");
+                // File.WriteAllBytes(fileDataPath, bytes);
+                Vector2Int resolution = FindPngResolution(bytes) ?? throw new Exception($"Failed to find PNG resolution for {path}");
+                TextureFormat textureFormat = resolution.x < retroThreshold && resolution.y < retroThreshold ? TextureFormat.ARGB32 : TextureFormat;
+
+                tex = new Texture2D(4, 4, textureFormat, mipMaps, isLinear);
+                if (!tex.LoadImage(bytes, readOnly))
+                    Debug.LogError($"Failed to import texture data at {path}");
+
+#if DEBUG_TEXTURE_FORMAT
+                Debug.LogFormat("{0}: format: {1}, mipmaps: {2}, mipmaps count: {3}", Path.GetFileName(path), tex.format, mipMaps, tex.mipmapCount);
+#endif
+                Debug.Log("Trying to convert png " + path + " to byte array...");
+                dfBitmap = ConvertPNGToDFBitmap(bytes, tex.width, tex.height);
+                tex.filterMode = (FilterMode)DaggerfallUnity.Settings.MainFilterMode;
+                return true;
+            }
+
+            dfBitmap = Array.Empty<byte>();
             tex = null;
             return false;
         }
@@ -1444,6 +1504,69 @@ namespace DaggerfallWorkshop.Utility.AssetInjection
         private static int ToInt(byte[] bytes, int startIndex)
         {
             return (bytes[startIndex] << 24) | (bytes[startIndex + 1] << 16) | (bytes[startIndex + 2] << 8) | bytes[startIndex + 3];
+        }
+
+        private static byte[] ConvertPNGToDFBitmap(byte[] pngBytes, int width, int height)
+        {
+            bool IDATfound = false;
+            byte[] IDAT = { 73, 68, 65, 84 };
+            int startIndex = 0;
+            int charIndex = 0;
+            // int IDATend = 0;
+            int imageStart = 0;
+            byte[] byteResult = new byte[width * height];
+
+            Debug.Log("first IDAT char: " + IDAT[0] + ", pngBytes first char: " + pngBytes[0]);
+
+            do{
+                int indFound = Array.IndexOf(pngBytes, IDAT[charIndex], startIndex);
+                if (pngBytes[++indFound].Equals(IDAT[++charIndex]))
+                    if (pngBytes[++indFound].Equals(IDAT[++charIndex]))
+                        if (pngBytes[++indFound].Equals(IDAT[++charIndex]))
+                        {
+                            Debug.Log("IDAT found at index " + indFound);
+                            ++indFound;
+                            IDATfound = true;
+                        }
+                if (IDATfound)
+                {
+                    do{
+                        ++indFound;
+                    }
+                    while (!pngBytes[indFound].Equals(0));
+                    imageStart = indFound;
+                    Debug.Log("image starts at index " + imageStart);
+                }
+
+                charIndex = 0;
+                startIndex = indFound;
+                Debug.Log("Restarting search at index " + startIndex);
+            }
+            while (!IDATfound);
+
+            int pngBytesInd = imageStart;
+            for (int i = 0; i < byteResult.Length; i++)
+            {
+                if (i % (width + 1) == 0)
+                    pngBytesInd++;
+
+                byteResult[i] = pngBytes[pngBytesInd];
+                pngBytesInd++;
+            }
+            Debug.Log("PNG converted, returning...");
+            return byteResult;
+        }
+
+        private static byte[] ConvertFromHexString(string hexString)
+        {
+            byte[] byteResult = new byte[hexString.Length / 2];
+            for (int i = 0; i < hexString.Length; i++)
+            {
+                Debug.Log("Trying to convert substring " + hexString.Substring(i * 2, 2));
+                byteResult[i] = Convert.ToByte(hexString.Substring(i * 2, 2), 16);
+            }
+                
+            return byteResult;
         }
 
         #endregion

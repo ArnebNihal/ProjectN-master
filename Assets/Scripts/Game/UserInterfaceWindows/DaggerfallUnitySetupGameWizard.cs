@@ -87,9 +87,9 @@ namespace DaggerfallWorkshop.Game.UserInterfaceWindows
         const string titleScreenFilename = "StartupBackground2";
         const float panelSwipeTime = 1;
         const SongFiles titleSongFile = SongFiles.song_5strong;
-        static string startingBlock = "CUSTAA06";
+        // static string startingBlock = "CUSTAA06";
         const string startingBackground = "TMAP00I0.IMG";
-        public static string mapPath =  "C:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps";
+        // public static string mapPath = WorldMaps.mapPath;
 
         string findArena2Tip;
         string pathValidated;
@@ -257,22 +257,26 @@ namespace DaggerfallWorkshop.Game.UserInterfaceWindows
         bool backdropCreated = false;
         void CreateBackdrop()
         {
-            List<string> blocks = new List<string>(Directory.EnumerateFiles(mapPath + "/RMB"));
-            int index = UnityEngine.Random.Range(0, blocks.Count);
-            startingBlock = blocks[index].Substring(blocks[index].Count() - 17, 12);
-            if (startingBlock.Contains("/"))
-            {
-                int slashIndex = startingBlock.LastIndexOf("/");
-                startingBlock = startingBlock.Substring(slashIndex + 1);
-            }
-            Debug.Log("Using " + startingBlock + " as background");
-            // Add a block into the scene
-            GameObjectHelper.CreateRMBBlockGameObject(startingBlock, 0, 0, 0, 0, true);
-            backdropCreated = true;
+            // List<string> blocks = new List<string>(Directory.EnumerateFiles(mapPath + "/RMB"));
+            // int index = UnityEngine.Random.Range(0, blocks.Count);
+            // startingBlock = blocks[index].Substring(blocks[index].Count() - 17, 12);
+            // if (startingBlock.Contains("/"))
+            // {
+            //     int slashIndex = startingBlock.LastIndexOf("/");
+            //     startingBlock = startingBlock.Substring(slashIndex + 1);
+            // }
+            // Debug.Log("Using " + startingBlock + " as background");
+            // // Add a block into the scene
+            // GameObjectHelper.CreateRMBBlockGameObject(startingBlock, 0, 0, 0, 0, true);
+            // backdropCreated = true;
 
-            // Clear background texture
-            ParentPanel.BackgroundTexture = null;
-            ParentPanel.BackgroundColor = Color.clear;
+            byte[] fileBytes = File.ReadAllBytes(Path.Combine(DaggerfallUnity.Arena2Path, "Maps", "Textures", "Logo", "logo.png"));
+            Texture2D texture = new Texture2D(1, 1);
+            texture.LoadImage(fileBytes);
+
+            ParentPanel.BackgroundTexture = texture;
+            ParentPanel.BackgroundColor = Color.grey;
+            backdropCreated = true;
         }
 
         void ShowResolutionPanel()
@@ -379,7 +383,7 @@ namespace DaggerfallWorkshop.Game.UserInterfaceWindows
             qualityList.SelectedShadowColor = Color.black;
             qualityList.OnMouseClick += QualityList_OnMouseClick;
             resolutionPanel.Components.Add(qualityList);
-            foreach(var name in QualitySettings.names)
+            foreach (var name in QualitySettings.names)
             {
                 qualityList.AddItem(name);
             }
@@ -420,7 +424,7 @@ namespace DaggerfallWorkshop.Game.UserInterfaceWindows
         {
             TextLabel label = DaggerfallUI.AddTextLabel(
                 DaggerfallUI.DefaultFont,
-                new Vector2(x, optionPos), 
+                new Vector2(x, optionPos),
                 GetText(key),
                 optionsPanel
             );
@@ -560,7 +564,7 @@ namespace DaggerfallWorkshop.Game.UserInterfaceWindows
 
             enableController = AddOption(x, "enableController", DaggerfallUnity.Settings.EnableController);
             enableController.OnToggleState += EnableController_OnToggleState;
-            
+
             weaponSwingMode = AddSlider(x, "weaponSwingMode", "weaponSwingModeInfo", DaggerfallUnity.Settings.WeaponSwingMode, "Vanilla", "Click", "Hold");
 
             // Add mod note
@@ -871,7 +875,8 @@ namespace DaggerfallWorkshop.Game.UserInterfaceWindows
                 messageBox.SetText(GetText("showOptionsAgain"));
                 messageBox.AllowCancel = true;
                 messageBox.ClickAnywhereToClose = true;
-                messageBox.OnClose += () => {
+                messageBox.OnClose += () =>
+                {
                     SaveOptionsAndContinue();
                 };
                 uiManager.PushWindow(messageBox);

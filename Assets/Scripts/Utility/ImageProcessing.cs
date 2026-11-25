@@ -6,6 +6,7 @@ using DaggerfallConnect.Arena2;
 using DaggerfallConnect.Utility;
 using System.Linq;
 using System.Collections.Generic;
+// using UnityEngine.TestTools.Constraints;
 
 namespace DaggerfallWorkshop.Utility
 {
@@ -423,44 +424,16 @@ namespace DaggerfallWorkshop.Utility
         /// <param name="dye">Dye index.</param>
         /// <param name="target">Dye target.</param>
         /// <returns>New DFBitmap dyed to specified colour.</returns>
-        public static DFBitmap ChangeDye(DFBitmap srcBitmap, DyeColors dye, DyeTargets target)
+        public static DFBitmap ChangeDye(DFBitmap srcBitmap, DyeColors dye, DyeTargets target, bool isCustomTexture = false)
         {
+            // if (isCustomTexture)
+            // {
+            //     Texture2D textureSwap = ImageReader.GetTexture(srcBitmap, imageData.width, imageData.height);
+            // }
             // Clone bitmap and get colour table for swaps
             DFBitmap dstBitmap = DFBitmap.CloneDFBitmap(srcBitmap, false);
             byte[] swaps = GetDyeColorTable(dye);
             byte[] baseSwaps = GetDyeColorTable(GetBaseSwaps(target));
-
-            // Swaps range is based on target type
-            // switch(target)
-            // {
-            //     case DyeTargets.BasicClothing:  // Blue-base clothes
-            //         baseSwaps = GetDyeColorTable(DyeColors.Blue);
-            //         break;
-            //     case DyeTargets.WeaponsAndArmor:    // Weapons and armors
-            //     case DyeTargets.SteelClothing:
-            //         baseSwaps = GetDyeColorTable(DyeColors.Steel);
-            //         break;                
-            //     case DyeTargets.YellowClothing:
-            //         baseSwaps = GetDyeColorTable(DyeColors.Yellow);
-            //         break;
-            //     case DyeTargets.LeatherClothing:
-            //         baseSwaps = GetDyeColorTable(DyeColors.Leather);
-            //         break;
-            //     case DyeTargets.RedClothing:
-            //         baseSwaps = GetDyeColorTable(DyeColors.Red);
-            //         break;
-            //     case DyeTargets.BlackClothing:
-            //         baseSwaps = GetDyeColorTable(DyeColors.DarkGrey);
-            //         break;
-            //     case DyeTargets.GreenClothing:
-            //         baseSwaps = GetDyeColorTable(DyeColors.Green);
-            //         break;
-            //     case DyeTargets.LightBrownClothing:
-            //         baseSwaps = GetDyeColorTable(DyeColors.LightBrown);
-            //         break;
-            //     default:
-            //         return dstBitmap;
-            // }
 
             // Swap indices start through start + 15 with colour table
             List<byte> swapList = baseSwaps.ToList();
@@ -474,6 +447,46 @@ namespace DaggerfallWorkshop.Utility
                     int srcOffset = rowPos + x;
                     byte index = srcBitmap.Data[srcOffset];
 
+                    if (swapList.Contains(index))
+                    {
+                        int tintOffset = swapList.FindIndex(ics => ics == index);
+                        // Debug.Log("tintOffset: " + tintOffset);
+                        dstBitmap.Data[srcOffset] = swaps[tintOffset];
+                    }
+                    else
+                    {
+                        dstBitmap.Data[srcOffset] = index;
+                    }
+                }
+            }
+
+            return dstBitmap;
+        }
+
+        public static DFBitmap CustomChangeDye(DFBitmap srcBitmap, DyeColors dye, DyeTargets target, bool isCustomTexture = false)
+        {
+            // if (isCustomTexture)
+            // {
+            //     Texture2D textureSwap = ImageReader.GetTexture(srcBitmap, imageData.width, imageData.height);
+            // }
+            // Clone bitmap and get colour table for swaps
+            DFBitmap dstBitmap = DFBitmap.CloneDFBitmap(srcBitmap, false);
+            byte[] swaps = GetDyeColorTable(dye);
+            byte[] baseSwaps = GetDyeColorTable(GetBaseSwaps(target));
+
+            // Swap indices start through start + 15 with colour table
+            List<byte> swapList = baseSwaps.ToList();
+            int rowPos;
+            
+            Debug.Log("srcBitmap.Height: " + srcBitmap.Height + ", srcBitmap.Width: " + srcBitmap.Width);
+            for (int y = 0; y < srcBitmap.Height; y++)
+            {
+                rowPos = y * srcBitmap.Width;
+                for (int x = 0; x < srcBitmap.Width; x++)
+                {
+                    int srcOffset = rowPos + x;
+                    byte index = srcBitmap.Data[srcOffset];
+                    
                     if (swapList.Contains(index))
                     {
                         int tintOffset = swapList.FindIndex(ics => ics == index);
@@ -516,6 +529,8 @@ namespace DaggerfallWorkshop.Utility
                     return DyeColors.DarkBrown;
                 case DyeTargets.AdamantiumClothing:
                     return DyeColors.Adamantium;
+                case DyeTargets.WhiteClothing:
+                    return DyeColors.White;
                 default:
                     return DyeColors.None;
             }

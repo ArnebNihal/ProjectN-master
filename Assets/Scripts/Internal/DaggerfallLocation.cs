@@ -46,6 +46,7 @@ namespace DaggerfallWorkshop
         // Internal time and space texture swaps
         DaggerfallDateTime.Seasons lastSeason;
         bool lastCityLightsFlag;
+        bool lastBuildingLightsFlag;
 
         // Start markers
         [SerializeField]
@@ -121,11 +122,13 @@ namespace DaggerfallWorkshop
             {
                 // Only process if climate, season, day/night, or weather changed
                 if (lastSeason != dfUnity.WorldTime.Now.GenericSeasonValue ||
-                    lastCityLightsFlag != dfUnity.WorldTime.Now.IsCityLightsOn)
+                    lastCityLightsFlag != dfUnity.WorldTime.Now.IsCityLightsOn ||
+                    lastBuildingLightsFlag != dfUnity.WorldTime.Now.IsBuildingLightsOn)
                 {
                     ApplyTimeAndSpace();
                     lastSeason = dfUnity.WorldTime.Now.GenericSeasonValue;
                     lastCityLightsFlag = dfUnity.WorldTime.Now.IsCityLightsOn;
+                    lastBuildingLightsFlag = dfUnity.WorldTime.Now.IsBuildingLightsOn;
                 }
             }
         }
@@ -139,7 +142,7 @@ namespace DaggerfallWorkshop
                 CurrentSeason = ClimateSeason.Summer;
 
             // Set windows
-            if (dfUnity.WorldTime.Now.IsCityLightsOn)
+            if (dfUnity.WorldTime.Now.IsBuildingLightsOn)
                 WindowTextureStyle = WindowStyle.Night;
             else
                 WindowTextureStyle = WindowStyle.Day;

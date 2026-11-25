@@ -52,7 +52,7 @@ namespace DaggerfallConnect.Arena2
     {
         #region Common Fields
 
-        public static PlayerGPS LocalPlayerGPS = GameManager.Instance.PlayerGPS;
+        // public static PlayerGPS LocalPlayerGPS = GameManager.Instance.PlayerGPS;
         // {
         //     get { return GetPosition(); }
         // }
@@ -98,9 +98,13 @@ namespace DaggerfallConnect.Arena2
 
         public static WorldMap[] LoadWorldMap()
         {
+            if (!GameManager.Instance.IsReady)
+                return new WorldMap[0];
+
             WorldMap[] worldMap = new WorldMap[9];
-            int xTile = LocalPlayerGPS.CurrentMapPixel.X / MapsFile.TileDim;
-            int yTile = LocalPlayerGPS.CurrentMapPixel.Y / MapsFile.TileDim;
+            PlayerGPS playerGPS = GameManager.Instance.PlayerGPS;
+            int xTile = playerGPS.CurrentMapPixel.X / MapsFile.TileDim;
+            int yTile = playerGPS.CurrentMapPixel.Y / MapsFile.TileDim;
             int index = 0;
 
             for (int x = 0; x < 3; x++)
@@ -138,6 +142,8 @@ namespace DaggerfallConnect.Arena2
         public static DFRegion ConvertWorldMapsToDFRegion(int currentRelativeTile, bool isAbsolute = false)
         {            
             DFRegion dfRegion = new DFRegion();
+            if (!GameManager.Instance.IsReady)
+                return dfRegion;
 
             if (!isAbsolute)
             {
@@ -163,7 +169,7 @@ namespace DaggerfallConnect.Arena2
 
         public static int GetCentralTile()
         {
-            return LocalPlayerGPS.CurrentTile.Item1 + LocalPlayerGPS.CurrentTile.Item2 * MapsFile.TileX;
+            return GameManager.Instance.PlayerGPS.CurrentTile.Item1 + GameManager.Instance.PlayerGPS.CurrentTile.Item2 * MapsFile.TileX;
         }
 
         public static int GetCachedTileToLoad(int x, int y)
@@ -461,7 +467,7 @@ namespace DaggerfallConnect.Arena2
             if (mapDict.ContainsKey(mapId))
             {
                 MapSummary summary = mapDict[mapId];
-                return GetLocation(GetRelativeTile(LocalPlayerGPS.CurrentMapPixel), summary.MapIndex, out locationOut);
+                return GetLocation(GetRelativeTile(GameManager.Instance.PlayerGPS.CurrentMapPixel), summary.MapIndex, out locationOut);
             }
 
             return false;
@@ -701,7 +707,7 @@ namespace DaggerfallConnect.Arena2
 
         public static int[,] GetTextureMatrix(string matrixType)
         {
-            DFPosition position = WorldMaps.LocalPlayerGPS.CurrentMapPixel;
+            DFPosition position = GameManager.Instance.PlayerGPS.CurrentMapPixel;
             int xPos = position.X / MapsFile.TileDim;
             int yPos = position.Y / MapsFile.TileDim;
             int sizeModifier = 1;
@@ -924,7 +930,7 @@ namespace DaggerfallConnect.Arena2
 
         public static byte[,] GetTextureMatrix(string matrixType = "woods")
         {
-            DFPosition position = WorldMaps.LocalPlayerGPS.CurrentMapPixel;
+            DFPosition position = GameManager.Instance.PlayerGPS.CurrentMapPixel;
             int xPos = position.X / MapsFile.TileDim;
             int yPos = position.Y / MapsFile.TileDim;
             byte[,] matrix = new byte[MapsFile.TileDim * 3, MapsFile.TileDim * 3];
@@ -995,7 +1001,7 @@ namespace DaggerfallConnect.Arena2
 
         public static byte[,] GetTextureMatrix(string matrixType = "woodsLarge")
         {
-            DFPosition position = WorldMaps.LocalPlayerGPS.CurrentMapPixel;
+            DFPosition position = GameManager.Instance.PlayerGPS.CurrentMapPixel;
             // Debug.Log("position: " + position);
             int xPos = position.X / MapsFile.TileDim;
             int yPos = position.Y / MapsFile.TileDim;
@@ -1036,7 +1042,7 @@ namespace DaggerfallConnect.Arena2
 
         public static byte[,] GetLargeHeightmapMatrix()
         {
-            DFPosition position = WorldMaps.LocalPlayerGPS.CurrentMapPixel;
+            DFPosition position = GameManager.Instance.PlayerGPS.CurrentMapPixel;
             int xPos = position.X / MapsFile.TileDim;
             int yPos = position.Y / MapsFile.TileDim;
             byte[,] matrix = new byte[MapsFile.TileDim * 15, MapsFile.TileDim * 15];
@@ -1140,7 +1146,10 @@ namespace DaggerfallConnect.Arena2
 
         static WorldData()
         {
-            WorldSetting = JsonConvert.DeserializeObject<WorldSettings>(File.ReadAllText(Path.Combine("C:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps", "WorldData.json")));
+            // while (!GameManager.Instance.IsReady)
+            //     return;
+
+            WorldSetting = JsonConvert.DeserializeObject<WorldSettings>(File.ReadAllText(Path.Combine(WorldMaps.mapPath, "WorldData.json")));
         }
     }
 
@@ -1174,7 +1183,10 @@ namespace DaggerfallConnect.Arena2
 
         static FactionsAtlas()
         {
-            FactionDictionary = JsonConvert.DeserializeObject<Dictionary<int, FactionFile.FactionData>>(File.ReadAllText(Path.Combine("C:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps", "Faction.json")));
+            // while (!DaggerfallUnity.Instance.IsReady)
+            //     return;
+
+            FactionDictionary = JsonConvert.DeserializeObject<Dictionary<int, FactionFile.FactionData>>(File.ReadAllText(Path.Combine(WorldMaps.mapPath, "Faction.json")));
 
             foreach (KeyValuePair<int, FactionFile.FactionData> faction in FactionDictionary)
             {

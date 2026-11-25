@@ -543,6 +543,12 @@ namespace DaggerfallConnect
             /// /// ProjectN: check the WiP NPC_Flags list as a reference.
             /// </summary>
             public Byte Flags;
+            private object value;
+
+            public RmbBlockPeopleRecord(object value) : this()
+            {
+                this.value = value;
+            }
         }
 
         /// <summary>

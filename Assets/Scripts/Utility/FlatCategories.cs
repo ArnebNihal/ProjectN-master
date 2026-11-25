@@ -9,12 +9,11 @@ namespace DaggerfallWorkshop.Utility
 {
     public class FlatCategories
     {
-        public const string mapPath = "C:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps";
         public static int[] regionsWithPeculiarStuff = { 0, 1, 16, 23, 26, 32, 34 };
 
         // This should work like this: insert province code and IndexStartType and returns the
         // start and end index of that fauna type in that region.
-        public static Dictionary<int, (int, int)[]> provincialStartEnd = JsonConvert.DeserializeObject<Dictionary<int, (int, int)[]>>(File.ReadAllText(Path.Combine(mapPath, "provincialStartEnd.json")));
+        public static Dictionary<int, (int, int)[]> provincialStartEnd = new Dictionary<int, (int, int)[]>();
         // {
         //     { (0, 2), (2, 6), (7, 7), (8, 11) },    // High Rock
         //     { (0, 3), (2, 5), (6, 7), (8, 12) },    // Hammerfell
@@ -27,7 +26,7 @@ namespace DaggerfallWorkshop.Utility
         //     { (0, 2), (2, 5), (-1, -1), (6, 7) }    // Cyrodiil            
         // };
 
-        public static Dictionary<int, (int, int)[]> regionalStartEnd = JsonConvert.DeserializeObject<Dictionary<int, (int, int)[]>>(File.ReadAllText(Path.Combine(mapPath, "regionalStartEnd.json")));
+        public static Dictionary<int, (int, int)[]> regionalStartEnd = new Dictionary<int, (int, int)[]>();
         // {
         //     { (-1, -1), (-1, -1), (0, 2), (-1, -1) },   // Alik'r
         //     { (-1, -1), (-1, -1), (0, 0), (-1, -1) },   // Dragontail
@@ -43,6 +42,12 @@ namespace DaggerfallWorkshop.Utility
         
         public static (int, int)[][][][] InitialiseBillboardType()
         {
+            // Initialising provincialStartEnd Dictionary
+            provincialStartEnd = JsonConvert.DeserializeObject<Dictionary<int, (int, int)[]>>(File.ReadAllText(Path.Combine(WorldMaps.mapPath, "provincialStartEnd.json")));
+
+            // Initialising regionalStartEnd Dictionary
+            regionalStartEnd = JsonConvert.DeserializeObject<Dictionary<int, (int, int)[]>>(File.ReadAllText(Path.Combine(WorldMaps.mapPath, "regionalStartEnd.json")));
+
             (int, int)[][][][] billboardType = new (int, int)[][][][] {
                 new (int, int)[][][] {                  // [0][...][...][...]:  People
                     new (int, int)[][] {                // [0][0][...][...]:    Beggars
@@ -82,8 +87,8 @@ namespace DaggerfallWorkshop.Utility
                         new (int, int)[] { (10012, 1), (10012, 4), (10012, 5), (10012, 10), (10017, 3), (10018, 4) },       // [0][2][9][...]: Orc
                     },
                     new (int, int)[][] {                // [0][3][...][...]: Commoners - Men
-                        new (int, int)[] { (182, 0), (182, 14), (182, 16), (182, 17), (182, 19), (182, 23), (182, 24), (182, 25), (182, 35), 
-                                            (182, 39), (182, 46), (182, 54), (184, 20), (184, 21), (184, 24), (184, 25), (197, 1), (346, 6), (1200, 15), (1200, 17), (1352, 0), (10012, 11), },    // [0][3][0][...]: Breton
+                        new (int, int)[] { (182, 0), (182, 14), (182, 16), (182, 17), (182, 19), (182, 22), (182, 23), (182, 24), (182, 25), (182, 35), 
+                                            (182, 39), (182, 46), (182, 54), (184, 20), (184, 2), (184, 21), (184, 24), (184, 25), (197, 1), (346, 6), (1200, 15), (1200, 17), (1352, 0), (10012, 11), },    // [0][3][0][...]: Breton
                         new (int, int)[] { (182, 18), (182, 19), (182, 20), (182, 35), (182, 46), (184, 17), (184, 24), (1200, 4), (1200, 8), (1200, 10), (10012, 12), (10012, 18), (10012, 19), },               // [0][3][1][...]: Redguard
                         new (int, int)[] { (182, 0), (182, 16), (182, 17), (184, 20), (184, 25), (197, 1), (1200, 15), (1200, 17), (10012, 11), (10012, 20)},     // [0][3][2][...]: Nord
                         new (int, int)[] { (1300, 3), (1300, 6), (1300, 7), (1300, 8), (1300, 10), },                        // [0][3][3][...]: Dunmer
@@ -91,20 +96,20 @@ namespace DaggerfallWorkshop.Utility
                         new (int, int)[] { (182, 54), (1200, 15), (1302, 1), (1302, 3), },                        // [0][3][5][...]: Bosmer
                         new (int, int)[] { (1304, 2), (1304, 3), (1304, 5), (1305, 0), (1306, 0), (1306, 1) },                        // [0][3][6][...]: Khajiit
                         new (int, int)[] { (10013, 1), (10013, 2) },                        // [0][3][7][...]: Argonian (these two are actually tagged as vampires by Ninelan, but since I'm in sore need of Argonian commoners, I'll use them until there aren't other options)
-                        new (int, int)[] { (182, 0), (182, 14), (182, 18), (182, 23), (182, 24), (182, 25), (182, 35), (182, 39), (182, 54), 
-                                            (184, 20), (184, 21), (346, 6), (1200, 15), },     // [0][3][8][...]: Imperial
+                        new (int, int)[] { (182, 0), (182, 14), (182, 18), (182, 22), (182, 23), (182, 24), (182, 25), (182, 35), (182, 39), (182, 54), 
+                                           (184, 2), (184, 20), (184, 21), (346, 6), (1200, 15), },     // [0][3][8][...]: Imperial
                         new (int, int)[] { }    // [0][3][9][...]: Orc
                     },
                     new (int, int)[][] {                // [0][4][...][...]: Commoners - Women
-                        new (int, int)[] { (182, 12), (182, 22), (182, 26), (182, 44), (182, 45), (182, 47), (183, 17), (184, 2), (184, 22), (184, 23), (184, 26), (184, 28), (184, 29), (184, 33), (186, 12), (334, 5), (1200, 14), (1200, 19), (1352, 4) },              // [0][4][0][...]: Breton
-                        new (int, int)[] { (183, 15), (184, 18), (184, 30), (1200, 5), (1200, 7), (1200, 9), (1200, 11), (1200, 12), (10012, 15), },              // [0][4][1][...]: Redguard
-                        new (int, int)[] { (182, 12), (182, 22), (182, 26), (182, 47), (184, 22), (184, 23), (184, 29), (1200, 19), },              // [0][4][2][...]: Nord
+                        new (int, int)[] { (182, 12), (182, 26), (182, 44), (182, 45), (182, 47), (183, 17), (184, 22), (184, 23), (184, 26), (184, 28), (184, 29), (184, 33), (186, 12), (334, 5), (1200, 14), (1200, 19), (1352, 4) },              // [0][4][0][...]: Breton
+                        new (int, int)[] { (183, 15), (184, 1), (184, 18), (184, 30), (1200, 5), (1200, 7), (1200, 9), (1200, 11), (1200, 12), (10012, 15), },              // [0][4][1][...]: Redguard
+                        new (int, int)[] { (182, 12), (182, 26), (182, 47), (184, 22), (184, 23), (184, 29), (1200, 19), },              // [0][4][2][...]: Nord
                         new (int, int)[] { (1300, 9), (10012, 16), },              // [0][4][3][...]: Dunmer
                         new (int, int)[] { (184, 28), (10011, 5), (10011, 6), (10012, 13), },              // [0][4][4][...]: Altmer
                         new (int, int)[] {},              // [0][4][5][...]: Bosmer
                         new (int, int)[] { (10012, 14), (10012, 17), },              // [0][4][6][...]: Khajiit
                         new (int, int)[] {},              // [0][4][7][...]: Argonian
-                        new (int, int)[] { (184, 33), (186, 12), (182, 44), (182, 45), (184, 2), (184, 26), (1200, 14), (1200, 19), },              // [0][4][8][...]: Imperial
+                        new (int, int)[] { (184, 33), (186, 12), (182, 44), (182, 45), (184, 1), (184, 26), (1200, 14), (1200, 19), },              // [0][4][8][...]: Imperial
                         new (int, int)[] { (10011, 2), (10012, 6), (10012, 7), (10012, 8), (10012, 9), },              // [0][4][9][...]: Orc
                     },
                     new (int, int)[][] {                // [0][5][...][...]: Innkeeper

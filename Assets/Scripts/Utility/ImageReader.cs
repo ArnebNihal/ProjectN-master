@@ -345,7 +345,8 @@ namespace DaggerfallWorkshop.Utility
                     {
                         // Debug.Log("Now loading textureNumber: " + textureNumber);
                         textureFile = new TextureFile(Path.Combine(WorldMaps.mapPath, "Textures", filename), FileUsage.UseMemory, true, true);
-                        textureFile.LoadPalette(Path.Combine(WorldMaps.mapPath, "Textures", textureNumber.ToString(), textureFile.PaletteName));
+                        if (!textureFile.LoadPalette(Path.Combine(dfUnity.Arena2Path, textureFile.PaletteName)))
+                            Debug.Log("GetImageData -> loading palette at " + Path.Combine(dfUnity.Arena2Path, textureFile.PaletteName) + " for " + textureNumber + "." + record + " wasn't successful!");
                         dfBitmap = textureFile.GetCustomDFBitmap(textureNumber, record, frame, TextureReader.MapsPath);
                     }
 
@@ -361,17 +362,18 @@ namespace DaggerfallWorkshop.Utility
                         }
                     }
                     imageData.offset = textureFile.GetOffset(record, textureNumber);
+                    Debug.Log(imageData.filename + " offset.X: " + imageData.offset.X + ", offset.Y: " + imageData.offset.Y);
                     imageData.scale = textureFile.GetScale(record);
-                    // Debug.Log("imageData.scale: " + imageData.scale);
+                    Debug.Log("imageData.scale: " + imageData.scale);
                     imageData.size = textureFile.GetSize(record);
-                    // Debug.Log("imageData.size: " + imageData.size.Width + ", " + imageData.size.Height);
+                    Debug.Log("imageData.size: " + imageData.size.Width + ", " + imageData.size.Height);
 
                     // Texture pack support
-                    int archive = AssetInjection.TextureReplacement.FileNameToArchive(filename);
-                    if (createTexture && AssetInjection.TextureReplacement.TryImportTexture(archive, record, frame, out imageData.texture))
-                        createTexture = false;
-                    if (createAllFrameTextures && frameCount > 1 && AssetInjection.TextureReplacement.TryImportTexture(archive, record, out imageData.animatedTextures))
-                        createAllFrameTextures = false;
+                    // int archive = AssetInjection.TextureReplacement.FileNameToArchive(filename);
+                    // if (createTexture && AssetInjection.TextureReplacement.TryImportTexture(archive, record, frame, out imageData.texture))
+                    //     createTexture = false;
+                    // if (createAllFrameTextures && frameCount > 1 && AssetInjection.TextureReplacement.TryImportTexture(archive, record, out imageData.animatedTextures))
+                    //     createAllFrameTextures = false;
 
                     break;
 
@@ -530,10 +532,11 @@ namespace DaggerfallWorkshop.Utility
         public static void UpdateTexture(ref ImageData imageData, bool isCustomTexture = false)
         {
             // Get colors array
+            // Color32[] colors = new Color32[0];
+            // if (!isCustomTexture)
             Color32[] colors = imageData.dfBitmap.GetColor32((imageData.hasAlpha) ? imageData.alphaIndex : -1);
             if (colors == null)
                 return;
-
 
             // Create new Texture2D
             imageData.texture = GetTexture(colors, imageData.width, imageData.height);

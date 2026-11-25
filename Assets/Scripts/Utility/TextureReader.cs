@@ -36,7 +36,7 @@ namespace DaggerfallWorkshop.Utility
         public const int LightsTextureArchive = 210;
         public const int FixedTreasureFlatsArchive = 216;
         public const int FireWallsArchive = 356;
-        public static string MapsPath = "C:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps";
+        public static string MapsPath = WorldMaps.mapPath;
         //public int[] MiscFlatsTextureArchives = new int[] { 97, 205, 211, 212, 213, 301 };
 
         /// <summary>

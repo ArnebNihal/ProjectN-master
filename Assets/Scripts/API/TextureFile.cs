@@ -19,6 +19,7 @@ using Newtonsoft.Json;
 using DaggerfallWorkshop.Utility;
 using DaggerfallWorkshop.Game;
 using DaggerfallWorkshop.Game.Entity;
+using System.Xml.Linq;
 #endregion
 
 namespace DaggerfallConnect.Arena2
@@ -339,6 +340,8 @@ namespace DaggerfallConnect.Arena2
                     records[r].Frames = new DFBitmap[1];
                 }
             }
+            // Debug.Log("Loading palette at " + Path.Combine(WorldMaps.texturePath, PaletteName));
+            // LoadPalette(Path.Combine(WorldMaps.texturePath, PaletteName));
         }
 
         /// <summary>
@@ -462,6 +465,7 @@ namespace DaggerfallConnect.Arena2
             if (archive > 9999 && NeedsOffsetCorrection(archive, record, out DFPosition offset))
                 return new DFPosition(records[record].OffsetX + offset.X, records[record].OffsetY + offset.Y);
 
+            Debug.Log("records[" + record + "].OffsetX: " + records[record].OffsetX + ", records[" + record + "].OffsetY: " +  records[record].OffsetY);
             return new DFPosition(records[record].OffsetX, records[record].OffsetY);
         }
 
@@ -469,7 +473,8 @@ namespace DaggerfallConnect.Arena2
         {
             offsetMod = new DFPosition(0, 0);
 
-            if (GameManager.Instance.PlayerEntity.Gender == Genders.Male)
+            if (GameManager.Instance.PlayerEntity.Gender == Genders.Male &&     // I put this here before TA new clothes, so probably it was meant to not touch men's sprite
+                archive < 20200)        // Putting this here, so it would still work for TA's new clothes
                 return false;
 
             bool isLeftHand = (record % 2) == 0;
@@ -523,6 +528,28 @@ namespace DaggerfallConnect.Arena2
                 case 10130:
                     offsetMod = new DFPosition(1, 0);
                     return true;
+
+                // case 20200:
+                // case 20201:
+                // case 20202:
+                // case 20203:
+                // case 20204:
+                // case 20205:
+                // case 20210:
+                // case 20211:
+                // case 20212:
+                // case 20213:
+                // case 20214:
+                // case 20215:
+                //     string xmlFN = archive.ToString("0000000") + "_" + record.ToString() + "-0.xml";
+                //     if (File.Exists(Path.Combine(WorldMaps.texturePath, archive.ToString(), xmlFN)))
+                //     {
+                //         XElement xml = XElement.Load(Path.Combine(WorldMaps.texturePath, archive.ToString(), xmlFN));
+                //         Debug.Log("Reading xml for archive " + archive + ", record " + record);
+                //         offsetMod = new DFPosition((short)xml.Element("rect").Element("x"), (short)xml.Element("rect").Element("y"));
+                //         return true;
+                //     }
+                //     else return false;
 
                 default:
                     return false;
@@ -605,6 +632,9 @@ namespace DaggerfallConnect.Arena2
             result.Data = fileBytes;
             result.Width = fakeReader.record[record].Width;
             result.Height = fakeReader.record[record].Height;
+            if (!Palette.Load(Path.Combine(WorldMaps.texturePath, "ART_PAL.COL")))
+                Debug.Log("GetCustomDFBitmap -> palette wasn't properly loaded!");
+            result.Palette = Palette;
 
             return result;
         }
@@ -746,10 +776,10 @@ namespace DaggerfallConnect.Arena2
             }
 
             records = new Record[header.RecordCount];
-            Debug.Log("header.Name: " + header.Name + "header.RecordCount: " + header.RecordCount);
+            // Debug.Log("header.Name: " + header.Name + "header.RecordCount: " + header.RecordCount);
             for (int r = 0; r < header.RecordCount; r++)
             {
-                Debug.Log("r: " + r);
+                // Debug.Log("r: " + r);
                 records[r].Position = fakeReader.record[r].Position;
                 records[r].OffsetX = fakeReader.record[r].OffsetX;
                 records[r].OffsetY = fakeReader.record[r].OffsetY;

@@ -13,6 +13,7 @@
 using UnityEngine;
 using System;
 using System.Runtime.InteropServices;
+using DaggerfallConnect.Arena2;
 #endregion
 
 namespace DaggerfallConnect
@@ -96,9 +97,12 @@ namespace DaggerfallConnect
         /// <returns>Color32 array.</returns>
         public Color32[] GetColor32(int alphaIndex, int maskIndex, Color maskColor, bool excludeNonMasked = false)
         {
+            if (Palette.PaletteBuffer[0] == 0xff)
+                Palette = new DFPalette(string.Concat(WorldMaps.texturePath, "/", "ART_PAL.COL"));
+                
             Color32[] colors = new Color32[Width * Height];
 
-            Debug.Log("Width: " + Width + ", Height: " + Height + ", Data.Length: " + Data.Length);
+            Debug.Log("Width: " + Width + ", Height: " + Height + ", Data.Length: " + Data.Length + ", alphaIndex: " + alphaIndex + ", maskIndex: " + maskIndex);
 
             Color32 c = new Color32();
             int index, offset, srcRow, dstRow;

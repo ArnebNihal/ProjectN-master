@@ -1116,8 +1116,9 @@ namespace DaggerfallWorkshop.Game.Items
             }
 
             // Armor artifact appear to use armor rating divided by 2 rounded down
-            if (IsArtifact && ItemGroup == ItemGroups.Armor)
-                result /= 2;
+            // ProjectN: eliminating this, since it doesn't make much sense
+            // if (IsArtifact && ItemGroup == ItemGroups.Armor)
+            //     result /= 2;
 
             return result;
         }

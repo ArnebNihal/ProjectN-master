@@ -237,6 +237,7 @@ namespace DaggerfallWorkshop.Game.Utility
 
         void DrawTexture(ImageData srcImage, DaggerfallUnityItem item = null)
         {
+            Debug.Log("srcImage.offset.X: " + srcImage.offset.X + ", srcImage.offset.Y: " + srcImage.offset.Y + ", srcImage.width: " + srcImage.width + ", srcImage.height: " + srcImage.height);
             DrawTexture(
                 srcImage,
                 new Rect(0, 0, 1, 1),
@@ -249,10 +250,14 @@ namespace DaggerfallWorkshop.Game.Utility
             // Calculate image position relative to origin
             int posX = (int)targetRect.xMin - paperDollOrigin.X;
             int posY = (int)targetRect.yMin - paperDollOrigin.Y;
+            Debug.Log(srcImage.filename + "-> posX: " + posX + " (" + targetRect.xMin + " - " + paperDollOrigin.X + ")");
+            Debug.Log(srcImage.filename + "-> posY: " + posY + " (" + targetRect.yMin + " - " + paperDollOrigin.Y + ")");
 
             // Scale to paper doll render texture
             float scaleX = target.width / (float)paperDollWidth;
             float scaleY = target.height / (float)paperDollHeight;
+            Debug.Log(srcImage.filename + "-> scaleX: " + scaleX + " (" + target.width + " / " + (float)paperDollWidth + ")");
+            Debug.Log(srcImage.filename + "-> scaleY: " + scaleY + " (" + target.height + " / " + (float)paperDollHeight + ")");
 
             // Get target rect
             Rect screenRect = new Rect(
@@ -331,7 +336,7 @@ namespace DaggerfallWorkshop.Game.Utility
             }
 
             // Draw standard body
-            Debug.Log("body offset: " + nudeBody.offset.X + ", " + nudeBody.offset.Y);
+            // Debug.Log("body offset: " + nudeBody.offset.X + ", " + nudeBody.offset.Y);
             DrawTexture(nudeBody);
 
             // Censor nudity if this setting enabled by using welded-on clothes.
@@ -348,7 +353,7 @@ namespace DaggerfallWorkshop.Game.Utility
             }
 
             // Blit head
-            Debug.Log("head offset: " + head.offset.X + ", " + head.offset.Y);
+            // Debug.Log("head offset: " + head.offset.X + ", " + head.offset.Y);
             DrawTexture(head);
         }
 
@@ -416,11 +421,12 @@ namespace DaggerfallWorkshop.Game.Utility
             // Blit item images
             foreach (var item in orderedItems)
             {
-                Debug.Log("Blitting " + item.LongName);
+                
                 if (item.ItemGroup == ItemGroups.MensClothing || item.ItemGroup == ItemGroups.WomensClothing ||
                     item.ItemGroup == ItemGroups.Armor || item.ItemGroup == ItemGroups.Weapons || 
 					(item.ItemGroup == ItemGroups.Jewellery && IsEquippedToBody(item)))
                 {
+                    Debug.Log("Blitting " + item.LongName);
                     BlitItem(item);
                 }
             }

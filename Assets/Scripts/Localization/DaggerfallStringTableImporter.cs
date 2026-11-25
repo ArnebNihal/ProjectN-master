@@ -732,7 +732,7 @@ namespace DaggerfallWorkshop.Localization
             foreach (StringTable targetTable in targetCollection.StringTables)
             {
                 // Copy all location names across all regions into target string table
-                for (int region = 0; region < MapsFile.TempRegionCount; region++)
+                for (int region = 0; region < WorldData.WorldSetting.RegionNames.Length; region++)
                 {
                     // if (mapsFile.LoadRegion(region))
                     // {

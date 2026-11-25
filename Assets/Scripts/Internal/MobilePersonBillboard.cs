@@ -161,6 +161,9 @@ namespace DaggerfallWorkshop
         int[] femaleDarkElfMountainTextures = new int[] { };
         int[] femaleDarkElfColdTextures = new int[] { };
 
+        int[] maleOrcTextures = new int[] { 1000001 };
+        int[] femaleOrcTextures = new int[] { 6000001 };
+
         int[] guardTextures = { 3990100, 3990017, 3990020, 3990023, 3990200, 3990016 };
 
         int[] maleBretonFaceRecordIndex = new int[] { 192, 216, 288, 240 };     // matching texture 385, 386, 391, 394 from MobilePersonBillboard class texture definition
@@ -484,6 +487,11 @@ namespace DaggerfallWorkshop
                 case 42: return maleDarkElfMountainTextures;
                 case 43: return maleDarkElfColdTextures;
 
+                case 100:
+                case 101:
+                case 102:
+                case 103: return maleOrcTextures;
+
                 case 510: return femaleBretonTextures;
                 case 511: return femaleBretonDesertTextures;
                 case 512: return femaleBretonMountainTextures;
@@ -503,6 +511,11 @@ namespace DaggerfallWorkshop
                 case 541: return femaleDarkElfDesertTextures;
                 case 542: return femaleDarkElfMountainTextures;
                 case 543: return femaleDarkElfColdTextures;
+
+                case 600:
+                case 601:
+                case 602:
+                case 603: return femaleOrcTextures;
 
                 default: return maleBretonTextures;
             }

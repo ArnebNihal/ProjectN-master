@@ -2050,7 +2050,7 @@ namespace DaggerfallWorkshop.Game.UserInterfaceWindows
         {
             DFPosition position = TravelTimeCalculator.GetPlayerTravelPosition();
             int region = GetPoliticValue(position.X, position.Y, true);
-            if (region < 0 || region >= MapsFile.TempRegionCount)
+            if (region < 0 || region >= WorldData.WorldSetting.RegionNames.Length)
                 return -1;
 
             return region;

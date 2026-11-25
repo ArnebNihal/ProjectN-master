@@ -28,6 +28,7 @@ namespace DaggerfallWorkshop
 
         DaggerfallUnity dfUnity;
         bool lastCityLightsFlag;
+        bool lastBuildingLightsFlag;
 
         float Variance = 1.0f;              // Maximum amount radius can vary per cycle
         float Speed = 0.4f;                 // Speed radius will shrink or grow towards varied radius

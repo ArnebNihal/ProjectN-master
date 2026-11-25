@@ -10,7 +10,8 @@ namespace DaggerfallWorkshop.Game
 {
     public static class LoanChecker
     {
-        const int MinutesPerMonth = DaggerfallDateTime.MinutesPerDay * DaggerfallDateTime.DaysPerMonth;
+        // Using a standard 30 days month length for now; TODO: check if it creates discrepancies
+        const int MinutesPerMonth = DaggerfallDateTime.MinutesPerDay * DaggerfallDateTime.DaysPerMonthMid;
 
         const float loanReminderHUDDelay = 3;
 

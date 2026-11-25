@@ -81,7 +81,7 @@ namespace DaggerfallWorkshop.Game.Banking
         public const float goldUnitWeightInKg = 0.0025f;
         private const float deedSellMult = 0.85f;
         private const float housePriceMult = 1280f;
-        private const uint loanRepayMinutes = DaggerfallDateTime.DaysPerYear * DaggerfallDateTime.MinutesPerDay;
+        private const uint loanRepayMinutes = 365 * DaggerfallDateTime.MinutesPerDay;
 
         #region Ships:
 
@@ -233,7 +233,7 @@ namespace DaggerfallWorkshop.Game.Banking
 
         public static void SetupAccounts()
         {
-            bankAccounts = new BankRecordData_v1[MapsFile.TempRegionCount];
+            bankAccounts = new BankRecordData_v1[WorldData.WorldSetting.RegionNames.Length];
 
             for (int i = 0; i < bankAccounts.Length; i++)
             {

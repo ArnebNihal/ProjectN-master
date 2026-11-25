@@ -589,7 +589,8 @@ namespace DaggerfallWorkshop
         LightBrownClothing, // Casual Pants 19 and Formal Cloak
         PurpleClothing,     // Just a third level for dresses 39 and 40
         DarkBrownClothing,  // Kimono
-        AdamantiumClothing
+        AdamantiumClothing,
+        WhiteClothing
     }
 
     public enum ClothCraftsmanship

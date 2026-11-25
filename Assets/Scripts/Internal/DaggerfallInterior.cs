@@ -138,7 +138,7 @@ namespace DaggerfallWorkshop
         /// <param name="doorOwner">Parent transform owning door array.</param>
         /// <param name="door">Exterior door player clicked on.</param>
         /// <returns>True if successful.</returns>
-        public bool DoLayout(Transform doorOwner, StaticDoor door, ClimateBases climateBase, PlayerGPS.DiscoveredBuilding buildingData)
+        public bool DoLayout(Transform doorOwner, StaticDoor door, ClimateBases climateBase, PlayerGPS.DiscoveredBuilding buildingData, bool randomiseStuff = false)
         {
             if (dfUnity == null)
                 dfUnity = DaggerfallUnity.Instance;
@@ -154,8 +154,8 @@ namespace DaggerfallWorkshop
 
             // Layout interior data
             AddModels(buildingData);
-            AddFlats(buildingData);
-            AddPeople(buildingData);
+            AddFlats(buildingData, randomiseStuff);
+            AddPeople(buildingData, randomiseStuff);
             AddActionDoors();
             AddSpawnPoints();
 
@@ -607,21 +607,46 @@ namespace DaggerfallWorkshop
         /// <summary>
         /// Add interior flats.
         /// </summary>
-        private void AddFlats(PlayerGPS.DiscoveredBuilding buildingData)
+        private void AddFlats(PlayerGPS.DiscoveredBuilding buildingData, bool randomiseFlats)
         {
             GameObject node = new GameObject("Interior Flats");
             node.transform.parent = this.transform;
+            PlayerGPS playerGPS = GameManager.Instance.PlayerGPS;
+            
+            UnityEngine.Random.InitState((int)(playerGPS.CurrentMapID + (ulong)buildingData.buildingKey));
+            int counter = 0;
+            DFBlock.RmbBlockFlatObjectRecord[] swapObj = new DFBlock.RmbBlockFlatObjectRecord[recordData.Interior.BlockFlatObjectRecords.Length];
 
             // Add block flats
             markers.Clear();
             foreach (DFBlock.RmbBlockFlatObjectRecord obj in recordData.Interior.BlockFlatObjectRecords)
             {
+                (int, int, int, int) flatCategories = RMBLayout.GetBillboardParameters(obj.TextureArchive, obj.TextureRecord);
+                bool isPresent = false;
+
+                switch (flatCategories.Item1)
+                {
+                    case 1:
+                        swapObj[counter] = RMBLayout.ApplyFlagsToInterior(obj, flatCategories, playerGPS.CurrentRegionIndex, playerGPS.CurrentMapID, randomiseFlats, out isPresent);
+                        break;
+                    case 2:
+                        swapObj[counter] = RMBLayout.ApplyFlagsToFauna(obj, flatCategories, playerGPS.CurrentRegionIndex, playerGPS.CurrentMapID, randomiseFlats, out isPresent);
+                        break;
+                    case 4:
+                        swapObj[counter] = RMBLayout.ApplyFlagsToFlora(obj, flatCategories, playerGPS.CurrentRegionIndex, playerGPS.CurrentMapID, randomiseFlats, out isPresent);
+                        break;
+                    default:
+                        Debug.Log("Wrong flat category passed by DaggerfallInterior.AddFlats: texture " + obj.TextureArchive + "." + obj.TextureRecord + ", in building " + buildingData.buildingKey); 
+                        break;
+                }
+                if (!isPresent) continue;
+
                 // Calculate position
                 Vector3 billboardPosition = new Vector3(obj.XPos, -obj.YPos, obj.ZPos) * MeshReader.GlobalScale;
 
                 // Import custom 3d gameobject instead of flat
-                if (MeshReplacement.ImportCustomFlatGameobject(obj.TextureArchive, obj.TextureRecord, billboardPosition, node.transform) != null)
-                    continue;
+                // if (MeshReplacement.ImportCustomFlatGameobject(obj.TextureArchive, obj.TextureRecord, billboardPosition, node.transform) != null)
+                //     continue;
 
                 // Spawn billboard gameobject
                 GameObject go = GameObjectHelper.CreateDaggerfallBillboardGameObject(obj.TextureArchive, obj.TextureRecord, node.transform);
@@ -669,6 +694,7 @@ namespace DaggerfallWorkshop
                 {
                     AddLight(obj, go.transform);
                 }
+                counter++;
             }
         }
 
@@ -919,16 +945,25 @@ namespace DaggerfallWorkshop
         /// <summary>
         /// Add interior people flats.
         /// </summary>
-        private void AddPeople(PlayerGPS.DiscoveredBuilding buildingData)
+        private void AddPeople(PlayerGPS.DiscoveredBuilding buildingData, bool randomiseStuff)
         {
             GameObject node = new GameObject(peopleFlats);
             node.transform.parent = this.transform;
             IGuild guild = GameManager.Instance.GuildManager.GetGuild(buildingData.factionID);
             bool isMemberOfBuildingGuild = guild.IsMember();
+            PlayerGPS playerGPS = GameManager.Instance.PlayerGPS;
+
+            UnityEngine.Random.InitState((int)(playerGPS.CurrentMapID + (ulong)buildingData.buildingKey));
+            int counter = 0;
+            DFBlock.RmbBlockPeopleRecord[] swapObj = new DFBlock.RmbBlockPeopleRecord[recordData.Interior.BlockPeopleRecords.Length];
 
             // Add block flats
             foreach (DFBlock.RmbBlockPeopleRecord obj in recordData.Interior.BlockPeopleRecords)
             {
+                (int, int, int, int) flatCategories = RMBLayout.GetBillboardParameters(obj.TextureArchive, obj.TextureRecord);
+                swapObj[counter] = RMBLayout.ConvertFromFlatObjectToPeople(RMBLayout.ApplyFlagsToPeople(RMBLayout.ConvertFromPeopleToFlatObject(obj), flatCategories, playerGPS.CurrentRegionIndex, playerGPS.CurrentMapID, playerGPS.CurrentLocationIndex, randomiseStuff, out bool isPresent));
+                if (!isPresent) continue;
+
                 // Calculate position
                 Vector3 billboardPosition = new Vector3(obj.XPos, -obj.YPos, obj.ZPos) * MeshReader.GlobalScale;
 

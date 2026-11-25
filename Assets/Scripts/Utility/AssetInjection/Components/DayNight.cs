@@ -88,6 +88,7 @@ namespace DaggerfallWorkshop.Utility.AssetInjection
         {
             // Are lights on?
             bool lightsOn = dfUnity.WorldTime.Now.IsCityLightsOn;
+            bool bLightsOn = dfUnity.WorldTime.Now.IsBuildingLightsOn;
 
             if (dfUnity.Option_AutomateCityLights)
             {
@@ -96,7 +97,7 @@ namespace DaggerfallWorkshop.Utility.AssetInjection
                 {
                     if (particleSystem)
                     {
-                        if (lightsOn)
+                        if (lightsOn || bLightsOn)
                             particleSystem.Play();
                         else
                             particleSystem.Stop();
@@ -117,12 +118,12 @@ namespace DaggerfallWorkshop.Utility.AssetInjection
                 switch (emissionColors)
                 {
                     case EmissionColors.DaggerfallColors:
-                        WindowStyle style = lightsOn ? WindowStyle.Night : WindowStyle.Day;
+                        WindowStyle style = bLightsOn ? WindowStyle.Night : WindowStyle.Day;
                         dfUnity.MaterialReader.ChangeWindowEmissionColor(emissiveMaterial, style);
                         break;
 
                     case EmissionColors.CustomColors:
-                        emissiveMaterial.SetColor(Uniforms.EmissionColor, lightsOn ? nightColor : dayColor);
+                        emissiveMaterial.SetColor(Uniforms.EmissionColor, bLightsOn ? nightColor : dayColor);
                         break;
                 }
             }

@@ -26,8 +26,8 @@ namespace BlockRotator
     public class BlockRotatorWindow : EditorWindow
     {
         static BlockRotatorWindow blockRotatorWindow;
-        const string windowTitle = "Block Rotator";
-        const string menuPath = "Daggerfall Tools/Block Rotator";
+        const string windowTitle = "Function Panel";
+        const string menuPath = "Daggerfall Tools/Function Panel";
         public const string testPath = "C:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps";
         public const string secondPath = "C:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps/Tamriel/Data";
         public const int regionForUnique = 62;  // To update as more regions get unique blocks
@@ -3262,13 +3262,32 @@ namespace BlockRotator
                             record.FrameCount = (ushort)(frameCounter + 1);
                             record.Unknown1 = 0;
 
-                            xmlFN = text.Substring(0, text.Length - 5) + "-0.xml";
+                            xmlFN = text.Substring(0, text.Length - 5) + "0.xml";
+                            Debug.Log("xmlFN: " + xmlFN);
                             if (File.Exists(Path.Combine(testPath, "Textures", textureArchive.ToString(), xmlFN)))
                             {
                                 XElement xml = XElement.Load(Path.Combine(testPath, "Textures", textureArchive.ToString(), xmlFN));
-                                //  Debug.Log("Reading xml for textureArchive " + textureArchive + ", record " + recCounter);
-                                record.ScaleX = (short)((float)xml.Element("scaleX") * 256.0f);
-                                record.ScaleY = (short)((float)xml.Element("scaleY") * 256.0f);
+                                Debug.Log("Reading xml for textureArchive " + textureArchive + ", record " + recordCounter);
+                                if (TryGetElement(xml, "rect", out XElement rect) &&
+                                    TryGetElement(rect, "x", out XElement x))
+                                {
+                                    record.OffsetX = (short)x;
+                                    record.OffsetX /= 8;
+                                    record.OffsetX += 200;
+                                }
+                                    
+                                if (TryGetElement(xml, "rect", out rect) &&
+                                    TryGetElement(rect, "y", out XElement y))
+                                {
+                                    record.OffsetY = (short)y;
+                                    record.OffsetY /= 8;
+                                    record.OffsetY += 8;
+                                }
+                                    
+                                if (TryGetElement(xml, "scaleX", out XElement scaleX))
+                                    record.ScaleX = (short)((float)scaleX * 256.0f);
+                                if (TryGetElement(xml, "scaleY", out XElement scaleY))
+                                    record.ScaleY = (short)((float)scaleY * 256.0f);
                             }
                             else if (textFileAlreadyExists && prevTextFile.record.Length > recCounter)
                             {
@@ -3408,6 +3427,7 @@ namespace BlockRotator
                         //     archiveCounter++;
                         // }
                         fileName = (textureArchive + archiveCounter).ToString("0000000") + "_" + recCounter.ToString() + "-0.png";
+                        Debug.Log("fileName: " + fileName);
                     }
                     while (File.Exists(Path.Combine(testPath, "Textures", textureArchive.ToString(), fileName)));
                     break;
@@ -3464,6 +3484,11 @@ namespace BlockRotator
                 var json = JsonConvert.SerializeObject(mobTexture, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
                 File.WriteAllText(path, json);
             }
+        }
+
+        public static bool TryGetElement(XElement xml, string key, out XElement value)
+        {
+            return (value = xml.Element(key)) != null;
         }
 
         public static void CalculateStuffRegardingMaps()
@@ -5306,13 +5331,13 @@ namespace BlockRotator
                                    ref block.RmbBlock.SubRecords[a].Interior.BlockFlatObjectRecords[d].FactionID,
                                    true);
                     }
-                    for (int e = 0; e < block.RmbBlock.SubRecords[a].Exterior.BlockPeopleRecords.Length; e++)
+                    for (int e = 0; e < block.RmbBlock.SubRecords[a].Interior.BlockPeopleRecords.Length; e++)
                     {
-                        AssignFlag(ref block.RmbBlock.SubRecords[a].Interior.BlockFlatObjectRecords[e].TextureArchive, 
-                                   ref block.RmbBlock.SubRecords[a].Interior.BlockFlatObjectRecords[e].TextureRecord,
+                        AssignFlag(ref block.RmbBlock.SubRecords[a].Interior.BlockPeopleRecords[e].TextureArchive, 
+                                   ref block.RmbBlock.SubRecords[a].Interior.BlockPeopleRecords[e].TextureRecord,
                                    block.RmbBlock.FldHeader.BuildingDataList[a].BuildingType,
-                                   ref block.RmbBlock.SubRecords[a].Interior.BlockFlatObjectRecords[e].Flags,
-                                   ref block.RmbBlock.SubRecords[a].Interior.BlockFlatObjectRecords[e].FactionID,
+                                   ref block.RmbBlock.SubRecords[a].Interior.BlockPeopleRecords[e].Flags,
+                                   ref block.RmbBlock.SubRecords[a].Interior.BlockPeopleRecords[e].FactionID,
                                    true);
                     }
                 }
@@ -5409,7 +5434,7 @@ namespace BlockRotator
                     {
                         case 0:
                         case 1:
-                            if (flag == 0 || flag == 7 || flag == 17)
+                            if (flag == 0 || flag == 1 || flag == 5 || flag == 7 || flag == 9 || flag == 13 || flag == 17 || flag == 32 || flag == 71)
                             {
                                 if (buildingType == DFLocation.BuildingTypes.Tavern)
                                     flag = 109;
@@ -5420,7 +5445,7 @@ namespace BlockRotator
                             }
                             break;
                         case 2:
-                            if (flag == 0 || flag == 6 || flag == 1)
+                            if (flag == 0 || flag == 1 || flag == 6 || flag == 9 || flag == 32 || flag == 33)
                             {
                                 switch (key)
                                 {
@@ -5450,24 +5475,24 @@ namespace BlockRotator
                             faction = 514;
                             break;
                         case 3:
-                            if (flag == 0 || flag == 1 || flag == 9 || flag == 13)
+                            if (flag == 0 || flag == 1 || flag == 5 || flag == 9 || flag == 13 || flag == 33 || flag == 41)
                                 flag = (byte)(isInterior ? 75 : 67);
                             break;
                         case 4:
-                            if (flag == 0 || flag == 33)
+                            if (flag == 0 || flag == 1 || flag == 32 || flag == 33 || flag == 35 || flag == 37 || flag == 41 || flag == 45)
                                 flag = (byte)(isInterior ? 91 : 83);
                             break;
                         case 5:
-                            if (flag == 0 || flag == 5)
+                            if (flag == 0 || flag == 5 || flag == 13 || flag == 9)
                                 flag = (byte)(isInterior ? 79 : 67);
                             faction = 510;
                             break;
                         case 6:
-                            if (flag == 0 || flag == 41)
+                            if (flag == 0 || flag == 9 || flag == 32 || flag == 33 || flag == 41)
                                 flag = (byte)(isInterior ? 95 : 83);
                             break;
                         case 7:
-                            if (flag == 0 || flag == 17)
+                            if (flag == 0 || flag == 1 || flag == 9 || flag == 17)
                             {
                                 if (archive == 10017 && record == 2)
                                     flag = (byte)(isInterior ? 95 : 83);
@@ -5475,11 +5500,11 @@ namespace BlockRotator
                             }
                             break;
                         case 8:
-                            if (flag == 0 || flag == 17)
+                            if (flag == 0 || flag == 1 || flag == 17 || flag == 33 || flag == 41)
                                 flag = (byte)(isInterior ? 75 : 67);
                             break;
                         case 9:
-                            if (flag == 0 || flag == 17)
+                            if (flag == 0 || flag == 1 || flag == 9 || flag == 17 || flag == 32 || flag == 33)
                             {
                                 switch (key)
                                 {
@@ -5512,16 +5537,16 @@ namespace BlockRotator
                                 faction = 511;
                             break;
                         case 10:
-                            if (flag == 0 || flag == 17)
+                            if (flag == 0 || flag == 1 || flag == 9 || flag == 13 || flag == 17)
                                 flag = 79;
                             break;
                         case 11:
-                            if (flag == 0 || flag == 1)
+                            if (flag == 0 || flag == 1 || flag == 5 || flag == 9 || flag == 13)
                                 flag = (byte)(isInterior ? 75 : 67);
                             faction = 242;
                             break;
                         case 12:
-                            if (flag == 0 || flag == 17)
+                            if (flag == 0 || flag == 1 || flag == 5 || flag == 9 || flag == 13 || flag == 17 || flag == 32 || flag == 33 || flag == 37 || flag == 41 || flag == 45)
                             {
                                 switch (key)
                                 {
@@ -5584,14 +5609,14 @@ namespace BlockRotator
                             faction = 306;
                             break;
                         case 15:
-                            if (flag == 0 || flag == 17)
+                            if (flag == 0 || flag == 1 || flag == 9 || flag == 17)
                             {
                                 flag = 79;
                             }
                             faction = 108;
                             break;
                         case 16:
-                            if (flag == 0 || flag == 17)
+                            if (flag == 0 || flag == 1 || flag == 17 || flag == 33)
                             {
                                 switch (record)
                                 {
@@ -5609,12 +5634,12 @@ namespace BlockRotator
                             faction = 108;
                             break;
                         case 17:
-                            if (flag == 0 || flag == 33 || flag == 38)
+                            if (flag == 0 || flag == 32 || flag == 33 || flag == 38 || flag == 41)
                                 flag = (byte)(isInterior ? 91 : 83);
                             faction = 242;
                             break;
                         case 18:
-                            if (flag == 0 || flag == 33 || flag == 37)
+                            if (flag == 0 || flag == 1 || flag == 9 || flag == 33 || flag == 37 || flag == 41)
                             {
                                 switch (key)
                                 {
@@ -5676,7 +5701,7 @@ namespace BlockRotator
                             }
                             break;
                         case 19:
-                            if (flag == 0 || flag == 17)
+                            if (flag == 0 || flag == 1 || flag == 5 || flag == 13 || flag == 17)
                             {
                                 switch (key)
                                 {
@@ -5692,7 +5717,7 @@ namespace BlockRotator
                             }
                             break;
                         case 20:
-                            if (flag == 0 || flag == 33)
+                            if (flag == 0 || flag == 1 || flag == 32 || flag == 33 || flag == 41)
                             {
                                 switch (key)
                                 {
@@ -6441,7 +6466,7 @@ namespace BlockRotator
                     }
                     break;
                 case 3:
-                    if (flag == 0 || flag == 17)
+                    if (flag == 0 || flag == 14 || flag == 17)
                     {
                         switch (type)
                         {
@@ -6478,8 +6503,8 @@ namespace BlockRotator
                         flag = 15;
                     break;
             }
-            if (flag == startingFlagValue)
-                Debug.Log("Texture " + archive + "." + record + " didn't modify its flag from " + flag);
+            if (flag == startingFlagValue && (archive < 200 || archive == 334 || archive == 349 || archive == 357))
+                Debug.Log("Texture " + archive + "." + record + " didn't modify its flag from " + flag + "; check-code: " + archive + "*" + flag + "|");
         }
 
         private int ArchiveRecordToFlatKey(int archive, int record)

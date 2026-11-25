@@ -317,7 +317,7 @@ namespace DaggerfallWorkshop.Utility
 
             mapDict = new Dictionary<ulong, MapSummary>();
             locationIdToMapIdDict = new Dictionary<ulong, ulong>();
-            for (int region = 0; region < MapsFile.TempRegionCount; region++)
+            for (int region = 0; region < WorldData.WorldSetting.RegionNames.Length; region++)
             {
                 DFRegion dfRegion = WorldMaps.ConvertWorldMapsToDFRegion(region);
                 for (int location = 0; location < dfRegion.LocationCount; location++)

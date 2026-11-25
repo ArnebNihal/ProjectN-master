@@ -27,9 +27,9 @@ namespace DaggerfallConnect.Arena2
     /// </summary>
     public class BlocksFile
     {
-        public static string rmbPath = "C:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps/RMB";
-        public static string rdbPath = "C:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps/RDB";
-        public static string absoluteBlocks = "C:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps/BLOCKS.BSA";
+        // public static string rmbPath = Path.Combine(, "RMB");
+        // public static string rdbPath = Path.Combine(WorldMaps.mapPath, "RDB");
+        // public static string absoluteBlocks = Path.Combine(WorldMaps.mapPath, "BLOCKS.BSA");
 
         #region Class Variables
 
@@ -202,10 +202,10 @@ namespace DaggerfallConnect.Arena2
                 return false;
 
             // Load file
-            if (!File.Exists(absoluteBlocks))
+            if (!File.Exists(filePath))
                 return false;
 
-            bsaFile = JsonConvert.DeserializeObject<(string, int)[]>(File.ReadAllText(absoluteBlocks));
+            bsaFile = JsonConvert.DeserializeObject<(string, int)[]>(File.ReadAllText(filePath));
 
             // Create records array
             blocks = new BlockRecord[bsaFile.Length];
@@ -349,11 +349,11 @@ namespace DaggerfallConnect.Arena2
                 switch (blocks[block].DFBlock.Type)
                 {
                     case DFBlock.BlockTypes.Rmb:
-                        blocks[block].DFBlock = JsonConvert.DeserializeObject<DFBlock>(File.ReadAllText(Path.Combine(rmbPath, blocks[block].Name + ".json")));
+                        blocks[block].DFBlock = JsonConvert.DeserializeObject<DFBlock>(File.ReadAllText(Path.Combine(WorldMaps.mapPath, "RMB", blocks[block].Name + ".json")));
                         blocks[block].DFBlock.ConvertTo2d();
                         break;
                     case DFBlock.BlockTypes.Rdb:
-                        blocks[block].DFBlock = JsonConvert.DeserializeObject<DFBlock>(File.ReadAllText(Path.Combine(rdbPath, blocks[block].Name + ".json")));
+                        blocks[block].DFBlock = JsonConvert.DeserializeObject<DFBlock>(File.ReadAllText(Path.Combine(WorldMaps.mapPath, "RDB", blocks[block].Name + ".json")));
                         break;
                     default:
                         Debug.Log("LoadBlock = Unknown block type.");

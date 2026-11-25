@@ -55,7 +55,6 @@ namespace DaggerfallConnect.Arena2
         public const int MinMapPixelY = 0;
         public const int MaxMapPixelX = 7680;
         public const int MaxMapPixelY = 6144;
-        public static int TempRegionCount = WorldData.WorldSetting.RegionNames.Length;
         public const int TileDim = 64; // This is the one to change when modifying MY tiles size
         public const int TileX = MaxMapPixelX / TileDim;
         public const int TileY = MaxMapPixelY / TileDim;
@@ -63,18 +62,18 @@ namespace DaggerfallConnect.Arena2
         /// <summary>
         /// All region names.
         /// </summary>
-        private static readonly string[] regionNames = WorldData.WorldSetting.RegionNames;
+        // private static readonly string[] regionNames = WorldData.WorldSetting.RegionNames;
 
         /// <summary>
         /// All region races, primarily used to generate townsfolk names. In the array extracted from FALL.EXE:
         /// 0 = Breton, 1 = Redguard.
         /// </summary>
-        private static readonly int[] regionRaces = WorldData.WorldSetting.regionRaces;
+        // private static readonly int[] regionRaces = WorldData.WorldSetting.regionRaces;
 
         /// <summary>
         /// Region temple faction IDs, extracted from FALL.EXE.
         /// </summary>
-        private static readonly int[] regionTemples = WorldData.WorldSetting.regionTemples;
+        // private static readonly int[] regionTemples = WorldData.WorldSetting.regionTemples;
 
         /// <summary>
         /// Block file prefixes.
@@ -221,7 +220,7 @@ namespace DaggerfallConnect.Arena2
         /// </summary>
         public int RegionCount
         {
-            get { return TempRegionCount; }
+            get { return WorldData.WorldSetting.RegionNames.Length; }
         }
 
         /// <summary>
@@ -229,7 +228,7 @@ namespace DaggerfallConnect.Arena2
         /// </summary>
         public static string[] RegionNames
         {
-            get { return regionNames; }
+            get { return WorldData.WorldSetting.RegionNames; }
         }
 
         /// <summary>
@@ -237,14 +236,14 @@ namespace DaggerfallConnect.Arena2
         /// </summary>
         public static int[] RegionRaces
         {
-            get { return regionRaces; }
+            get { return WorldData.WorldSetting.regionRaces; }
         }
 
         /// <summary>
         /// Gets region temple faction IDs.
         /// </summary>
         public static int[] RegionTemples {
-            get { return regionTemples; }
+            get { return WorldData.WorldSetting.regionTemples; }
         }
 
         /// <summary>
@@ -698,7 +697,7 @@ namespace DaggerfallConnect.Arena2
             if (region < 0 || region >= RegionCount)
                 return string.Empty;
             else
-                return regionNames[region];
+                return RegionNames[region];
         }
 
         /// <summary>
@@ -711,7 +710,7 @@ namespace DaggerfallConnect.Arena2
             // Search for region name
             for (int i = 0; i < RegionCount; i++)
             {
-                if (regionNames[i] == name)
+                if (RegionNames[i] == name)
                     return i;
             }
 
@@ -756,7 +755,7 @@ namespace DaggerfallConnect.Arena2
                 return false;
 
             // Set region name
-            regions[region].Name = regionNames[region];
+            regions[region].Name = RegionNames[region];
 
             // Read region
             if (!ReadRegion(region))
@@ -1177,7 +1176,7 @@ namespace DaggerfallConnect.Arena2
             try
             {
                 // Store region name
-                regions[region].DFRegion.Name = regionNames[region];
+                regions[region].DFRegion.Name = RegionNames[region];
 
                 // Read map names
                 // BinaryReader reader = regions[region].MapNames.GetReader();

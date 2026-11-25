@@ -44,9 +44,9 @@ namespace DaggerfallWorkshop.Utility
             }
         }
 
-        public static (int, int)[][][][] billboardType = FlatCategories.InitialiseBillboardType();
-        public static string mapPath = "C:/da_shiny_oneBU/daggerfall/DaggerfallGameFiles/arena2/Maps";
-        public static Dictionary<int, int> billboardDict = JsonConvert.DeserializeObject<Dictionary<int, int>>(File.ReadAllText(Path.Combine(mapPath, "flatDict.json")));
+        // public static (int, int)[][][][] billboardType = FlatCategories.InitialiseBillboardType();
+        // public static string mapPath = WorldMaps.mapPath;
+        // public static Dictionary<int, int> billboardDict = JsonConvert.DeserializeObject<Dictionary<int, int>>(File.ReadAllText(Path.Combine(mapPath, "flatDict.json")));
 
         // Animal sounds range. Matched to classic.
         const float animalSoundMaxDistance = 768 * MeshReader.GlobalScale;
@@ -62,6 +62,16 @@ namespace DaggerfallWorkshop.Utility
                                                          212003,      // Dry fountain
                                                          212006       // Roadsign
                                                        };
+
+        public static (int, int)[][][][] billboardType
+        {
+            get { return FlatCategories.InitialiseBillboardType(); }
+        }
+
+        public static Dictionary<int, int> billboardDict
+        {
+            get { return JsonConvert.DeserializeObject<Dictionary<int, int>>(File.ReadAllText(Path.Combine(WorldMaps.mapPath, "flatDict.json"))); }
+        }
 
         public static void AddAnimalAudioSource(GameObject go, int record)
         {

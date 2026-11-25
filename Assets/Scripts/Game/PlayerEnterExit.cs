@@ -799,7 +799,7 @@ namespace DaggerfallWorkshop.Game
         /// </summary>
         /// <param name="doorOwner">Parent transform owning door array..</param>
         /// <param name="door">Exterior door player clicked on.</param>
-        public void TransitionInterior(Transform doorOwner, StaticDoor door, bool doFade = false, bool start = true)
+        public void TransitionInterior(Transform doorOwner, StaticDoor door, bool doFade = false, bool start = true, bool randomiseStuff = false)
         {
             // Store start flag
             lastInteriorStartFlag = start;
@@ -853,7 +853,7 @@ namespace DaggerfallWorkshop.Game
             // If we fail for any reason, use that old chestnut "this house has nothing of value"
             try
             {
-                interior.DoLayout(doorOwner, door, climateBase, buildingDiscoveryData);
+                interior.DoLayout(doorOwner, door, climateBase, buildingDiscoveryData, randomiseStuff);
             }
             catch (Exception e)
             {

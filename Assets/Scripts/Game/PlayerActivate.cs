@@ -1312,7 +1312,9 @@ namespace DaggerfallWorkshop.Game
             playerEnterExit.IsPlayerInsideClosedShop = RMBLayout.IsShop(db.buildingType) && !IsBuildingOpen(db.buildingType);
             playerEnterExit.IsPlayerInsideTavern = RMBLayout.IsTavern(db.buildingType);
             playerEnterExit.IsPlayerInsideResidence = RMBLayout.IsResidence(db.buildingType);
-            playerEnterExit.TransitionInterior(doorOwner, door, doFade, false);
+
+            bool randomiseStuff = int.TryParse(GetCurrentBlockName().Substring(3, 1), out int uselessValue);
+            playerEnterExit.TransitionInterior(doorOwner, door, doFade, false, randomiseStuff);
         }
 
         // Message box closed, move to interior
@@ -1895,10 +1897,7 @@ namespace DaggerfallWorkshop.Game
                 GenerateGEMSBooty(0);
             else // if (diceRoll <= 97)        // Block-based loot
             {
-                DFPosition blockCoord = MapsFile.WorldCoordToLocationBlockPosition(playerGPS.WorldX, playerGPS.WorldZ, playerGPS.CurrentLocation);
-                Debug.Log("blockCoord.X" + blockCoord.X + ", blockCoord.Y: " + blockCoord.Y);
-                string blockName = playerGPS.CurrentLocation.Exterior.ExteriorData.BlockNames[blockCoord.Y * playerGPS.CurrentLocation.Exterior.ExteriorData.Width + blockCoord.X];
-                Debug.Log("blockName: " + blockName);
+                string blockName = GetCurrentBlockName();
 
                 if (blockName.StartsWith("ALCH"))
                     GenerateALCHBooty(modifier);
@@ -2483,6 +2482,16 @@ namespace DaggerfallWorkshop.Game
                 diceRoll = 100;
 
             // TODO: when food will be implemented as in the C&C mod, this should be expanded
+        }
+
+        public static string GetCurrentBlockName()
+        {
+            PlayerGPS playerGPS = GameManager.Instance.PlayerGPS;
+            DFPosition blockCoord = MapsFile.WorldCoordToLocationBlockPosition(playerGPS.WorldX, playerGPS.WorldZ, playerGPS.CurrentLocation);
+            Debug.Log("blockCoord.X" + blockCoord.X + ", blockCoord.Y: " + blockCoord.Y);
+            string blockName = playerGPS.CurrentLocation.Exterior.ExteriorData.BlockNames[blockCoord.Y * playerGPS.CurrentLocation.Exterior.ExteriorData.Width + blockCoord.X];
+            Debug.Log("blockName: " + blockName);
+            return blockName;
         }
     }
 }

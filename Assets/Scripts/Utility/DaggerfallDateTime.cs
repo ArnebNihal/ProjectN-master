@@ -34,6 +34,7 @@ namespace DaggerfallWorkshop.Utility
 
         const ulong classicEpochInSeconds = 12566016000;        // Converts from DaggerfallDateTime epoch to classic Daggerfall epoch
         static uint classicGameStartTime = 523530;               // Game start time in minutes from classic epoch
+        const ulong daysSinceYear0 = 147924;                    // Number of days since 4E 0 to 4E 404, 31 of Evening Star included
 
         // Time multipliers
         public const int SecondsPerMinute = 60;
@@ -41,14 +42,17 @@ namespace DaggerfallWorkshop.Utility
         public const int MinutesPerDay = 1440;
         public const int HoursPerDay = 24;
         public const int DaysPerWeek = 7;
-        public const int DaysPerMonth = 30;
+        public const int DaysPerMonthLong = 31;
+        public const int DaysPerMonthMid = 30;
+        public const int DaysPerMonthShort = 28;
+        public const int DaysPerMonthLeap = 29;
         public const int MonthsPerYear = 12;
-        public const int DaysPerYear = DaysPerMonth * MonthsPerYear;
+        // public const int DaysPerYear = DaysPerMonth * MonthsPerYear;
         public const int SecondsPerHour = SecondsPerMinute * MinutesPerHour;
         public const int SecondsPerDay = SecondsPerHour * HoursPerDay;
         public const int SecondsPerWeek = SecondsPerDay * DaysPerWeek;
-        public const int SecondsPerMonth = SecondsPerDay * DaysPerMonth;
-        public const int SecondsPerYear = SecondsPerMonth * MonthsPerYear;
+        // public const int SecondsPerMonth = SecondsPerDay * DaysPerMonth;
+        // public const int SecondsPerYear = SecondsPerMonth * MonthsPerYear;
 
         // Time common events take place
         public const int BaseDawnHour = 6;
@@ -61,23 +65,23 @@ namespace DaggerfallWorkshop.Utility
         public const int MidAfternoonHour = 15;
 
         // Season starting date in day of year
-        public const int SpringStart = 81;
-        public const int SummerStart = 171;
-        public const int FallStart = 261;
-        public const int WinterStart = 351;
+        public const int SpringStart = 80;
+        public const int SummerStart = 172;
+        public const int FallStart = 266;
+        public const int WinterStart = 356;
 
         // Latitude values of significant lines
         public const int ArcticCircle = 550;
         public const int UpperTropic = 3450;
-        public const int LowerTropic = 5950;
-        public const int Equator = 4700;
+        public const int LowerTropic = 6150;
+        public const int Equator = 4800; // Moved from 4700 to 4800
         public const int MiddleTemperate = 2000;
 
         // Time values by unit for easy use
         public int Year = 405;
-        public int Month = 5;
+        public int Month = 0;
         public int Day = 0; // Day of the month
-        public int Hour = 12;
+        public int Hour = 0;
         public int Minute = 0;
         public float Second = 0;
 
@@ -91,6 +95,46 @@ namespace DaggerfallWorkshop.Utility
         public string DayName
         {
             get { return GetDayName(); }
+        }
+
+        // <summary>
+        // Gets length of current month
+        // </summary>
+        public int CurrentMonthLength
+        {
+            get { return GetCurrentMonthLength(); }
+        }
+
+        // <summary>
+        // Gets length of current month (in seconds)
+        // </summary>
+        public int CurrentMonthLengthInSeconds
+        {
+            get { return CurrentMonthLength * SecondsPerDay; }
+        }
+
+        // <summary>
+        // Gets length of current year
+        // </summary>
+        public int CurrentYearLength
+        {
+            get { return CheckIfLeapYear(Year) ? 366 : 365; }
+        }
+
+        // <summary>
+        // Gets length of current year (in seconds)
+        // </summary>
+        public int CurrentYearLengthInSeconds
+        {
+            get { return CurrentYearLength * SecondsPerDay; }
+        }
+
+        // <summary>
+        // Gets number of days from year zero to current day
+        // </summary>
+        public ulong DaysSinceYearZero
+        {
+            get { return CalculateDaysSinceYearZero(); }
         }
 
         /// <summary>
@@ -241,6 +285,16 @@ namespace DaggerfallWorkshop.Utility
         }
 
         /// <summary>
+        /// True from slightly before dusk and slightly after dusk, then slightly before dawn until slightly after dawn.
+        /// Daggerfall NPCs now sleep.
+        /// </summary>
+        public bool IsBuildingLightsOn
+        {
+            get { return (MinuteOfDay >= ActivityStart - 30 && MinuteOfDay < LightsOffHour) || 
+                         (MinuteOfDay >= LightsOnHour && MinuteOfDay < ActivityEnd + 30); }
+        }
+
+        /// <summary>
         /// True during the day.
         /// </summary>
         public bool IsDay
@@ -273,7 +327,7 @@ namespace DaggerfallWorkshop.Utility
         }
 
         /// <summary>
-        /// Gets day of month 1-30
+        /// Gets day of month 1-28/29/30/31
         /// </summary>
         public int DayOfMonth
         {
@@ -289,7 +343,7 @@ namespace DaggerfallWorkshop.Utility
         }
 
         /// <summary>
-        /// Gets day of year 1-360.
+        /// Gets day of year 1-365/366.
         /// </summary>
         public int DayOfYear
         {
@@ -304,6 +358,31 @@ namespace DaggerfallWorkshop.Utility
             get { return GetMonthOfYear(); }
         }
 
+        public bool IsLeapYear
+        {
+            get { return CheckIfLeapYear(Year); }
+        }
+
+        public int ActualSpringStart
+        {
+            get { return ModifySeasonStartForLeapYear(Seasons.Spring); }
+        }
+
+        public int ActualSummerStart
+        {
+            get { return ModifySeasonStartForLeapYear(Seasons.Summer); }
+        }
+
+        public int ActualFallStart
+        {
+            get { return ModifySeasonStartForLeapYear(Seasons.Fall); }
+        }
+
+        public int ActualWinterStart
+        {
+            get { return ModifySeasonStartForLeapYear(Seasons.Winter); }
+        }
+
         #endregion
 
         #region Enums
@@ -313,13 +392,13 @@ namespace DaggerfallWorkshop.Utility
         /// </summary>
         public enum Days
         {
-            Sundas,
             Morndas,
             Tirdas,
             Middas,
             Turdas,
             Fredas,
             Loredas,
+            Sundas,
         }
 
         /// <summary>
@@ -340,6 +419,23 @@ namespace DaggerfallWorkshop.Utility
             SunsDusk,
             EveningStar,
         }
+
+        // Month length. Doesn't take leap years into consideration, CheckIfLeapYear must be applied
+        public Dictionary<int,int> MonthLength = new Dictionary<int, int>()
+        {
+            { 0, DaysPerMonthLong },
+            { 1, DaysPerMonthShort },
+            { 2, DaysPerMonthLong },
+            { 3, DaysPerMonthMid },
+            { 4, DaysPerMonthLong },
+            { 5, DaysPerMonthMid },
+            { 6, DaysPerMonthLong },
+            { 7, DaysPerMonthLong },
+            { 8, DaysPerMonthMid },
+            { 9, DaysPerMonthLong },
+            { 10, DaysPerMonthMid },
+            { 11, DaysPerMonthLong }
+        };
 
         /// <summary>
         /// Birthsigns by month.
@@ -456,11 +552,17 @@ namespace DaggerfallWorkshop.Utility
                 Hour -= days * HoursPerDay;
                 Day += days;
             }
-            if (Day >= DaysPerMonth)
+            if (Day >= CurrentMonthLength)
             {
-                int months = (int)(Day / DaysPerMonth);
-                Day -= months * DaysPerMonth;
-                Month += months;
+                int months = Month;
+                do{
+                    Day -= MonthLength[months];
+                    months++;
+                    Month++;
+                    if (months >= MonthsPerYear)
+                        months -= MonthsPerYear;
+                }
+                while (Day >= MonthLength[months]);
             }
             if (Month >= MonthsPerYear)
             {
@@ -530,15 +632,7 @@ namespace DaggerfallWorkshop.Utility
         /// </summary>
         public ulong ToSeconds()
         {
-            long final =
-                Convert.ToInt64(SecondsPerYear) * Year +
-                SecondsPerMonth * Month +
-                SecondsPerDay * Day +
-                SecondsPerHour * Hour +
-                SecondsPerMinute * Minute +
-                (int)Second;
-
-            return (ulong)final;
+            return CalculateDaysSinceYearZero() * SecondsPerDay;
         }
 
         /// <summary>
@@ -556,14 +650,14 @@ namespace DaggerfallWorkshop.Utility
             Second = dayclock % SecondsPerMinute;
             Minute = (int)(dayclock % SecondsPerHour) / SecondsPerMinute;
             Hour = (int)dayclock / SecondsPerHour;
-            while (dayno >= DaysPerYear)
+            while (dayno >= (ulong)CalculateYearLength(Year))
             {
-                dayno -= DaysPerYear;
+                dayno -= (ulong)CalculateYearLength(Year);
                 Year++;
             }
-            while (dayno >= DaysPerMonth)
+            while (dayno >= (ulong)MonthLength[Month])
             {
-                dayno -= DaysPerMonth;
+                dayno -= (ulong)MonthLength[Month];
                 Month++;
             }
 
@@ -669,13 +763,19 @@ namespace DaggerfallWorkshop.Utility
             }
         }
 
+        public ulong CalculateSinceYearZero(DaggerfallDateTime date)
+        {
+            return CalculateDaysSinceYearZero(date);
+        }
+
         #endregion
 
         #region Private Methods
 
         private string GetDayName()
         {
-            if (Day < 0 || Day >= DaysPerMonth)
+
+            if (Day < 0 || Day >= GetCurrentMonthLength())
                 RaiseTime(0);
 
             uint presentTime = ToClassicDaggerfallTime();
@@ -684,6 +784,16 @@ namespace DaggerfallWorkshop.Utility
             // int day = (int)(Day - (week * DaysPerWeek));
 
             return TextManager.Instance.GetLocalizedTextList("dayNames")[day];
+        }
+
+        private int GetCurrentMonthLength()
+        {
+            if (Month < 0 || Month >= MonthsPerYear)
+                RaiseTime(0);
+
+            if (Month != 1)
+                return MonthLength[Month];
+            else return CheckIfLeapYear(Year) ? ++MonthLength[Month] : MonthLength[Month];
         }
 
         private int GetDawnHour()
@@ -698,7 +808,7 @@ namespace DaggerfallWorkshop.Utility
                 case Seasons.Spring:
                 case Seasons.Summer:
                     // Debug.Log("Dawn Hour (Spring/Summer): " + ((BaseDawnHour * SecondsPerHour - adjustment.Item1 / 3) / SecondsPerMinute));
-                    return ((BaseDawnHour * SecondsPerHour - adjustment.Item1 / 3) / SecondsPerMinute);
+                    return ((BaseDawnHour * SecondsPerHour - adjustment.Item1 / 2) / SecondsPerMinute);
                 case Seasons.Fall:
                 case Seasons.Winter:
                 default:
@@ -719,7 +829,7 @@ namespace DaggerfallWorkshop.Utility
                 case Seasons.Spring:
                 case Seasons.Summer:
                     // Debug.Log("Dusk Hour (Spring/Summer):" + ((BaseDuskHour * SecondsPerHour + (adjustment.Item1 / 3 * 2)) / SecondsPerMinute));
-                    return ((BaseDuskHour * SecondsPerHour + (adjustment.Item1 / 3 * 2)) / SecondsPerMinute);
+                    return ((BaseDuskHour * SecondsPerHour + (adjustment.Item1 / 2)) / SecondsPerMinute);
                 case Seasons.Fall:
                 case Seasons.Winter:
                 default:
@@ -801,26 +911,25 @@ namespace DaggerfallWorkshop.Utility
             int latitude = GameManager.Instance.PlayerGPS.CurrentMapPixel.Y;
             (int, Seasons) result;
 
-            if (DayOfYear >= SpringStart && DayOfYear < SummerStart)
+            if (DayOfYear >= ActualSpringStart && DayOfYear < ActualSummerStart)
             {
-                result = ((DayOfYear - SpringStart) / 10 * (Equator - latitude), Seasons.Spring);
+                result = ((DayOfYear - ActualSpringStart) / 10 * (Equator - latitude), Seasons.Spring);
             }
-            else if (DayOfYear >= SummerStart && DayOfYear < FallStart)
+            else if (DayOfYear >= ActualSummerStart && DayOfYear < ActualFallStart)
             {
-                result = ((FallStart - DayOfYear) / 10 * (Equator - latitude), Seasons.Summer);
+                result = ((ActualFallStart - DayOfYear) / 10 * (Equator - latitude), Seasons.Summer);
             }
-            else if (DayOfYear >= FallStart && DayOfYear < WinterStart)
+            else if (DayOfYear >= ActualFallStart && DayOfYear < ActualWinterStart)
             {
-                result = (((DayOfYear - FallStart) * -1) / 10 * (Equator - latitude), Seasons.Fall);
+                result = (((DayOfYear - ActualFallStart) * -1) / 10 * (Equator - latitude), Seasons.Fall);
             }
-            else if (DayOfYear >= WinterStart)
+            else if (DayOfYear >= ActualWinterStart)
             {
-                result = ((DayOfYear - (SpringStart + DaysPerYear)) / 10 * (Equator - latitude), Seasons.Winter);
+                result = ((DayOfYear - (ActualSpringStart + CurrentYearLength)) / 10 * (Equator - latitude), Seasons.Winter);
             }
             else{
-                result = ((DayOfYear - SpringStart) / 10 * (Equator - latitude), Seasons.Winter);
+                result = ((DayOfYear - ActualSpringStart) / 10 * (Equator - latitude), Seasons.Winter);
             }
-
             return result;
         }
 
@@ -842,22 +951,22 @@ namespace DaggerfallWorkshop.Utility
 
         private Seasons GetSeasonValue(bool modifiedSeason = false)
         {
-            if (DayOfYear < 0 || DayOfYear >= DaysPerYear)
+            if (DayOfYear < 0 || DayOfYear >= CurrentYearLength)
                 RaiseTime(0);
 
             // {Daggerfall seems to roll over seasons part way through final month.}
             // {Using clean month boundaries here for simplicity.}
             // {Could use DayOfYear ranges instead to be more accurate.}
             // PrjectN: obsolete, now actually using DayOfYear, plus season start/end date changes based on latitude and altitude:
-            // Standard length seasons (halfway between tropic and arctic): y == 2000, hottest latitude (Nirn equator): y == 4700,
+            // Standard length seasons (halfway between tropic and arctic): y == 2000, hottest latitude (Nirn equator): y == 4800,
             // "Tropic of Cancer" (Tropic of Mage?): y == 3450, "Tropic of Capricorn" (Tropic of Tower?): y == 5950,
             // "Arctic Circle": y == 550 (this last one was determined mathematically, it could need some adjustment).
 
             int month, day;
-            int winterStart = WinterStart;
-            int springStart = SpringStart;
-            int summerStart = SummerStart;
-            int fallStart = FallStart;
+            int winterStart = ActualWinterStart;
+            int springStart = ActualSpringStart;
+            int summerStart = ActualSummerStart;
+            int fallStart = ActualFallStart;
             bool borealHemisphere = true;
             int latitude;
             int altitude;
@@ -873,10 +982,10 @@ namespace DaggerfallWorkshop.Utility
                 {
                     latitude = Equator - (position.Y - Equator);
                     borealHemisphere = false;
-                    winterStart = SummerStart;
-                    springStart = FallStart;
-                    summerStart = WinterStart;
-                    fallStart = SpringStart;
+                    winterStart = ActualSummerStart;
+                    springStart = ActualFallStart;
+                    summerStart = ActualWinterStart;
+                    fallStart = ActualSpringStart;
                 }
 
                 if (latitude > UpperTropic && latitude <= Equator)
@@ -918,12 +1027,12 @@ namespace DaggerfallWorkshop.Utility
                     if (borealHemisphere)
                     {
                         if (springStartCorr > summerStartCorr) springStartCorr = summerStartCorr;
-                        if (fallStartCorr > springStartCorr && fallStart > DaysPerYear) fallStartCorr = springStartCorr;
-                        if (winterStartCorr > springStartCorr && winterStart > DaysPerYear) winterStartCorr = springStartCorr;
+                        if (fallStartCorr > springStartCorr && fallStart > CurrentYearLength) fallStartCorr = springStartCorr;
+                        if (winterStartCorr > springStartCorr && winterStart > CurrentYearLength) winterStartCorr = springStartCorr;
                     }
                     else
                     {
-                        if (springStartCorr > summerStartCorr && summerStart > DaysPerYear) springStartCorr = summerStartCorr;
+                        if (springStartCorr > summerStartCorr && summerStart > CurrentYearLength) springStartCorr = summerStartCorr;
                         if (fallStartCorr > springStartCorr) fallStartCorr = springStartCorr;
                         if (winterStartCorr > springStartCorr) winterStartCorr = springStartCorr;
                     }
@@ -984,7 +1093,7 @@ namespace DaggerfallWorkshop.Utility
                     else
                     {
                         seasonIndex = 3;
-                        seasonLength = (DaysPerYear - seasonOrder[3].Item2) + (seasonOrder[1].Item1 - 1);
+                        seasonLength = (CurrentYearLength - seasonOrder[3].Item2) + (seasonOrder[1].Item1 - 1);
                         if (DayOfYear >= seasonOrder[seasonIndex].Item2 && DayOfYear < (seasonOrder[seasonIndex].Item2 + (seasonLength / 3)))
                             return (Seasons)(seasonOrder[seasonIndex].Item1 * 100);
                         if (DayOfYear >= (seasonOrder[seasonIndex].Item2 + (seasonLength / 3)) &&
@@ -1005,8 +1114,8 @@ namespace DaggerfallWorkshop.Utility
                     else
                     {
                         if (fallStartCorr > winterStartCorr) fallStartCorr = winterStartCorr;
-                        if (summerStartCorr > fallStartCorr && summerStart > DaysPerYear) summerStartCorr = fallStartCorr;
-                        if (springStartCorr > summerStartCorr && summerStart < DaysPerYear) springStartCorr = summerStartCorr;
+                        if (summerStartCorr > fallStartCorr && summerStart > CurrentYearLength) summerStartCorr = fallStartCorr;
+                        if (springStartCorr > summerStartCorr && summerStart < CurrentYearLength) springStartCorr = summerStartCorr;
                     }
                     // Debug.Log("Phase2 - totalDiffFactor: " + totalDiffFactor + ", springStartCorr: " + springStartCorr + ", summerStartCorr: " + summerStartCorr + ", fallStartCorr: " + fallStartCorr + ", winterStartCorr: " + winterStartCorr) ;
 
@@ -1065,7 +1174,7 @@ namespace DaggerfallWorkshop.Utility
                     else
                     {
                         seasonIndex = 3;
-                        seasonLength = (DaysPerYear - seasonOrder[3].Item2) + (seasonOrder[1].Item1 - 1);
+                        seasonLength = (CurrentYearLength - seasonOrder[3].Item2) + (seasonOrder[1].Item1 - 1);
                         if (DayOfYear >= seasonOrder[seasonIndex].Item2 && DayOfYear < (seasonOrder[seasonIndex].Item2 + (seasonLength / 3)))
                             return (Seasons)(seasonOrder[seasonIndex].Item1 * 100);
                         if (DayOfYear >= (seasonOrder[seasonIndex].Item2 + (seasonLength / 3)) &&
@@ -1114,10 +1223,10 @@ namespace DaggerfallWorkshop.Utility
 
         private int CorrectDayOfYear(int dayOfYear)
         {
-            if (dayOfYear > DaysPerYear)
-                dayOfYear -= DaysPerYear;
+            if (dayOfYear > CurrentYearLength)
+                dayOfYear -= CurrentYearLength;
             if (dayOfYear < 0)
-                dayOfYear += DaysPerYear;
+                dayOfYear += CurrentYearLength;
             return dayOfYear;
         }
 
@@ -1144,7 +1253,11 @@ namespace DaggerfallWorkshop.Utility
         private int GetDayOfYear()
         {
             RaiseTime(0);
-            return (Month * DaysPerMonth) + (Day + 1);
+            int daySum = 0;
+            if (CheckIfLeapYear(Year) && Month > 1) daySum++;
+            for (int i = 0; i < Month; i++)
+                daySum += MonthLength[i];
+            return daySum + Day + 1;
         }
 
         private int GetMonthOfYear()
@@ -1153,10 +1266,72 @@ namespace DaggerfallWorkshop.Utility
             return Month + 1;
         }
 
+        private bool CheckIfLeapYear(int year)
+        {
+            RaiseTime(0);
+            if (year % 400 == 0) return true;
+            if (year % 100 == 0) return false;
+            if (year % 4 == 0) return true;
+            return false;
+        }
+
+        private int ModifySeasonStartForLeapYear(Seasons season)
+        {
+            RaiseTime(0);
+            bool isLeapYear = CheckIfLeapYear(Year);
+            switch (season)
+            {
+                case Seasons.Spring:
+                    return isLeapYear ? SpringStart + 1 : SpringStart;
+                case Seasons.Summer:
+                    return isLeapYear ? SummerStart + 1 : SummerStart;
+                case Seasons.Fall:
+                    return isLeapYear ? FallStart + 1 : FallStart;
+                case Seasons.Winter:
+                    return isLeapYear ? WinterStart + 1 : WinterStart;
+                default:
+                    return -1;                
+            }
+        }
+
+        private int CalculateYearLength(int year)
+        {
+            return CheckIfLeapYear(year) ? 366 : 365;
+        }
+
+        private int CalculateMonthLength(int month)
+        {
+            if (month != 1)
+                return MonthLength[month];
+            else return CheckIfLeapYear(Year) ? DaysPerMonthLeap : DaysPerMonthMid;
+        }
+
+        private ulong CalculateDaysSinceYearZero()
+        {
+            ulong dayCount = daysSinceYear0;
+            for (int i = 405; i < Year; i++)
+                dayCount += (ulong)CalculateYearLength(i);
+            for (int j = 0; j < Month; j++)
+                dayCount += (ulong)CalculateMonthLength(j);
+            
+            return dayCount + (ulong)Day;
+        }
+
+        private ulong CalculateDaysSinceYearZero(DaggerfallDateTime date)
+        {
+            ulong dayCount = daysSinceYear0;
+            for (int i = 405; i < date.Year; i++)
+                dayCount += (ulong)CalculateYearLength(i);
+            for (int j = 0; j < date.Month; j++)
+                dayCount += (ulong)CalculateMonthLength(j);
+            
+            return dayCount + (ulong)date.Day;
+        }
+
         private string GetSuffix(int day)
         {
             string suffix = "th";
-            if (day == 1 || day == 21)
+            if (day == 1 || day == 21 || day == 31)
                 suffix = "st";
             else if (day == 2 || day == 22)
                 suffix = "nd";
@@ -1182,7 +1357,7 @@ namespace DaggerfallWorkshop.Utility
             int offset = (isMasser) ? 3 : -1;
 
             // Find the lunar phase for current day
-            int moonRatio = (DayOfYear + Year * MonthsPerYear * DaysPerMonth + offset) % 32;
+            int moonRatio = (DayOfYear + Year * MonthsPerYear * DaysPerMonthMid + offset) % 32;
             LunarPhases phase = LunarPhases.None;
             if (moonRatio == 0)
                 phase = LunarPhases.Full;

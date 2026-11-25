@@ -262,6 +262,7 @@ namespace DaggerfallWorkshop
                     else
                     {
                         System.Array enumArray = itemHelper.GetEnumArray(itemGroup);
+                        Debug.Log("enumArray.Length: " + enumArray.Length + " for itemGroup " + itemGroup);
                         for (int j = 0; j < enumArray.Length; ++j)
                         {
                             ItemTemplate itemTemplate = itemHelper.GetItemTemplate(itemGroup, j);
@@ -271,7 +272,7 @@ namespace DaggerfallWorkshop
                                 if (Dice100.SuccessRoll(stockChance))
                                 {
                                     if (itemGroup == ItemGroups.Weapons)
-                                        item = ItemBuilder.CreateWeapon(GetCorrectWeaponIndex(j, Weapons.Dagger), FormulaHelper.RandomMaterial(luck, levelModifier));
+                                        item = ItemBuilder.CreateWeapon((Weapons)enumArray.GetValue(j), FormulaHelper.RandomMaterial(luck, levelModifier));
                                     else if (itemGroup == ItemGroups.Armor)
                                     {
                                         Armor armor = GetCorrectArmorIndex(j, Armor.Cuirass);
@@ -280,16 +281,17 @@ namespace DaggerfallWorkshop
                                     else if (itemGroup == ItemGroups.MensClothing)
                                     {
                                         int correctInd = 0;
-                                        if ((j + (int)MensClothing.Straps) > (int)MensClothing.Champion_straps) correctInd = 138;
+                                        if ((j + (int)MensClothing.Straps) > 186) correctInd = 240;
+                                        else if ((j + (int)MensClothing.Straps) > (int)MensClothing.Champion_straps) correctInd = 138;
                                         item = ItemBuilder.CreateMensClothing((MensClothing)(j + correctInd + (int)MensClothing.Straps), playerEntity.Race, buildingData.quality);
-                                        item.dyeColor = ItemBuilder.RandomClothingDye();
+                                        // item.dyeColor = ItemBuilder.RandomClothingDye();
                                     }
                                     else if (itemGroup == ItemGroups.WomensClothing)
                                     {
                                         int correctInd = 0;
                                         if ((j + (int)WomensClothing.Brassier) > (int)WomensClothing.Vest) correctInd = 99;
                                         item = ItemBuilder.CreateWomensClothing((WomensClothing)(j + correctInd + (int)WomensClothing.Brassier), playerEntity.Race, buildingData.quality);
-                                        item.dyeColor = ItemBuilder.RandomClothingDye();
+                                        // item.dyeColor = ItemBuilder.RandomClothingDye();
                                     }
                                     else if (itemGroup == ItemGroups.MagicItems)
                                     {
@@ -321,6 +323,7 @@ namespace DaggerfallWorkshop
                                         item.currentCondition = (int)(item.maxCondition * conditionMod);
                                     }
 
+                                    Debug.Log("Adding item with template index of " + item.TemplateIndex + " and group " + itemGroup);
                                     items.AddItem(item);
                                 }
                             }

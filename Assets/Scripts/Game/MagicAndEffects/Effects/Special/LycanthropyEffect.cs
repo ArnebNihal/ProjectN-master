@@ -39,7 +39,9 @@ namespace DaggerfallWorkshop.Game.MagicAndEffects.MagicEffects
         const int paperDollHeight = 184;
         const int needToKillHealthLimitMinimum = 4;
         const int needToKillNotifySeconds = 120;
-        const int needToKillPeriod = DaggerfallDateTime.MinutesPerDay * DaggerfallDateTime.DaysPerMonth;
+
+        // Shortening the needToKillPeriod to 4 weeks, I think it makes more sense since it should be based on lunar month rather than solar month
+        const int needToKillPeriod = DaggerfallDateTime.MinutesPerDay * DaggerfallDateTime.DaysPerWeek * 4;
         const float needToKillHealthLossPerMinute = 24.0f / DaggerfallDateTime.MinutesPerDay;
 
         RaceTemplate compoundRace;

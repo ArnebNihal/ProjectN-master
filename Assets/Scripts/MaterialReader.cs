@@ -946,7 +946,7 @@ namespace DaggerfallWorkshop
                     material.SetColor(Uniforms.EmissionColor, CustomWindowColor * CustomWindowIntensity);
                     break;
                 case WindowStyle.Disabled:
-                    material.SetColor(Uniforms.EmissionColor, Color.black);
+                    material.SetColor(Uniforms.EmissionColor, Color.clear);
                     break;
             }
         }

@@ -213,7 +213,7 @@ namespace DaggerfallWorkshop.Game.UserInterface
                 PlayerEnterExit playerEnterExit = GameManager.Instance.PlayerEnterExit;
                 DFPosition position = playerGPS.CurrentMapPixel;
                 int region = PoliticData.GetPoliticValue(position.X, position.Y);
-                if (region < 0 || region >= MapsFile.TempRegionCount || region >= regionBackgroundIdxChars.Length)
+                if (region < 0 || region >= WorldData.WorldSetting.RegionNames.Length || region >= regionBackgroundIdxChars.Length)
                     return entity.RaceTemplate.PaperDollBackground;
 
                 // Set background based on location.

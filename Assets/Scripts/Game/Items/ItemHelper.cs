@@ -28,6 +28,7 @@ using DaggerfallWorkshop.Utility.AssetInjection;
 using DaggerfallWorkshop.Game.Utility;
 using DaggerfallWorkshop.Game.Formulas;
 using DaggerfallConnect.Utility;
+using System.IO;
 
 namespace DaggerfallWorkshop.Game.Items
 {
@@ -191,6 +192,7 @@ namespace DaggerfallWorkshop.Game.Items
             }
 
             int templateIndex = Convert.ToInt32(values.GetValue(groupIndex));
+            Debug.Log("Working on ItemGroups " + itemGroup + ", groupIndex: " + groupIndex + ", templateIndex: " + templateIndex + ", itemTemplates.Count: " + itemTemplates.Count);
 
             return itemTemplates[templateIndex];
         }
@@ -247,6 +249,7 @@ namespace DaggerfallWorkshop.Game.Items
             for (int i = 0; i < values.Length; i++)
             {
                 int checkTemplateIndex = Convert.ToInt32(values.GetValue(i));
+                Debug.Log("i = " + i + ", checkTemplateIndex = " + checkTemplateIndex + ", templateIndex = " + templateIndex);
                 if (checkTemplateIndex == templateIndex)
                     return i;
             }
@@ -277,6 +280,8 @@ namespace DaggerfallWorkshop.Game.Items
             // Handling of town maps and location maps
             if (item.ItemGroup == ItemGroups.Maps && (item.TemplateIndex == (int)Maps.Map || item.TemplateIndex == (int)Maps.TownMap))
                 return item.shortName;
+
+            Debug.Log("TemplateIndex: " + item.TemplateIndex);
 
             // Start with base name
             string result = item.shortName;
@@ -345,7 +350,7 @@ namespace DaggerfallWorkshop.Game.Items
                         TextFile.Token[] tokens = msg.GetTextTokens();
                         string signoff = "";
                         int lines = 0;
-                        for (int i = tokens.Length-1; i >= 0; i--)
+                        for (int i = tokens.Length - 1; i >= 0; i--)
                         {
                             TextFile.Token token = tokens[i];
                             if (!string.IsNullOrEmpty(token.text))
@@ -432,11 +437,15 @@ namespace DaggerfallWorkshop.Game.Items
             // Get colour
             int color = (int)item.dyeColor;
             int[] additionalColors = new int[0];
+            Debug.Log("Working on item " + item.ItemName);
             if (item.additionalColors.Length > 0)
             {
                 additionalColors = new int[item.additionalColors.Length];
                 for (int col = 0; col < item.additionalColors.Length; col++)
+                {
+                    Debug.Log("item.additionalColors[" + col + "]: " + item.additionalColors[col]);
                     additionalColors[col] = (int)item.additionalColors[col];
+                }
             }
 
             // Get archive and record indices
@@ -451,10 +460,10 @@ namespace DaggerfallWorkshop.Game.Items
             }
 
             // Handling corrected boots/sandals
-            if ((item.TemplateIndex == (int)WomensClothing.Boots || 
+            if ((item.TemplateIndex == (int)WomensClothing.Boots ||
                  item.TemplateIndex == (int)WomensClothing.Sandals ||
                  item.TemplateIndex == (int)MensClothing.Boots ||
-                 item.TemplateIndex == (int)MensClothing.Sandals) && 
+                 item.TemplateIndex == (int)MensClothing.Sandals) &&
                  item.CurrentVariant != 0)
                 record++;
 
@@ -463,7 +472,7 @@ namespace DaggerfallWorkshop.Game.Items
                 if (item.CurrentVariant == 0) record = 108;
                 else record = 43;
             }
-            
+
 
             // Handling exotic variants of weapons
             if (item.ItemGroup == ItemGroups.Weapons && item.CurrentVariant != 0)
@@ -531,36 +540,55 @@ namespace DaggerfallWorkshop.Game.Items
 
             // Get mask texture where alpha 0 is umasked areas of image and alpha 1 are masked areas of image
             Texture2D maskTexture;
-            // if (archive > 10000)
-            // {
-
-            // }
-            // else 
-            if (!TextureReplacement.TryImportCustomTexture(archive, record, 0, item.dyeColor, TextureMap.Mask, out maskTexture) &&
-                !IsNewWeapon(item))
+            if (archive >= 20200 && archive <= 20215)
             {
-                Debug.Log("archive: " + archive);
-                ImageReader.UpdateMaskTexture(ref data);
+                
+                if (TextureReplacement.TryImportCustomTexture(archive, record, 0, item.dyeColor, TextureMap.Mask, out maskTexture, out byte[] bitmapData))
+                // {
+                //     Debug.Log("archive: " + archive + ", bitmapData.Length: " + bitmapData.Length);
+                //     data.dfBitmap = new DFBitmap(data.width, data.height);
+                //     data.dfBitmap.Data = bitmapData;
+                //     ImageReader.UpdateMaskTexture(ref data);
+                // }
+                // else
+                    data.maskTexture = maskTexture;
             }
-            else
+            else if(TextureReplacement.TryImportTexture(archive, record, 0, item.dyeColor, TextureMap.Mask, out maskTexture))
                 data.maskTexture = maskTexture;
 
             Texture2D tex;
-            if (TextureReplacement.TryImportCustomTexture(archive, record, 0, item.dyeColor, TextureMap.Albedo, out tex))
+            if (TextureReplacement.TryImportCustomTexture(archive, record, 0, item.dyeColor, TextureMap.Albedo, out tex, out byte[] dfBitmap))
             {
                 // Assign imported texture
+                if (archive >= 20200 && archive <= 20215)
+                    data.dfBitmap = new DFBitmap(tex.width, tex.height);
+                    data.dfBitmap.Data = dfBitmap;
+
                 data.texture = tex;
                 if (removeMask)
                     data.dfBitmap = ImageProcessing.ChangeMask(data.dfBitmap);
-                // ItemGroups group = item.ItemGroup;
-                // DyeColors dye = (DyeColors)color;
-                // Debug.Log("item: " + item.LongName);
-                // if (group == ItemGroups.Weapons || group == ItemGroups.Armor)
-                //     data = ChangeDye(data, dye, DyeTargets.WeaponsAndArmor);
-                // else if (item.ItemGroup == ItemGroups.MensClothing || item.ItemGroup == ItemGroups.WomensClothing)
-                //     data = ChangeDye(data, dye, DyeTargets.Clothing);
+                ItemGroups group = item.ItemGroup;
+                DyeColors dye = (DyeColors)color;
+                Debug.Log("CustomTexture -> item: " + item.LongName + ", new weapon: " + IsNewWeapon(item));
+                if (IsYellowHelm(item))
+                    data = ChangeDye(data, dye, DyeTargets.YellowClothing);
+                else if ((group == ItemGroups.Weapons || group == ItemGroups.Armor) && !IsNewWeapon(item))
+                    data = ChangeDye(data, dye, DyeTargets.WeaponsAndArmor);
+                else if (item.ItemGroup == ItemGroups.MensClothing || item.ItemGroup == ItemGroups.WomensClothing)
+                {
+                    for (int round = 0; round < item.dyeLevel; round++)
+                    {
+                        Debug.Log(item.ItemName + " dyeLevel: " + item.dyeLevel + ", dye: " + dye);
+                        if (round != 0) dye = (DyeColors)additionalColors[round - 1];
+                        data = ChangeDye(data, dye, item.dyeTargets[round], true);
+                    }
+                }
+                // else if (IsNewWeapon(item))
+                // {
+                //     ImageReader.UpdateTexture(ref data, true);
+                // }
                 // else
-                //     ImageReader.UpdateTexture(ref data);
+                //     ImageReader.UpdateTexture(ref data, true);
             }
             else
             {
@@ -571,7 +599,7 @@ namespace DaggerfallWorkshop.Game.Items
                 // Change dye or just update texture
                 ItemGroups group = item.ItemGroup;
                 DyeColors dye = (DyeColors)color;
-                Debug.Log("item: " + item.LongName + ", new weapon: " + IsNewWeapon(item));
+                Debug.Log("NormalTexture -> item: " + item.LongName + ", new weapon: " + IsNewWeapon(item));
                 if (IsYellowHelm(item))
                     data = ChangeDye(data, dye, DyeTargets.YellowClothing);
                 else if ((group == ItemGroups.Weapons || group == ItemGroups.Armor) && !IsNewWeapon(item))
@@ -584,10 +612,10 @@ namespace DaggerfallWorkshop.Game.Items
                         data = ChangeDye(data, dye, item.dyeTargets[round]);
                     }
                 }
-                else if (IsNewWeapon(item))
-                {
-                    ImageReader.UpdateTexture(ref data, true);
-                }
+                // else if (IsNewWeapon(item))
+                // {
+                //     ImageReader.UpdateTexture(ref data, true);
+                // }
                 else
                     ImageReader.UpdateTexture(ref data);
             }
@@ -728,7 +756,7 @@ namespace DaggerfallWorkshop.Game.Items
             DFRegion region = WorldMaps.ConvertWorldMapsToDFRegion(tile, true);
             DFPosition locPos = MapsFile.GetPixelFromPixelID(region.MapTable[location].MapId);
 
-            switch(map.TemplateIndex)
+            switch (map.TemplateIndex)
             {
                 case 287:
                 case 303:
@@ -785,16 +813,16 @@ namespace DaggerfallWorkshop.Game.Items
                 throw new Exception("GetCloakBackImage() could not load image data.");
 
             Texture2D tex;
-            if (TextureReplacement.TryImportTexture(archive, record, 0, item.dyeColor, TextureMap.Albedo, out tex))
-            {
-                // Assign imported texture
-                data.texture = tex;
-            }
-            else
-            {
-                // Change dye
-                data = ChangeDye(data, (DyeColors)color, DyeTargets.BasicClothing);
-            }    
+            // if (TextureReplacement.TryImportTexture(archive, record, 0, item.dyeColor, TextureMap.Albedo, out tex))
+            // {
+            //     // Assign imported texture
+            //     data.texture = tex;
+            // }
+            // else
+            // {
+            // Change dye
+            data = ChangeDye(data, (DyeColors)color, DyeTargets.BasicClothing);
+            // }    
 
             return data;
         }
@@ -997,11 +1025,12 @@ namespace DaggerfallWorkshop.Game.Items
                         return WeaponTypes.None;
                 }
             }
-            else{   // Handle exotic variants
+            else
+            {   // Handle exotic variants
                 result = (WeaponTypes)((item.TemplateIndex * 2) - (104 * 2));
                 if (item.TemplateIndex == (int)Weapons.Crossbow)
                     result = WeaponTypes.CrossbowExotic;
-            }            
+            }
 
             // Handle enchanted weapons
             if (item.IsEnchanted)
@@ -1091,7 +1120,7 @@ namespace DaggerfallWorkshop.Game.Items
                     case MaterialTypes.Dwarven:
                         return MetalTypes.Dwarven;
                     case MaterialTypes.Orcish:
-                        return MetalTypes.Orcish;                    
+                        return MetalTypes.Orcish;
                     case MaterialTypes.Mithril:
                         return MetalTypes.Mithril;
                     case MaterialTypes.Adamantium:
@@ -1960,10 +1989,10 @@ namespace DaggerfallWorkshop.Game.Items
 
         static bool IsFighter(MobileTypes mob)
         {
-            return mob == MobileTypes.Knight || 
-                   mob == MobileTypes.Warrior || 
-                   mob == MobileTypes.KnightRider || 
-                   mob == MobileTypes.RoyalKnight || 
+            return mob == MobileTypes.Knight ||
+                   mob == MobileTypes.Warrior ||
+                   mob == MobileTypes.KnightRider ||
+                   mob == MobileTypes.RoyalKnight ||
                    mob == MobileTypes.NecroGlaive;
         }
 
@@ -2154,9 +2183,15 @@ namespace DaggerfallWorkshop.Game.Items
         /// <summary>
         /// Assigns a new Texture2D based on dye colour.
         /// </summary>
-        public ImageData ChangeDye(ImageData imageData, DyeColors dye, DyeTargets target)
+        public ImageData ChangeDye(ImageData imageData, DyeColors dye, DyeTargets target, bool isCustomTexture = false)
         {
-            imageData.dfBitmap = ImageProcessing.ChangeDye(imageData.dfBitmap, dye, target);
+            // if (isCustomTexture)
+            // {
+            //     imageData.dfBitmap = imageData.texture.GetPixels32();
+            // }
+            if (!isCustomTexture)
+                imageData.dfBitmap = ImageProcessing.ChangeDye(imageData.dfBitmap, dye, target);
+            else imageData.dfBitmap = ImageProcessing.CustomChangeDye(imageData.dfBitmap, dye, target);
             ImageReader.UpdateTexture(ref imageData);
 
             return imageData;

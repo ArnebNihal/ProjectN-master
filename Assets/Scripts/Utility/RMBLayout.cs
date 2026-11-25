@@ -18,6 +18,7 @@ using DaggerfallWorkshop.Utility.AssetInjection;
 using DaggerfallWorkshop.Game;
 using System.Linq;
 using DaggerfallWorkshop.Game.Questing;
+using DaggerfallWorkshop.Game.Formulas;
 
 namespace DaggerfallWorkshop.Utility
 {
@@ -434,7 +435,8 @@ namespace DaggerfallWorkshop.Utility
                     continue;
 
                 (int, int, int, int) flatCategories = GetBillboardParameters(obj.TextureArchive, obj.TextureRecord);
-                swapObj[counter] = ApplyFlags(obj, mapId, locationIndex, flatCategories);
+                swapObj[counter] = ApplyFlags(obj, mapId, locationIndex, flatCategories, randomiseStuff, out bool isPresent);
+                if (!isPresent) continue;
 
                 // Calculate position
                 Vector3 billboardPosition = new Vector3(
@@ -487,27 +489,29 @@ namespace DaggerfallWorkshop.Utility
             return (item1, item2, item3, item4);
         }
 
-        public static DFBlock.RmbBlockFlatObjectRecord ApplyFlags(DFBlock.RmbBlockFlatObjectRecord flat, ulong mapId, int locationIndex, (int, int, int, int) flatParameters)
+        public static DFBlock.RmbBlockFlatObjectRecord ApplyFlags(DFBlock.RmbBlockFlatObjectRecord flat, ulong mapId, int locationIndex, (int, int, int, int) flatParameters, bool randomiseStuff, out bool isPresent)
         {
+            int regionIndex = GameManager.Instance.PlayerGPS.CurrentRegionIndex;
+            isPresent = true;
             switch (flatParameters.Item1)
             {
                 case 0:     // People
-                    return ApplyFlagsToPeople(flat, mapId, locationIndex, flatParameters);
+                    return ApplyFlagsToPeople(flat, flatParameters, regionIndex, mapId, locationIndex, randomiseStuff, out isPresent);
                 case 1:     // Interior
-                    return ApplyFlagsToInterior(flat, flatParameters);
+                    return ApplyFlagsToInterior(flat, flatParameters, regionIndex, mapId, randomiseStuff, out isPresent);
                 case 2:     // Fauna
-                    return ApplyFlagsToFauna(flat, flatParameters);
+                    return ApplyFlagsToFauna(flat, flatParameters, regionIndex, mapId, randomiseStuff, out isPresent);
                 case 3:     // Misc exterior stuff
-                    return ApplyFlagsToExterior(flat, flatParameters);
+                    return ApplyFlagsToExterior(flat, flatParameters, regionIndex, mapId, randomiseStuff, out isPresent);
                 case 4:     // Plants and other stuff
                     switch (flatParameters.Item2)
                     {
                         case 0:
-                            return ApplyFlagsToCrops(flat, mapId, flatParameters);
+                            return ApplyFlagsToCrops(flat, flatParameters, regionIndex, mapId, randomiseStuff, out isPresent);
                         case 1:
                         case 2:
                         case 3:
-                            return ApplyFlagsToFlora(flat, flatParameters);
+                            return ApplyFlagsToFlora(flat, flatParameters, regionIndex, mapId, randomiseStuff, out isPresent);
                         case 4:
                         case 5:
                             // Seasonal crops and trees - to implement
@@ -525,15 +529,39 @@ namespace DaggerfallWorkshop.Utility
             return flat;
         }
 
-        public static DFBlock.RmbBlockFlatObjectRecord ApplyFlagsToPeople(DFBlock.RmbBlockFlatObjectRecord flat, ulong mapId, int locationIndex, (int, int, int, int) flatParameters)
+        public static DFBlock.RmbBlockFlatObjectRecord ApplyFlagsToPeople(DFBlock.RmbBlockFlatObjectRecord flat, (int, int, int, int) flatParameters, int regionIndex, ulong mapId, int locationIndex, bool randomiseStuff, out bool isPresent)
         {
-            Debug.Log("Applying flags to " + flat.TextureArchive + ", " + flat.TextureRecord + ", mapId: " + mapId);
-            bool randomNPC = flat.Flags % 2 > 0;
-            if (!randomNPC) return flat;
-            bool randomRace = (flat.Flags >> 6) % 2 > 0;
+            ProcessFlagValues(
+                flat.Flags, 
+                out bool randomNPC,
+                out bool daytimePres,
+                out bool nighttimePres,
+                out bool rainPres,
+                out bool isFemale,
+                out bool randomPres,
+                out bool randomRace
+            );
             
+            UnityEngine.Random.State oldState = UnityEngine.Random.state;
+            if (!CheckIfPresent(daytimePres, nighttimePres, rainPres, false, randomPres, false, regionIndex, mapId))
+            {
+                isPresent = false;
+                return ConvertTupleBillboardToFlatObject(flat, (0, 0));
+            }
+            isPresent = true;
+            if (randomPres)
+            {
+                randomiseStuff = true;
+                randomNPC = randomRace = true;
+                isFemale = UnityEngine.Random.Range(0, 2) == 0 ? false : true;
+            }
+            UnityEngine.Random.state = oldState;
+
+            if (!randomNPC || !randomiseStuff)
+                return flat;
+
             int races = WorldData.WorldSetting.regionRaces[PoliticData.ConvertMapIdToRegionIndex(mapId)];
-            if (randomRace)            
+            if (randomRace && randomiseStuff)            
             {                
                 int selectedRace = ConvertWorldDataRaceToFlatRace(GetNPCRace(races, PoliticData.GetLocTypeFromMapId(mapId, locationIndex, out byte townAttributes), townAttributes));
                 Debug.Log("flatParameters.Item1: " + flatParameters.Item1 + ", flatParameters.Item2: " + flatParameters.Item2 + "Selected race: " + selectedRace + "original race value: " + races);
@@ -565,26 +593,67 @@ namespace DaggerfallWorkshop.Utility
             }
         }
 
-        public static DFBlock.RmbBlockFlatObjectRecord ApplyFlagsToInterior(DFBlock.RmbBlockFlatObjectRecord flat, (int, int, int, int) flatParameters)
+        // Apply flag values to interior items
+        public static DFBlock.RmbBlockFlatObjectRecord ApplyFlagsToInterior(DFBlock.RmbBlockFlatObjectRecord flat, (int, int, int, int) flatParameters, int regionIndex, ulong mapId, bool randomiseStuff, out bool isPresent)
         {
-            bool randomItem = flat.Flags % 2 > 0;
-            if (!randomItem) return flat;
+            ProcessFlagValues(
+                flat.Flags, 
+                out bool randomItem,
+                out bool daytimePres,
+                out bool nighttimePres,
+                out bool rainPres,
+                out bool holidayOnly,
+                out bool randomPres,
+                out bool uncommonFreq
+            );
+
+            UnityEngine.Random.State oldState = UnityEngine.Random.state;
+            if (!CheckIfPresent(daytimePres, nighttimePres, rainPres, holidayOnly, randomPres, uncommonFreq, regionIndex, mapId))
+            {
+                isPresent = false;
+                return ConvertTupleBillboardToFlatObject(flat, (0, 0));
+            }
+            isPresent = true;
+            UnityEngine.Random.state = oldState;
+
+            if (!randomItem || !randomiseStuff) return flat;            
             return ConvertTupleBillboardToFlatObject(flat, GameObjectHelper.billboardType[flatParameters.Item1][flatParameters.Item2][flatParameters.Item3][UnityEngine.Random.Range(0, GameObjectHelper.billboardType[flatParameters.Item1][flatParameters.Item2][flatParameters.Item3].Length)]);
         }
 
-        public static DFBlock.RmbBlockFlatObjectRecord ApplyFlagsToFauna(DFBlock.RmbBlockFlatObjectRecord flat, (int, int, int, int) flatParameters)
+        public static DFBlock.RmbBlockFlatObjectRecord ApplyFlagsToFauna(DFBlock.RmbBlockFlatObjectRecord flat, (int, int, int, int) flatParameters, int regionIndex, ulong mapId, bool randomiseStuff, out bool isPresent)
         {
-            bool randomFauna = flat.Flags % 2 > 0;
-            if (!randomFauna) return flat;
-            bool randomType = (flat.Flags >> 4) % 2 > 0;
+            ProcessFlagValues(
+                flat.Flags, 
+                out bool randomFauna,
+                out bool daytimePres,
+                out bool nighttimePres,
+                out bool rainPres,
+                out bool randomType,
+                out bool randomPres,
+                out bool uselessValue
+            );
+            
             int region = flatParameters.Item2;
             int faunaType = flatParameters.Item3;
+
+            UnityEngine.Random.State oldState = UnityEngine.Random.state;
+            if (!CheckIfPresent(daytimePres, nighttimePres, rainPres, false, randomPres, false, regionIndex, mapId))
+            {
+                isPresent = false;
+                return ConvertTupleBillboardToFlatObject(flat, (0, 0));
+            }
+            isPresent = true;
+            UnityEngine.Random.state = oldState;
+
+            if (!randomFauna || !randomiseStuff)
+                return flat;
+
             FlatCategories.IndexStartType startType = GetFaunaType(flatParameters.Item2, flatParameters.Item3, out bool petAndLiveStock);
             if (randomType)
             {
                 if (startType != FlatCategories.IndexStartType.NotToRandomise)
                 {
-                    region = GetRegionFaunaType(out bool peculiarRegion);
+                    region = GetRegionFaunaType(regionIndex, out bool peculiarRegion);
                     faunaType = PickFaunaType(region, startType, petAndLiveStock, peculiarRegion);
                 }
             }
@@ -597,12 +666,55 @@ namespace DaggerfallWorkshop.Utility
             return ConvertTupleBillboardToFlatObject(flat, GameObjectHelper.billboardType[flatParameters.Item1][region][faunaType][UnityEngine.Random.Range(0, GameObjectHelper.billboardType[flatParameters.Item1][region][faunaType].Length)]);
         }
 
-        public static int GetRegionFaunaType(out bool peculiarRegion)
+        public static void ProcessFlagValues(byte flag, out bool byte0, out bool byte1, out bool byte2, out bool byte3, out bool byte4, out bool byte5, out bool byte6)
         {
-            peculiarRegion = FlatCategories.regionsWithPeculiarStuff.Contains(GameManager.Instance.PlayerGPS.CurrentRegionIndex);
+            byte0 = flag % 2 > 0;
+            byte1 = (flag >> 1) % 2 > 0;
+            byte2 = (flag >> 2) % 2 > 0;
+            byte3 = (flag >> 3) % 2 > 0;
+            byte4 = (flag >> 4) % 2 > 0;
+            byte5 = (flag >> 5) % 2 > 0;
+            byte6 = (flag >> 6) % 2 > 0;
+        }
+
+        public static bool CheckIfPresent(bool daytimePres, bool nighttimePres, bool rainPres, bool holidayOnly, bool randomPres, bool uncommonFreq, int regionIndex, ulong mapId, bool isInterior = false)
+        {
+            DaggerfallDateTime dateTime = DaggerfallUnity.Instance.WorldTime.DaggerfallDateTime;
+            WeatherManager weather = GameManager.Instance.WeatherManager;
+
+            if (isInterior)
+            {
+                if (!daytimePres && (dateTime.MinuteOfDay >= dateTime.ActivityStart - 30  &&
+                                     dateTime.MinuteOfDay < dateTime.ActivityEnd + 30))
+                    return false;
+                if (nighttimePres && (dateTime.MinuteOfDay < dateTime.ActivityStart - 30 ||
+                                      dateTime.MinuteOfDay >= dateTime.ActivityEnd + 30))
+                    return false;
+            }
+            if (!isInterior)
+            {
+                if (!daytimePres && dateTime.SettlementIsActive) return false;
+                if (!nighttimePres && !dateTime.SettlementIsActive) return false;
+            }
+            
+            if (!rainPres && (weather.IsRaining || weather.IsSnowing)) return false;
+            if (holidayOnly && FormulaHelper.GetHolidayId(dateTime.ToClassicDaggerfallTime(), regionIndex) == 0) return false;
+
+            UnityEngine.Random.InitState(dateTime.DayOfYear + (int)mapId);
+            if (randomPres)
+            {
+                int randomChance = UnityEngine.Random.Range(1, 101);
+                if ((uncommonFreq && randomChance > 50) || (!uncommonFreq && randomChance > 75)) return false;
+            }
+            return true;
+        }
+
+        public static int GetRegionFaunaType(int regionIndex, out bool peculiarRegion)
+        {
+            peculiarRegion = FlatCategories.regionsWithPeculiarStuff.Contains(regionIndex);
             for (int i = 0; i < Enum.GetNames(typeof(ProvinceNames)).Length; i++)
             {
-                if (WorldData.WorldSetting.regionInProvince[i].Contains(GameManager.Instance.PlayerGPS.CurrentRegionIndex))
+                if (WorldData.WorldSetting.regionInProvince[i].Contains(regionIndex))
                     return i - 1;
             }
             return -1;            
@@ -631,7 +743,7 @@ namespace DaggerfallWorkshop.Utility
             return startType;
         }
 
-        // Randomise or pick the fauna type to utilie based on fauna categories
+        // Randomise or pick the fauna type to utilise based on fauna categories
         public static int PickFaunaType(int region, FlatCategories.IndexStartType faunaType, bool petAndLiveStock = false, bool peculiarRegion = false)
         {
             bool isPickable = peculiarRegion && FlatCategories.regionalStartEnd[region][(int)faunaType].Item1 > -1;
@@ -675,36 +787,94 @@ namespace DaggerfallWorkshop.Utility
             }
         }
 
-        public static DFBlock.RmbBlockFlatObjectRecord ApplyFlagsToExterior(DFBlock.RmbBlockFlatObjectRecord flat, (int, int, int, int) flatParameters)
+        public static DFBlock.RmbBlockFlatObjectRecord ApplyFlagsToExterior(DFBlock.RmbBlockFlatObjectRecord flat, (int, int, int, int) flatParameters, int regionIndex, ulong mapId, bool randomiseStuff, out bool isPresent)
         {
-            bool randomExterior = flat.Flags % 2 > 0;
-            if (!randomExterior)
-                return flat;
+            ProcessFlagValues(
+                flat.Flags, 
+                out bool randomExterior,
+                out bool daytimePres,
+                out bool nighttimePres,
+                out bool rainPres,
+                out bool holidayOnly,
+                out bool randomPres,
+                out bool uncommonFreq
+            );
+
+            UnityEngine.Random.State oldState = UnityEngine.Random.state;
+            if (!CheckIfPresent(daytimePres, nighttimePres, rainPres, holidayOnly, randomPres, uncommonFreq, regionIndex, mapId))
+            {
+                isPresent = false;
+                return ConvertTupleBillboardToFlatObject(flat, (0, 0));
+            }
+            isPresent = true;
+            UnityEngine.Random.state = oldState;
+
+            if (!randomExterior || randomiseStuff) return flat;
             return ConvertTupleBillboardToFlatObject(flat, GameObjectHelper.billboardType[flatParameters.Item1][flatParameters.Item2][flatParameters.Item3][UnityEngine.Random.Range(0, GameObjectHelper.billboardType[flatParameters.Item1][flatParameters.Item2][flatParameters.Item3].Length)]);
         }
 
-        public static DFBlock.RmbBlockFlatObjectRecord ApplyFlagsToCrops(DFBlock.RmbBlockFlatObjectRecord flat, ulong mapId, (int, int, int, int) flatParameters)
+        public static DFBlock.RmbBlockFlatObjectRecord ApplyFlagsToCrops(DFBlock.RmbBlockFlatObjectRecord flat, (int, int, int, int) flatParameters, int regionIndex, ulong mapId, bool randomiseStuff, out bool isPresent)
         {
-            bool randomCrop = flat.Flags % 2 > 0;
-            if (!randomCrop)
+            ProcessFlagValues(
+                flat.Flags, 
+                out bool randomCrop,
+                out bool daytimePres,
+                out bool nighttimePres,
+                out bool rainPres,
+                out bool uselessValue0,
+                out bool randomPres,
+                out bool uselessValue1
+            );
+
+            UnityEngine.Random.State oldState = UnityEngine.Random.state;
+            if (!CheckIfPresent(daytimePres, nighttimePres, rainPres, false, randomPres, false, regionIndex, mapId))
+            {
+                isPresent = false;
+                return ConvertTupleBillboardToFlatObject(flat, (0, 0));
+            }
+            isPresent = true;
+            UnityEngine.Random.state = oldState;
+            
+            if (!randomCrop || !randomiseStuff)
             {
                 return ConvertTupleBillboardToFlatObject(flat, GameObjectHelper.billboardType[flatParameters.Item1][flatParameters.Item2][flatParameters.Item3][UnityEngine.Random.Range(0, GameObjectHelper.billboardType[flatParameters.Item1][flatParameters.Item2][flatParameters.Item3].Length)]);
             }
+
             // Re-initialising the seed should make all the crops of the same type to change to different types, but still being homogeneous. Test required.
             UnityEngine.Random.InitState(Convert.ToInt32(mapId + (ulong)flat.TextureRecord));
             int randomType = UnityEngine.Random.Range(0, GameObjectHelper.billboardType[flatParameters.Item1][flatParameters.Item2].Length);
             return ConvertTupleBillboardToFlatObject(flat, GameObjectHelper.billboardType[flatParameters.Item1][flatParameters.Item2][randomType][UnityEngine.Random.Range(0, GameObjectHelper.billboardType[flatParameters.Item1][flatParameters.Item2][randomType].Length)]);
         }
 
-        public static DFBlock.RmbBlockFlatObjectRecord ApplyFlagsToFlora(DFBlock.RmbBlockFlatObjectRecord flat, (int, int, int, int) flatParameters)
+        public static DFBlock.RmbBlockFlatObjectRecord ApplyFlagsToFlora(DFBlock.RmbBlockFlatObjectRecord flat, (int, int, int, int) flatParameters, int regionIndex, ulong mapId, bool randomiseStuff, out bool isPresent)
         {
-            bool randomFlora = flat.Flags % 2 > 0;
-            if (!randomFlora) return flat;
-            bool randomType = (flat.Flags >> 4) % 2 > 0;
+            ProcessFlagValues(
+                flat.Flags, 
+                out bool randomFlora,
+                out bool daytimePres,
+                out bool nighttimePres,
+                out bool rainPres,
+                out bool randomType,
+                out bool randomPres,
+                out bool uselessValue0
+            );
+            
             int floraType = flatParameters.Item2;
+
+            UnityEngine.Random.State oldState = UnityEngine.Random.state;
+            if (!CheckIfPresent(daytimePres, nighttimePres, rainPres, false, randomPres, false, regionIndex, mapId))
+            {
+                isPresent = false;
+                return ConvertTupleBillboardToFlatObject(flat, (0, 0));
+            }
+            isPresent = true;
+            UnityEngine.Random.state = oldState;
+
+            if (!randomFlora || !randomiseStuff) return flat;
             
             if (randomType)
                 floraType = UnityEngine.Random.Range(1, 4);
+
             return ConvertTupleBillboardToFlatObject(flat, GameObjectHelper.billboardType[flatParameters.Item1][flatParameters.Item2][floraType][UnityEngine.Random.Range(0, GameObjectHelper.billboardType[flatParameters.Item1][flatParameters.Item2][floraType].Length)]);
         }
 
@@ -1168,6 +1338,40 @@ namespace DaggerfallWorkshop.Utility
         /// Checks if building is a tavern.
         /// </summary>
         public static bool IsTavern(DFLocation.BuildingTypes buildingType) => buildingType == DFLocation.BuildingTypes.Tavern;
+
+        public static DFBlock.RmbBlockPeopleRecord ConvertFromFlatObjectToPeople(DFBlock.RmbBlockFlatObjectRecord flatPeople)
+        {
+            DFBlock.RmbBlockPeopleRecord converted = new DFBlock.RmbBlockPeopleRecord
+            {
+                Position = flatPeople.Position,
+                XPos = flatPeople.XPos,
+                YPos = flatPeople.YPos,
+                ZPos = flatPeople.ZPos,
+                TextureBitfield = flatPeople.TextureBitfield,
+                TextureArchive = flatPeople.TextureArchive,
+                TextureRecord = flatPeople.TextureRecord,
+                FactionID = flatPeople.FactionID,
+                Flags = flatPeople.Flags
+            };
+            return converted;
+        }
+
+        public static DFBlock.RmbBlockFlatObjectRecord ConvertFromPeopleToFlatObject(DFBlock.RmbBlockPeopleRecord flatPeople)
+        {
+            DFBlock.RmbBlockFlatObjectRecord converted = new DFBlock.RmbBlockFlatObjectRecord
+            {
+                Position = flatPeople.Position,
+                XPos = flatPeople.XPos,
+                YPos = flatPeople.YPos,
+                ZPos = flatPeople.ZPos,
+                TextureBitfield = flatPeople.TextureBitfield,
+                TextureArchive = flatPeople.TextureArchive,
+                TextureRecord = flatPeople.TextureRecord,
+                FactionID = flatPeople.FactionID,
+                Flags = flatPeople.Flags
+            };
+            return converted;
+        }
 
         #endregion
 

@@ -515,9 +515,9 @@ namespace DaggerfallWorkshop.Utility
             {
                 // Set up enemy lists used by classic
                 // DFRandom.srand(GameManager.Instance.PlayerGPS.CurrentLocation.Dungeon.RecordElement.Header.LocationId);
-                // ProjectN: I don't want fixed enemies FOREVER, I'll set the seed to month number, thus every month the
+                // ProjectN: I don't want fixed enemies FOREVER, I'll set the seed to lunar month, thus every month the
                 // monster placement should change.
-                DFRandom.srand(DateTime.Now.Second / DaggerfallDateTime.SecondsPerMonth);
+                DFRandom.srand(DateTime.Now.Second / (DaggerfallDateTime.SecondsPerWeek * 4));
                 MobileTypes[] DungeonWaterEnemiesToPlace = new MobileTypes[256];
                 MobileTypes[] DungeonNonWaterEnemiesToPlace = new MobileTypes[256];
 

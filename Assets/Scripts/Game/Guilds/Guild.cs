@@ -126,7 +126,7 @@ namespace DaggerfallWorkshop.Game.Guilds
 
         public static int CalculateDaySinceZero(DaggerfallDateTime date)
         {
-            return (date.Year * DaggerfallDateTime.DaysPerYear) + date.DayOfYear;
+            return (int)DaggerfallUnity.Instance.WorldTime.DaggerfallDateTime.CalculateSinceYearZero(date);
         }
 
         public abstract TextFile.Token[] TokensPromotion(int newRank);

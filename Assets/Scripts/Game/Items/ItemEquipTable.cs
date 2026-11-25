@@ -470,6 +470,20 @@ namespace DaggerfallWorkshop.Game.Items
         EquipSlots GetMensClothingSlot(DaggerfallUnityItem item)
         {
             ItemTemplate template = item.ItemTemplate;
+            // Managing TA's items, since those are ordered by Archive and are, therefore, easier.
+            if (template.playerTextureArchive == 20200 || template.playerTextureArchive == 20210)
+                return EquipSlots.ChestClothes;
+            if (template.playerTextureArchive == 20201 || template.playerTextureArchive == 20211)
+                return EquipSlots.LegsClothes;
+            if (template.playerTextureArchive == 20202 || template.playerTextureArchive == 20212)
+                return EquipSlots.Feet;
+            if (template.playerTextureArchive == 20203 || template.playerTextureArchive == 20213)
+                return EquipSlots.ShoulderClothes;
+            if (template.playerTextureArchive == 20204 || template.playerTextureArchive == 20214)
+                return EquipSlots.Head;
+            if (template.playerTextureArchive == 20205 || template.playerTextureArchive == 20215)
+                return EquipSlots.Gloves;
+                
             switch ((MensClothing)template.index)
             {
                 case MensClothing.Straps:
@@ -504,6 +518,7 @@ namespace DaggerfallWorkshop.Game.Items
                 case MensClothing.Long_shirt_unchangeable:
                 case MensClothing.Vest:
                 case MensClothing.Champion_straps:
+                case MensClothing.Short_tunic_fit:
                     return EquipSlots.ChestClothes;
 
                 case MensClothing.Shoes:
