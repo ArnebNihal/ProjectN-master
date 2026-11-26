@@ -77,7 +77,7 @@ namespace DaggerfallWorkshop.Game.UserInterfaceWindows
 
             windrose.Size = new Vector2(42.0f, 38.0f);
             windrose.Position = new Vector2((roadsignPanel.Size.x / 2 - windrose.Size.x / 2), (roadsignPanel.Size.y / 2 - windrose.Size.y / 2 - 1.0f));
-            byte[] fileBytes = File.ReadAllBytes(Path.Combine(WorldMaps.mapPath, "RoadsignData", "WR.png"));
+            byte[] fileBytes = File.ReadAllBytes(Path.Combine(DaggerfallUnity.Instance.RoadsignPath, "WR.png"));
             Texture2D windroseTex = new Texture2D(1, 1);
             ImageConversion.LoadImage(windroseTex, fileBytes);
             windrose.BackgroundTexture = windroseTex;
@@ -87,7 +87,7 @@ namespace DaggerfallWorkshop.Game.UserInterfaceWindows
             for (int i = 0; i < 8; i++)
             {
                 arrowPanel[i] = SetDirectionPanel(i, PanelTypes.Arrow);
-                fileBytes = File.ReadAllBytes(Path.Combine(WorldMaps.mapPath, "RoadsignData", "arrow" + i + ".png"));
+                fileBytes = File.ReadAllBytes(Path.Combine(DaggerfallUnity.Instance.RoadsignPath, "arrow" + i + ".png"));
                 Texture2D arrowTex = new Texture2D(1, 1);
                 ImageConversion.LoadImage(arrowTex, fileBytes);
                 arrowPanel[i].BackgroundTexture = arrowTex;
@@ -316,7 +316,7 @@ namespace DaggerfallWorkshop.Game.UserInterfaceWindows
                 if (signData[i] != null)
                 {
                     Debug.Log("Activating panel " + i + " (" + correction + ")");
-                    byte[] fileBytes = File.ReadAllBytes(Path.Combine(WorldMaps.mapPath, "RoadsignData", "arrow" + correction + ".png"));
+                    byte[] fileBytes = File.ReadAllBytes(Path.Combine(DaggerfallUnity.Instance.RoadsignPath, "arrow" + correction + ".png"));
                     Texture2D arrowTex = new Texture2D(1, 1);
                     ImageConversion.LoadImage(arrowTex, fileBytes);
                     arrowPanel[correction].BackgroundTexture = arrowTex;                    

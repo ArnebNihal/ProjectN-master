@@ -1093,7 +1093,7 @@ namespace DaggerfallWorkshop.Game
         void ActivateRoadsign(RaycastHit hit)
         {
             ulong mapID = MapsFile.GetMapPixelID(playerGPS.CurrentMapPixel.X, playerGPS.CurrentMapPixel.Y);
-            if (File.Exists(Path.Combine(WorldMaps.mapPath, "RoadsignData", "signdata_" + mapID + ".json")))
+            if (File.Exists(Path.Combine(DaggerfallUnity.Instance.RoadsignPath, "signdata_" + mapID + ".json")))
             {
                 // Check if close enough to Activate
                 if (hit.distance > MobileNPCActivationDistance)
@@ -1103,7 +1103,7 @@ namespace DaggerfallWorkshop.Game
                 }
 
                 // Get sign data
-                (DFPosition, string[][]) sign = JsonConvert.DeserializeObject<(DFPosition, string[][])>(File.ReadAllText(Path.Combine(WorldMaps.mapPath, "RoadsignData", "signdata_" + mapID + ".json")));
+                (DFPosition, string[][]) sign = JsonConvert.DeserializeObject<(DFPosition, string[][])>(File.ReadAllText(Path.Combine(DaggerfallUnity.Instance.RoadsignPath, "signdata_" + mapID + ".json")));
 
                 // format message
             //     var tokens = new List<TextFile.Token>

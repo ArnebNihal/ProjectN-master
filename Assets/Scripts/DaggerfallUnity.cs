@@ -69,6 +69,14 @@ namespace DaggerfallWorkshop
 
         // General
         public string Arena2Path;
+        public string MapsPath;
+        public string TexturePath;
+        public string LocationPath;
+        public string RMBPath;
+        public string RDBPath;
+        public string RoadsignPath;
+        public string TilesPath;
+        public string TrailsPath;
         public int ModelImporter_ModelID = 456;
         public string BlockImporter_BlockName = "MAGEAA01.RMB";
         public string CityImporter_CityName = "Daggerfall/Daggerfall";
@@ -397,6 +405,14 @@ namespace DaggerfallWorkshop
                 if (ValidateArena2Path(path))
                 {
                     Arena2Path = path;
+                    MapsPath = Path.Combine(Arena2Path, "Maps");
+                    TexturePath = Path.Combine(MapsPath, "Textures");
+                    LocationPath = Path.Combine(MapsPath, "Locations");
+                    RMBPath = Path.Combine(MapsPath, "RMB");
+                    RDBPath = Path.Combine(MapsPath, "RDB");
+                    RoadsignPath = Path.Combine(MapsPath, "RoadsignData");
+                    TilesPath = Path.Combine(MapsPath, "Tiles");
+                    TrailsPath = Path.Combine(MapsPath, "TrailData");
                     isReady = true;
                     isPathValidated = true;
                     LogMessage(string.Format("Found valid arena2 path at '{0}'.", path), true);

@@ -879,7 +879,7 @@ namespace DaggerfallWorkshop
             PlayerEnterExit playerEnterExit = GameManager.Instance.PlayerEnterExit;
             DFPosition worldPos = MapsFile.MapPixelToWorldCoord(StartGameBehaviour.startingState.startingHouseData.shPosition.X, StartGameBehaviour.startingState.startingHouseData.shPosition.Y);
             var staticDoors = GameManager.GetComponentFromObject<DaggerfallStaticDoors>(GameManager.GetGameObjectWithName("DaggerfallBlock [" + StartGameBehaviour.startingState.startingHouseData.shBlock.Name + "]"));
-            var doorTransform = GameManager.GetComponentFromObject<Transform>(GameManager.GetGameObjectWithName("DaggerfallBlock [" + StartGameBehaviour.startingState.startingHouseData.shBlock.Name + "]"));
+            var doorTransform = GameManager.GetComponentFromObject<Transform>(GameManager.GetGameObjectWithName("DaggerfallBlock [" + GetGenericBlockName(StartGameBehaviour.startingState.startingHouseData.shBlock.Name) + "]"));
             List<StaticDoor> neededSD = new List<StaticDoor>();
 
             for (int i = 0; i < staticDoors.Doors.Length; i++)
@@ -894,6 +894,19 @@ namespace DaggerfallWorkshop
             playerEnterExit.RespawnPlayer(worldPos.X, worldPos.Y, false, true, neededSD.ToArray(), false, false, true);
 
             startingGame = false;
+        }
+
+        public static string GetGenericBlockName(string blockName, bool inFileFormat = false)
+        {
+            string result;
+            if (!int.TryParse(blockName.Substring(3, 1), out int uselessValue))
+                result = blockName;
+            else result = blockName.Substring(0, 3) + "0" + blockName.Substring(4);
+            if (inFileFormat)
+            {
+                return result.Substring(0, 8) + ".RMB.json";
+            }
+            return result.Substring(0, 8) + ".RMB";
         }
 
         public static string GenerateHouseName(StartGameBehaviour.StartingHouseNameTypes nameType)

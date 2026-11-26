@@ -264,7 +264,7 @@ namespace MapEditor
             ResetSelectedCoordinates();
 
             if (blockFileReader == null)
-                blockFileReader = new BlocksFile(Path.Combine(arena2Path, BlocksFile.Filename), FileUsage.UseMemory, true);
+                blockFileReader = new BlocksFile(Path.Combine(arena2Path, "Maps", BlocksFile.Filename), FileUsage.UseMemory, true);
 
             blocksArray = JsonConvert.DeserializeObject<(string, int)[]>(File.ReadAllText(Path.Combine(MapEditor.testPath, "BLOCKS.BSA")));
 

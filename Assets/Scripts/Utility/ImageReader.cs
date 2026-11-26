@@ -344,7 +344,7 @@ namespace DaggerfallWorkshop.Utility
                     else
                     {
                         // Debug.Log("Now loading textureNumber: " + textureNumber);
-                        textureFile = new TextureFile(Path.Combine(WorldMaps.mapPath, "Textures", filename), FileUsage.UseMemory, true, true);
+                        textureFile = new TextureFile(Path.Combine(DaggerfallUnity.Instance.TexturePath, filename), FileUsage.UseMemory, true, true);
                         if (!textureFile.LoadPalette(Path.Combine(dfUnity.Arena2Path, textureFile.PaletteName)))
                             Debug.Log("GetImageData -> loading palette at " + Path.Combine(dfUnity.Arena2Path, textureFile.PaletteName) + " for " + textureNumber + "." + record + " wasn't successful!");
                         dfBitmap = textureFile.GetCustomDFBitmap(textureNumber, record, frame, TextureReader.MapsPath);
@@ -391,8 +391,8 @@ namespace DaggerfallWorkshop.Utility
                     {
                         filename = filename + ".png";
                         ImgFile fakeHeader = new ImgFile();
-                        ImgFile imgFile = new ImgFile(Path.Combine(WorldMaps.mapPath, "Textures", "Races", filename), FileUsage.UseMemory, true);
-                        imgFile.LoadPalette(Path.Combine(WorldMaps.mapPath, "Textures", "Races", imgFile.PaletteName));
+                        ImgFile imgFile = new ImgFile(Path.Combine(DaggerfallUnity.Instance.TexturePath, "Races", filename), FileUsage.UseMemory, true);
+                        imgFile.LoadPalette(Path.Combine(DaggerfallUnity.Instance.TexturePath, "Races", imgFile.PaletteName));
                         dfBitmap = imgFile.GetCustomDFBitmap(filename, out fakeHeader);
                         imageData.offset = fakeHeader.ImageOffset;
                         imageData.scale = new DFSize();
@@ -424,8 +424,8 @@ namespace DaggerfallWorkshop.Utility
                     else
                     {
                         filename = filename + "_" + record + "-" + frame + ".png";
-                        CifRciFile cifFile = new CifRciFile(Path.Combine(WorldMaps.mapPath, "Textures", "Races", filename), FileUsage.UseMemory, true);
-                        cifFile.LoadPalette(Path.Combine(WorldMaps.mapPath, "Textures", "Races", cifFile.PaletteName));
+                        CifRciFile cifFile = new CifRciFile(Path.Combine(DaggerfallUnity.Instance.TexturePath, "Races", filename), FileUsage.UseMemory, true);
+                        cifFile.LoadPalette(Path.Combine(DaggerfallUnity.Instance.TexturePath, "Races", cifFile.PaletteName));
                         dfBitmap = cifFile.GetCustomDFBitmap(filename, record, frame, out imageData);
                         // imageData.offset = new DFPosition();
                         // imageData.scale = new DFSize();

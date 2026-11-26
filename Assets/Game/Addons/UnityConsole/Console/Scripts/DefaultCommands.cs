@@ -2802,7 +2802,7 @@ namespace Wenzil.Console
                 }
                 string fileName = "SpellList.json";
                 string spellJson = SaveLoadManager.Serialize(spellList.GetType(), spellList);
-                File.WriteAllText(Path.Combine(WorldMaps.mapPath, fileName), spellJson);
+                File.WriteAllText(Path.Combine(DaggerfallUnity.Instance.MapsPath, fileName), spellJson);
 
                 return "Success..?";
             }
@@ -2876,7 +2876,7 @@ namespace Wenzil.Console
                     monsterClasses.Add(monsterClass);
                 }
 
-                string path = Path.Combine(Path.Combine(WorldMaps.mapPath, "Monster.bsa.json"));
+                string path = Path.Combine(Path.Combine(DaggerfallUnity.Instance.MapsPath, "Monster.bsa.json"));
                 var json = JsonConvert.SerializeObject(monsterClasses, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
                 File.WriteAllText(path, json);
 

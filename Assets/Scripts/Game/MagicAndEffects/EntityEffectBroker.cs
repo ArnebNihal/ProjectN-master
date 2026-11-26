@@ -724,7 +724,7 @@ namespace DaggerfallWorkshop.Game.MagicAndEffects
         {
             standardSpells.Clear();
 
-            string spellList = File.ReadAllText(Path.Combine(WorldMaps.mapPath, "SpellList.json"));
+            string spellList = File.ReadAllText(Path.Combine(DaggerfallUnity.Instance.MapsPath, "SpellList.json"));
             List<SpellRecord.SpellRecordData> spells = JsonConvert.DeserializeObject<List<SpellRecord.SpellRecordData>>(spellList);
             // TextAssetReader.Merge(spells, "SpellRecords.json", (record, data) => record.index == data["index"].AsInt64);
             foreach (SpellRecord.SpellRecordData spell in spells)

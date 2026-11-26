@@ -52,7 +52,7 @@ namespace DaggerfallWorkshop
         void Start()
         {
             // Init time change trackers to start time
-            lastDailyMinute = DaggerfallDateTime.MinuteOfDay;
+            lastDailyMinute = DaggerfallDateTime.Minute;
             lastHour = DaggerfallDateTime.Hour;
             lastDay = DaggerfallDateTime.Day;
             lastMonth = DaggerfallDateTime.Month;

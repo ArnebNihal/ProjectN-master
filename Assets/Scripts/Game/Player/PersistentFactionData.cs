@@ -190,10 +190,10 @@ namespace DaggerfallWorkshop.Game.Player
                 bool match = true;
                 if (item.region == 52)
                 {
-                    Debug.Log("type: " + type + " -> " + item.type);
-                    Debug.Log("socialGroup: " + socialGroup + " -> " + item.sgroup);
-                    Debug.Log("guildGroup: " + guildGroup + " -> " + item.ggroup);
-                    Debug.Log("oneBasedRegionIndex: " + oneBasedRegionIndex + " -> " + item.region);
+                    // Debug.Log("type: " + type + " -> " + item.type);
+                    // Debug.Log("socialGroup: " + socialGroup + " -> " + item.sgroup);
+                    // Debug.Log("guildGroup: " + guildGroup + " -> " + item.ggroup);
+                    // Debug.Log("oneBasedRegionIndex: " + oneBasedRegionIndex + " -> " + item.region);
                 }
 
                 // Validate type if specified

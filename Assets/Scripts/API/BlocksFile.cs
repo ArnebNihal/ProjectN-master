@@ -18,6 +18,7 @@ using DaggerfallConnect.Utility;
 using DaggerfallWorkshop.Utility.AssetInjection;
 using DaggerfallWorkshop.Game.Serialization;
 using Newtonsoft.Json;
+using DaggerfallWorkshop;
 #endregion
 
 namespace DaggerfallConnect.Arena2
@@ -349,11 +350,11 @@ namespace DaggerfallConnect.Arena2
                 switch (blocks[block].DFBlock.Type)
                 {
                     case DFBlock.BlockTypes.Rmb:
-                        blocks[block].DFBlock = JsonConvert.DeserializeObject<DFBlock>(File.ReadAllText(Path.Combine(WorldMaps.mapPath, "RMB", blocks[block].Name + ".json")));
+                        blocks[block].DFBlock = JsonConvert.DeserializeObject<DFBlock>(File.ReadAllText(Path.Combine(DaggerfallUnity.Instance.RMBPath, blocks[block].Name + ".json")));
                         blocks[block].DFBlock.ConvertTo2d();
                         break;
                     case DFBlock.BlockTypes.Rdb:
-                        blocks[block].DFBlock = JsonConvert.DeserializeObject<DFBlock>(File.ReadAllText(Path.Combine(WorldMaps.mapPath, "RDB", blocks[block].Name + ".json")));
+                        blocks[block].DFBlock = JsonConvert.DeserializeObject<DFBlock>(File.ReadAllText(Path.Combine(DaggerfallUnity.Instance.RDBPath, blocks[block].Name + ".json")));
                         break;
                     default:
                         Debug.Log("LoadBlock = Unknown block type.");

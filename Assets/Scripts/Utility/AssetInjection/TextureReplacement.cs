@@ -251,7 +251,7 @@ namespace DaggerfallWorkshop.Utility.AssetInjection
                     record = 0;
             }
             string fileName = archive.ToString("0000000") + "_" + record.ToString() + "-" + frame.ToString() + mask + ".png";
-            return TryImportCustomTexture(Path.Combine(WorldMaps.mapPath, "Textures", archive.ToString()), fileName, false, textureMap, out tex, out dfBitmap);
+            return TryImportCustomTexture(Path.Combine(DaggerfallUnity.Instance.TexturePath, archive.ToString()), fileName, false, textureMap, out tex, out dfBitmap);
         }
 
         /// <summary>
@@ -597,7 +597,7 @@ namespace DaggerfallWorkshop.Utility.AssetInjection
                 else
                 {
                     loadSuccessful = true;
-                    textureFile = new TextureFile(Path.Combine(WorldMaps.mapPath, "Textures", fileName), FileUsage.UseMemory, true, true);
+                    textureFile = new TextureFile(Path.Combine(DaggerfallUnity.Instance.TexturePath, fileName), FileUsage.UseMemory, true, true);
                 }
                 if (loadSuccessful)
                 {

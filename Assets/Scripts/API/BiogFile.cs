@@ -172,8 +172,8 @@ namespace DaggerfallConnect.Arena2
 
             // Load text file
             string fileName = "BiogQuestions.json";
-            biogText = JsonConvert.DeserializeObject<BiogText>(File.ReadAllText(Path.Combine(WorldMaps.mapPath, "BiogText.json")));
-            biogQuestions = JsonConvert.DeserializeObject<BiogQuestions[]>(File.ReadAllText(Path.Combine(WorldMaps.mapPath, fileName)));
+            biogText = JsonConvert.DeserializeObject<BiogText>(File.ReadAllText(Path.Combine(DaggerfallUnity.Instance.MapsPath, "BiogText.json")));
+            biogQuestions = JsonConvert.DeserializeObject<BiogQuestions[]>(File.ReadAllText(Path.Combine(DaggerfallUnity.Instance.MapsPath, fileName)));
             
             // Set formatting variables (I don't know what it means, but it sounded cool)
             char space, newLine;

@@ -133,7 +133,7 @@ namespace DaggerfallWorkshop.Game.UserInterfaceWindows
 
             // Load question data
             biogFile = new BiogFile(Document);
-            sLQuestions = JsonConvert.DeserializeObject<StartLocQuestions>(File.ReadAllText(Path.Combine(WorldMaps.mapPath, "StartingLocationQuestions.json")));
+            sLQuestions = JsonConvert.DeserializeObject<StartLocQuestions>(File.ReadAllText(Path.Combine(DaggerfallUnity.Instance.MapsPath, "StartingLocationQuestions.json")));
 
             SetSpaceNewLine();
 

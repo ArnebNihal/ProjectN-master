@@ -944,8 +944,7 @@ namespace DaggerfallWorkshop.Game.Entity
         /// <returns></returns>
         public static DFCareer GetMonsterCareerTemplate(MonsterCareers career)
         {
-            List<DFCareer> monsterFile = new List<DFCareer>();
-            monsterFile = JsonConvert.DeserializeObject<List<DFCareer>>(File.ReadAllText(Path.Combine(WorldMaps.mapPath, MonsterFile.Filename)));
+            List<DFCareer> monsterFile = JsonConvert.DeserializeObject<List<DFCareer>>(File.ReadAllText(Path.Combine(DaggerfallUnity.Instance.MapsPath, MonsterFile.Filename)));
             // if (!monsterFile.Load(Path.Combine(WorldMaps.mapPath, MonsterFile.Filename), FileUsage.UseMemory, true))
             //     throw new Exception("Could not load " + MonsterFile.Filename);
 

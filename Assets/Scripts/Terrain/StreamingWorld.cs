@@ -638,7 +638,6 @@ namespace DaggerfallWorkshop
             WoodsData.Woods = WoodsData.GetTextureMatrix("woods");
             WoodsLargeData.WoodsLarge = WoodsLargeData.GetTextureMatrix();
             WorldMaps.WorldMap = WorldMaps.LoadWorldMap();
-            Debug.Log("Enumerating maps");
             WorldMaps.mapDict = WorldMaps.EnumerateMaps();
             BasicRoadsTexturing pathsData = new BasicRoadsTexturing(false, false, "", false);
         }
@@ -1329,22 +1328,22 @@ namespace DaggerfallWorkshop
                 string path = string.Empty;
 
                 // Generating walled town signs
-                if (File.Exists(Path.Combine(WorldMaps.mapPath, "RoadsignData", "signdata_" + (dfTerrain.MapPixelX + dfTerrain.MapPixelY * MapsFile.MaxMapPixelX + (100 * Math.Pow(10, 8))) + ".json")))
+                if (File.Exists(Path.Combine(DaggerfallUnity.Instance.RoadsignPath, "signdata_" + (dfTerrain.MapPixelX + dfTerrain.MapPixelY * MapsFile.MaxMapPixelX + (100 * Math.Pow(10, 8))) + ".json")))
                 {
 
                 }
 
                 // Generating not-walled town signs
-                if (File.Exists(Path.Combine(WorldMaps.mapPath, "RoadsignData", "signdata_" + (dfTerrain.MapPixelX + dfTerrain.MapPixelY * MapsFile.MaxMapPixelX + (50 * Math.Pow(10, 8))) + ".json")))
+                if (File.Exists(Path.Combine(DaggerfallUnity.Instance.RoadsignPath, "signdata_" + (dfTerrain.MapPixelX + dfTerrain.MapPixelY * MapsFile.MaxMapPixelX + (50 * Math.Pow(10, 8))) + ".json")))
                 {
 
                 }
 
                 // Generating non-town roadsigns
                 int signCounter = 25;
-                if (File.Exists(Path.Combine(WorldMaps.mapPath, "RoadsignData", "signdata_" + (dfTerrain.MapPixelX + dfTerrain.MapPixelY * MapsFile.MaxMapPixelX + (signCounter * Math.Pow(10, 8))) + ".json")))
+                if (File.Exists(Path.Combine(DaggerfallUnity.Instance.RoadsignPath, "signdata_" + (dfTerrain.MapPixelX + dfTerrain.MapPixelY * MapsFile.MaxMapPixelX + (signCounter * Math.Pow(10, 8))) + ".json")))
                 {
-                    path = Path.Combine(WorldMaps.mapPath, "RoadsignData", "signdata_" + (dfTerrain.MapPixelX + dfTerrain.MapPixelY * MapsFile.MaxMapPixelX + (signCounter * Math.Pow(10, 8))) + ".json");
+                    path = Path.Combine(DaggerfallUnity.Instance.RoadsignPath, "signdata_" + (dfTerrain.MapPixelX + dfTerrain.MapPixelY * MapsFile.MaxMapPixelX + (signCounter * Math.Pow(10, 8))) + ".json");
 
                     Debug.Log("Working on " + path + " roadsigns");
                     Debug.Log("dfTerrain.MapPixelX: " + dfTerrain.MapPixelX + ", dfTerrain.MapPixelY: " + dfTerrain.MapPixelY);

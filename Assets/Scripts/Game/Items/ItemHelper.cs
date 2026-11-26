@@ -192,7 +192,7 @@ namespace DaggerfallWorkshop.Game.Items
             }
 
             int templateIndex = Convert.ToInt32(values.GetValue(groupIndex));
-            Debug.Log("Working on ItemGroups " + itemGroup + ", groupIndex: " + groupIndex + ", templateIndex: " + templateIndex + ", itemTemplates.Count: " + itemTemplates.Count);
+            // Debug.Log("Working on ItemGroups " + itemGroup + ", groupIndex: " + groupIndex + ", templateIndex: " + templateIndex + ", itemTemplates.Count: " + itemTemplates.Count);
 
             return itemTemplates[templateIndex];
         }
@@ -249,7 +249,7 @@ namespace DaggerfallWorkshop.Game.Items
             for (int i = 0; i < values.Length; i++)
             {
                 int checkTemplateIndex = Convert.ToInt32(values.GetValue(i));
-                Debug.Log("i = " + i + ", checkTemplateIndex = " + checkTemplateIndex + ", templateIndex = " + templateIndex);
+                // Debug.Log("i = " + i + ", checkTemplateIndex = " + checkTemplateIndex + ", templateIndex = " + templateIndex);
                 if (checkTemplateIndex == templateIndex)
                     return i;
             }
@@ -281,7 +281,7 @@ namespace DaggerfallWorkshop.Game.Items
             if (item.ItemGroup == ItemGroups.Maps && (item.TemplateIndex == (int)Maps.Map || item.TemplateIndex == (int)Maps.TownMap))
                 return item.shortName;
 
-            Debug.Log("TemplateIndex: " + item.TemplateIndex);
+            // Debug.Log("TemplateIndex: " + item.TemplateIndex);
 
             // Start with base name
             string result = item.shortName;
@@ -437,13 +437,13 @@ namespace DaggerfallWorkshop.Game.Items
             // Get colour
             int color = (int)item.dyeColor;
             int[] additionalColors = new int[0];
-            Debug.Log("Working on item " + item.ItemName);
+            // Debug.Log("Working on item " + item.ItemName);
             if (item.additionalColors.Length > 0)
             {
                 additionalColors = new int[item.additionalColors.Length];
                 for (int col = 0; col < item.additionalColors.Length; col++)
                 {
-                    Debug.Log("item.additionalColors[" + col + "]: " + item.additionalColors[col]);
+                    // Debug.Log("item.additionalColors[" + col + "]: " + item.additionalColors[col]);
                     additionalColors[col] = (int)item.additionalColors[col];
                 }
             }
@@ -569,7 +569,7 @@ namespace DaggerfallWorkshop.Game.Items
                     data.dfBitmap = ImageProcessing.ChangeMask(data.dfBitmap);
                 ItemGroups group = item.ItemGroup;
                 DyeColors dye = (DyeColors)color;
-                Debug.Log("CustomTexture -> item: " + item.LongName + ", new weapon: " + IsNewWeapon(item));
+                // Debug.Log("CustomTexture -> item: " + item.LongName + ", new weapon: " + IsNewWeapon(item));
                 if (IsYellowHelm(item))
                     data = ChangeDye(data, dye, DyeTargets.YellowClothing);
                 else if ((group == ItemGroups.Weapons || group == ItemGroups.Armor) && !IsNewWeapon(item))
@@ -578,7 +578,7 @@ namespace DaggerfallWorkshop.Game.Items
                 {
                     for (int round = 0; round < item.dyeLevel; round++)
                     {
-                        Debug.Log(item.ItemName + " dyeLevel: " + item.dyeLevel + ", dye: " + dye);
+                        // Debug.Log(item.ItemName + " dyeLevel: " + item.dyeLevel + ", dye: " + dye);
                         if (round != 0) dye = (DyeColors)additionalColors[round - 1];
                         data = ChangeDye(data, dye, item.dyeTargets[round], true);
                     }
@@ -599,7 +599,7 @@ namespace DaggerfallWorkshop.Game.Items
                 // Change dye or just update texture
                 ItemGroups group = item.ItemGroup;
                 DyeColors dye = (DyeColors)color;
-                Debug.Log("NormalTexture -> item: " + item.LongName + ", new weapon: " + IsNewWeapon(item));
+                // Debug.Log("NormalTexture -> item: " + item.LongName + ", new weapon: " + IsNewWeapon(item));
                 if (IsYellowHelm(item))
                     data = ChangeDye(data, dye, DyeTargets.YellowClothing);
                 else if ((group == ItemGroups.Weapons || group == ItemGroups.Armor) && !IsNewWeapon(item))

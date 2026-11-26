@@ -13,7 +13,7 @@ namespace DaggerfallWorkshop.Utility
 
         // This should work like this: insert province code and IndexStartType and returns the
         // start and end index of that fauna type in that region.
-        public static Dictionary<int, (int, int)[]> provincialStartEnd = new Dictionary<int, (int, int)[]>();
+        // public static Dictionary<int, (int, int)[]> provincialStartEnd = new Dictionary<int, (int, int)[]>();
         // {
         //     { (0, 2), (2, 6), (7, 7), (8, 11) },    // High Rock
         //     { (0, 3), (2, 5), (6, 7), (8, 12) },    // Hammerfell
@@ -26,7 +26,7 @@ namespace DaggerfallWorkshop.Utility
         //     { (0, 2), (2, 5), (-1, -1), (6, 7) }    // Cyrodiil            
         // };
 
-        public static Dictionary<int, (int, int)[]> regionalStartEnd = new Dictionary<int, (int, int)[]>();
+        // public static Dictionary<int, (int, int)[]> regionalStartEnd = new Dictionary<int, (int, int)[]>();
         // {
         //     { (-1, -1), (-1, -1), (0, 2), (-1, -1) },   // Alik'r
         //     { (-1, -1), (-1, -1), (0, 0), (-1, -1) },   // Dragontail
@@ -39,14 +39,20 @@ namespace DaggerfallWorkshop.Utility
             Wild,
             NotToRandomise
         }
+
+        public static Dictionary<int, (int, int)[]> InitialiseProvincialStartEnd()
+        {
+            return JsonConvert.DeserializeObject<Dictionary<int, (int, int)[]>>(File.ReadAllText(Path.Combine(DaggerfallUnity.Instance.MapsPath, "provincialStartEnd.json")));
+        }
+
+        public static Dictionary<int, (int, int)[]> InitialiseRegionalStartEnd()
+        {
+            return JsonConvert.DeserializeObject<Dictionary<int, (int, int)[]>>(File.ReadAllText(Path.Combine(DaggerfallUnity.Instance.MapsPath, "regionalStartEnd.json")));
+        }
         
         public static (int, int)[][][][] InitialiseBillboardType()
         {
-            // Initialising provincialStartEnd Dictionary
-            provincialStartEnd = JsonConvert.DeserializeObject<Dictionary<int, (int, int)[]>>(File.ReadAllText(Path.Combine(WorldMaps.mapPath, "provincialStartEnd.json")));
-
-            // Initialising regionalStartEnd Dictionary
-            regionalStartEnd = JsonConvert.DeserializeObject<Dictionary<int, (int, int)[]>>(File.ReadAllText(Path.Combine(WorldMaps.mapPath, "regionalStartEnd.json")));
+           Debug.Log("Initialising billboard types");
 
             (int, int)[][][][] billboardType = new (int, int)[][][][] {
                 new (int, int)[][][] {                  // [0][...][...][...]:  People
@@ -681,7 +687,7 @@ namespace DaggerfallWorkshop.Utility
                         new (int, int)[] { (212, 11), (212, 12), }, // [3][1][1][...]: Wood Pile
                         new (int, int)[] { (212, 2), (212, 3), },            // [3][1][2][...]: Fountain (second one is dry)
                         new (int, int)[] { (212, 4), (212, 5), (212, 6), },        // [3][1][3][...]: Signposts
-                        new (int, int)[] { (211, 15), (211, 16), },        // [3][1][4][...]: Wagon wheels
+                        new (int, int)[] { (211, 15), (211, 16), (211, 17) },        // [3][1][4][...]: Wagon wheels
                         new (int, int)[] { (212, 8), (212, 9), },    // [3][1][5][...]: Well pumps
                         new (int, int)[] { (212, 10), },            // [3][1][6][...]: Sundial
                         new (int, int)[] { (205, 27), (205, 28), },            // [3][1][7][...]: Wheelbarrows

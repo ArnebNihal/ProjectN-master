@@ -15,6 +15,7 @@ using System.IO;
 using UnityEngine;
 using DaggerfallConnect.Utility;
 using Newtonsoft.Json;
+using DaggerfallWorkshop;
 #endregion
 
 namespace DaggerfallConnect.Arena2
@@ -285,13 +286,13 @@ namespace DaggerfallConnect.Arena2
         public DFBitmap GetCustomDFBitmap(string filename, out ImgFile imgFile)
         {
             DFBitmap result = new DFBitmap();
-            byte[] fileBytes = File.ReadAllBytes(Path.Combine(WorldMaps.mapPath, "Textures", "Races", filename));
+            byte[] fileBytes = File.ReadAllBytes(Path.Combine(DaggerfallUnity.Instance.MapsPath, "Races", filename));
 
             // string fileDataPath = Path.Combine(WorldMaps.mapPath, "Textures", "Races", "BodyTest.json");
             // var json = JsonConvert.SerializeObject(fakeHeader, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
             // File.WriteAllText(fileDataPath, json);
             fakeHeader = new ImgFileHeader();
-            fakeHeader = JsonConvert.DeserializeObject<ImgFileHeader>(File.ReadAllText(Path.Combine(WorldMaps.mapPath, "Textures", "Races", filename.Substring(0, (filename.Length - 4)))));
+            fakeHeader = JsonConvert.DeserializeObject<ImgFileHeader>(File.ReadAllText(Path.Combine(DaggerfallUnity.Instance.TexturePath, "Races", filename.Substring(0, (filename.Length - 4)))));
             // imgFile = fakeHeader;
             ReadFakeHeader(out imgFile);
 

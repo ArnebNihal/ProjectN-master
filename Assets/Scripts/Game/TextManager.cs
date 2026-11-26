@@ -320,7 +320,7 @@ namespace DaggerfallWorkshop.Game
             string localizedText;
             if (additionalText.Contains(key))
             {
-                List<string> text = JsonConvert.DeserializeObject<List<string>>(File.ReadAllText(Path.Combine(WorldMaps.mapPath, "AdditionalText.json")));
+                List<string> text = JsonConvert.DeserializeObject<List<string>>(File.ReadAllText(Path.Combine(DaggerfallUnity.Instance.MapsPath, "AdditionalText.json")));
                 return text[additionalText.IndexOf(key)];
             }                
             else if (TryGetLocalizedText(GetRuntimeCollectionName(collection), key, out localizedText))

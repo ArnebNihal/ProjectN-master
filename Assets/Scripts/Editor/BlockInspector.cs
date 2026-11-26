@@ -102,9 +102,9 @@ namespace MapEditor
 
         protected string[] SetRMBBlocks()
         {
-            string[] blockNames = new string[999];
+            string[] blockNames = Array.Empty<string>();
             DFBlock block = new DFBlock();
-            string rmbPath = Path.Combine(WorldMaps.mapPath, "RMB");
+            string rmbPath = Path.Combine(DaggerfallUnity.Instance.RMBPath);
 
             for (int i = 0; i < blockNames.Length; i++)
             {

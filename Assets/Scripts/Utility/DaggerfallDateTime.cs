@@ -32,9 +32,10 @@ namespace DaggerfallWorkshop.Utility
     {
         #region Fields
 
-        const ulong classicEpochInSeconds = 12566016000;        // Converts from DaggerfallDateTime epoch to classic Daggerfall epoch
+        // const ulong classicEpochInSeconds = 12566016000;        // Converts from DaggerfallDateTime epoch to classic Daggerfall epoch
+        const ulong classicEpochInSeconds = 12749400000;
         static uint classicGameStartTime = 523530;               // Game start time in minutes from classic epoch
-        const ulong daysSinceYear0 = 147924;                    // Number of days since 4E 0 to 4E 404, 31 of Evening Star included
+        const ulong daysSinceYear0 = 147844;                    // Number of days since 4E 0 to 4E 404, 31 of Evening Star included
 
         // Time multipliers
         public const int SecondsPerMinute = 60;
@@ -775,7 +776,7 @@ namespace DaggerfallWorkshop.Utility
         private string GetDayName()
         {
 
-            if (Day < 0 || Day >= GetCurrentMonthLength())
+            if (Day < 0 || Day >= CurrentMonthLength)
                 RaiseTime(0);
 
             uint presentTime = ToClassicDaggerfallTime();
@@ -799,7 +800,7 @@ namespace DaggerfallWorkshop.Utility
         private int GetDawnHour()
         {
             if (!GameManager.Instance.IsReady)
-                return (BaseDawnHour * 60);
+                return (BaseDawnHour * MinutesPerHour);
 
             (int, Seasons) adjustment = GetDawnDuskAdjustment();
 
@@ -807,11 +808,12 @@ namespace DaggerfallWorkshop.Utility
             {
                 case Seasons.Spring:
                 case Seasons.Summer:
-                    // Debug.Log("Dawn Hour (Spring/Summer): " + ((BaseDawnHour * SecondsPerHour - adjustment.Item1 / 3) / SecondsPerMinute));
+                    // Debug.Log("Dawn Hour (Spring/Summer): " + ((BaseDawnHour * SecondsPerHour - adjustment.Item1 / 2) / SecondsPerMinute));
                     return ((BaseDawnHour * SecondsPerHour - adjustment.Item1 / 2) / SecondsPerMinute);
                 case Seasons.Fall:
                 case Seasons.Winter:
                 default:
+                    // Debug.Log("DayOfYear: " + DayOfYear + ", Month: " + Month + ", Year: " + Year + ", adjustment.Item1: " + adjustment.Item1);
                     // Debug.Log("Dawn Hour (Fall/Winter): " + ((BaseDawnHour * SecondsPerHour - adjustment.Item1 / 2) / SecondsPerMinute));
                     return ((BaseDawnHour * SecondsPerHour - adjustment.Item1 / 2) / SecondsPerMinute);
             }
@@ -828,7 +830,7 @@ namespace DaggerfallWorkshop.Utility
             {
                 case Seasons.Spring:
                 case Seasons.Summer:
-                    // Debug.Log("Dusk Hour (Spring/Summer):" + ((BaseDuskHour * SecondsPerHour + (adjustment.Item1 / 3 * 2)) / SecondsPerMinute));
+                    // Debug.Log("Dusk Hour (Spring/Summer):" + ((BaseDuskHour * SecondsPerHour + (adjustment.Item1 / 2)) / SecondsPerMinute));
                     return ((BaseDuskHour * SecondsPerHour + (adjustment.Item1 / 2)) / SecondsPerMinute);
                 case Seasons.Fall:
                 case Seasons.Winter:
@@ -898,12 +900,12 @@ namespace DaggerfallWorkshop.Utility
 
         private int GetLightsOffHour()
         {
-            return GetDawnHour() + MinutesPerHour;
+            return DawnHour + MinutesPerHour;
         }
 
         private int GetLightsOnHour()
         {
-            return GetDuskHour() - MinutesPerHour;
+            return DuskHour - MinutesPerHour;
         }
 
         private (int, Seasons) GetDawnDuskAdjustment()
@@ -1117,7 +1119,7 @@ namespace DaggerfallWorkshop.Utility
                         if (summerStartCorr > fallStartCorr && summerStart > CurrentYearLength) summerStartCorr = fallStartCorr;
                         if (springStartCorr > summerStartCorr && summerStart < CurrentYearLength) springStartCorr = summerStartCorr;
                     }
-                    // Debug.Log("Phase2 - totalDiffFactor: " + totalDiffFactor + ", springStartCorr: " + springStartCorr + ", summerStartCorr: " + summerStartCorr + ", fallStartCorr: " + fallStartCorr + ", winterStartCorr: " + winterStartCorr) ;
+                    // Debug.Log("Phase3 - totalDiffFactor: " + totalDiffFactor + ", springStartCorr: " + springStartCorr + ", summerStartCorr: " + summerStartCorr + ", fallStartCorr: " + fallStartCorr + ", winterStartCorr: " + winterStartCorr) ;
 
                     // If there's only one long winter, it's divided into three time periods of 120 days each:
                     // 120 days before "winter start" is Early Winter, 120 days after winter start is proper Winter, 
@@ -1200,7 +1202,7 @@ namespace DaggerfallWorkshop.Utility
 
         private List<(int, int)> SortSeasonOrder(List<(int, int)> seasonOrder)
         {
-            bool foundSomething = false;
+            bool foundSomething;
             int index = 0;
 
             do{
@@ -1240,13 +1242,16 @@ namespace DaggerfallWorkshop.Utility
 
         private int GetMinuteOfDay()
         {
-            RaiseTime(0);
+            if (Minute < 0 || Minute >= MinutesPerHour)
+                RaiseTime(0);
+
             return (Hour * MinutesPerHour) + Minute;
         }
 
         private int GetDayOfMonth()
         {
-            RaiseTime(0);
+            if (Day < 0 || Day >= CurrentMonthLength)
+                RaiseTime(0);
             return Day + 1;
         }
 
@@ -1262,13 +1267,14 @@ namespace DaggerfallWorkshop.Utility
 
         private int GetMonthOfYear()
         {
-            RaiseTime(0);
+            if (Month < 0 || Month >= MonthsPerYear)
+                RaiseTime(0);
             return Month + 1;
         }
 
         private bool CheckIfLeapYear(int year)
         {
-            RaiseTime(0);
+            // RaiseTime(0);
             if (year % 400 == 0) return true;
             if (year % 100 == 0) return false;
             if (year % 4 == 0) return true;
@@ -1277,7 +1283,7 @@ namespace DaggerfallWorkshop.Utility
 
         private int ModifySeasonStartForLeapYear(Seasons season)
         {
-            RaiseTime(0);
+            // RaiseTime(0);
             bool isLeapYear = CheckIfLeapYear(Year);
             switch (season)
             {

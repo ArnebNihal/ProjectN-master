@@ -627,13 +627,13 @@ namespace DaggerfallWorkshop
                 switch (flatCategories.Item1)
                 {
                     case 1:
-                        swapObj[counter] = RMBLayout.ApplyFlagsToInterior(obj, flatCategories, playerGPS.CurrentRegionIndex, playerGPS.CurrentMapID, randomiseFlats, out isPresent);
+                        swapObj[counter] = RMBLayout.ApplyFlagsToInterior(obj, flatCategories, playerGPS.CurrentRegionIndex, playerGPS.CurrentMapID, randomiseFlats, true, out isPresent);
                         break;
                     case 2:
-                        swapObj[counter] = RMBLayout.ApplyFlagsToFauna(obj, flatCategories, playerGPS.CurrentRegionIndex, playerGPS.CurrentMapID, randomiseFlats, out isPresent);
+                        swapObj[counter] = RMBLayout.ApplyFlagsToFauna(obj, flatCategories, playerGPS.CurrentRegionIndex, playerGPS.CurrentMapID, randomiseFlats, true, out isPresent);
                         break;
                     case 4:
-                        swapObj[counter] = RMBLayout.ApplyFlagsToFlora(obj, flatCategories, playerGPS.CurrentRegionIndex, playerGPS.CurrentMapID, randomiseFlats, out isPresent);
+                        swapObj[counter] = RMBLayout.ApplyFlagsToFlora(obj, flatCategories, playerGPS.CurrentRegionIndex, playerGPS.CurrentMapID, randomiseFlats, true, out isPresent);
                         break;
                     default:
                         Debug.Log("Wrong flat category passed by DaggerfallInterior.AddFlats: texture " + obj.TextureArchive + "." + obj.TextureRecord + ", in building " + buildingData.buildingKey); 
@@ -961,7 +961,7 @@ namespace DaggerfallWorkshop
             foreach (DFBlock.RmbBlockPeopleRecord obj in recordData.Interior.BlockPeopleRecords)
             {
                 (int, int, int, int) flatCategories = RMBLayout.GetBillboardParameters(obj.TextureArchive, obj.TextureRecord);
-                swapObj[counter] = RMBLayout.ConvertFromFlatObjectToPeople(RMBLayout.ApplyFlagsToPeople(RMBLayout.ConvertFromPeopleToFlatObject(obj), flatCategories, playerGPS.CurrentRegionIndex, playerGPS.CurrentMapID, playerGPS.CurrentLocationIndex, randomiseStuff, out bool isPresent));
+                swapObj[counter] = RMBLayout.ConvertFromFlatObjectToPeople(RMBLayout.ApplyFlagsToPeople(RMBLayout.ConvertFromPeopleToFlatObject(obj), flatCategories, playerGPS.CurrentRegionIndex, playerGPS.CurrentMapID, playerGPS.CurrentLocationIndex, randomiseStuff, true, out bool isPresent));
                 if (!isPresent) continue;
 
                 // Calculate position

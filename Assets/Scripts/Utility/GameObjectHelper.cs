@@ -68,9 +68,19 @@ namespace DaggerfallWorkshop.Utility
             get { return FlatCategories.InitialiseBillboardType(); }
         }
 
+        public static Dictionary<int, (int, int)[]> provincialStartEnd
+        {
+            get { return FlatCategories.InitialiseProvincialStartEnd(); }
+        }
+
+        public static Dictionary<int, (int, int)[]> regionalStartEnd
+        {
+            get { return FlatCategories.InitialiseRegionalStartEnd(); }
+        } 
+
         public static Dictionary<int, int> billboardDict
         {
-            get { return JsonConvert.DeserializeObject<Dictionary<int, int>>(File.ReadAllText(Path.Combine(WorldMaps.mapPath, "flatDict.json"))); }
+            get { return JsonConvert.DeserializeObject<Dictionary<int, int>>(File.ReadAllText(Path.Combine(DaggerfallUnity.Instance.MapsPath, "flatDict.json"))); }
         }
 
         public static void AddAnimalAudioSource(GameObject go, int record)

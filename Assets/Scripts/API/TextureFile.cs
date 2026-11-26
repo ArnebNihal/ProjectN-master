@@ -465,7 +465,7 @@ namespace DaggerfallConnect.Arena2
             if (archive > 9999 && NeedsOffsetCorrection(archive, record, out DFPosition offset))
                 return new DFPosition(records[record].OffsetX + offset.X, records[record].OffsetY + offset.Y);
 
-            Debug.Log("records[" + record + "].OffsetX: " + records[record].OffsetX + ", records[" + record + "].OffsetY: " +  records[record].OffsetY);
+            // Debug.Log("records[" + record + "].OffsetX: " + records[record].OffsetX + ", records[" + record + "].OffsetY: " +  records[record].OffsetY);
             return new DFPosition(records[record].OffsetX, records[record].OffsetY);
         }
 
@@ -627,7 +627,7 @@ namespace DaggerfallConnect.Arena2
             fakeReader = JsonConvert.DeserializeObject<FakeHeader>(File.ReadAllText(Path.Combine(TextureReader.MapsPath, "Textures", "TEXTURE." + fakeArchive.ToString("0000000"))));
             ReadFakeHeader();
 
-            Debug.Log("archive: " + archive + ", fakeReader.record.Length: " + fakeReader.record.Length + ", record: " + record);
+            // Debug.Log("archive: " + archive + ", fakeReader.record.Length: " + fakeReader.record.Length + ", record: " + record);
             result.Data = new byte[fileBytes.Length];
             result.Data = fileBytes;
             result.Width = fakeReader.record[record].Width;

@@ -283,8 +283,8 @@ namespace DaggerfallWorkshop.Utility
             // Try to setup Arena2-dependent content readers
             if (blockFileReader == null)
                 blockFileReader = new BlocksFile(Path.Combine(arena2Path, "Maps", BlocksFile.Filename), FileUsage.UseMemory, true);
-            if (mapFileReader == null)
-                mapFileReader = new MapsFile(Path.Combine(arena2Path, MapsFile.Filename), FileUsage.UseMemory, true);
+            // if (mapFileReader == null)
+            //     mapFileReader = new MapsFile(Path.Combine(arena2Path, MapsFile.Filename), FileUsage.UseMemory, true);
             if (monsterFileReader == null)
                 monsterFileReader = new MonsterFile(Path.Combine(arena2Path, MonsterFile.Filename), FileUsage.UseMemory, true);
             // if (woodsFileReader == null)

@@ -683,7 +683,7 @@ namespace DaggerfallWorkshop
             string path;
             if (textureArchive < 1000)
                 path = Path.Combine(DaggerfallUnity.Instance.Arena2Path, TextureFile.IndexToFileName(textureArchive));
-            else path = Path.Combine(WorldMaps.mapPath, "Textures", TextureFile.IndexToFileName(textureArchive));
+            else path = Path.Combine(DaggerfallUnity.Instance.TexturePath, TextureFile.IndexToFileName(textureArchive));
 
             TextureReplacement.LoadCustomMobileTexture(path, out CustomMobileTextures textureFile);
             // if (textureArchive >= 1000)

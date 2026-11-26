@@ -284,10 +284,10 @@ namespace DaggerfallConnect.Arena2
         public DFBitmap GetCustomDFBitmap(string filename, int record, int frame, out ImageData imageData)
         {
             DFBitmap result = new DFBitmap();
-            byte[] fileBytes = File.ReadAllBytes(Path.Combine(WorldMaps.mapPath, "Textures", "Races", filename));
+            byte[] fileBytes = File.ReadAllBytes(Path.Combine(DaggerfallUnity.Instance.TexturePath, "Races", filename));
 
             fakeReader = new FakeHeader();
-            fakeReader = JsonConvert.DeserializeObject<FakeHeader>(File.ReadAllText(Path.Combine(WorldMaps.mapPath, "Textures", "Races", filename.Substring(0, (filename.Length - 4)))));
+            fakeReader = JsonConvert.DeserializeObject<FakeHeader>(File.ReadAllText(Path.Combine(DaggerfallUnity.Instance.TexturePath, "Races", filename.Substring(0, (filename.Length - 4)))));
             ReadFakeHeader(record);
 
             imageData = new ImageData();

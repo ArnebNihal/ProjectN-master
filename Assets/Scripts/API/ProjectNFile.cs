@@ -98,8 +98,8 @@ namespace DaggerfallConnect.Arena2
 
         public static WorldMap[] LoadWorldMap()
         {
-            if (!GameManager.Instance.IsReady)
-                return new WorldMap[0];
+            // if (!GameManager.Instance.IsReady)
+            //     return new WorldMap[0];
 
             WorldMap[] worldMap = new WorldMap[9];
             PlayerGPS playerGPS = GameManager.Instance.PlayerGPS;
@@ -147,15 +147,15 @@ namespace DaggerfallConnect.Arena2
 
             if (!isAbsolute)
             {
-                dfRegion.Name = WorldMaps.WorldMap[currentRelativeTile].Name;
-                dfRegion.LocationCount = WorldMaps.WorldMap[currentRelativeTile].LocationCount;
-                dfRegion.MapNames = WorldMaps.WorldMap[currentRelativeTile].MapNames;
-                dfRegion.MapTable = WorldMaps.WorldMap[currentRelativeTile].MapTable;
-                dfRegion.MapIdLookup = WorldMaps.WorldMap[currentRelativeTile].MapIdLookup;
-                dfRegion.MapNameLookup = WorldMaps.WorldMap[currentRelativeTile].MapNameLookup;
+                dfRegion.Name = WorldMap[currentRelativeTile].Name;
+                dfRegion.LocationCount = WorldMap[currentRelativeTile].LocationCount;
+                dfRegion.MapNames = WorldMap[currentRelativeTile].MapNames;
+                dfRegion.MapTable = WorldMap[currentRelativeTile].MapTable;
+                dfRegion.MapIdLookup = WorldMap[currentRelativeTile].MapIdLookup;
+                dfRegion.MapNameLookup = WorldMap[currentRelativeTile].MapNameLookup;
             }
             else{
-                WorldMap wMap = JsonConvert.DeserializeObject<WorldMap>(File.ReadAllText(Path.Combine(WorldMaps.locationPath, "map" + currentRelativeTile.ToString("00000") + ".json")));
+                WorldMap wMap = JsonConvert.DeserializeObject<WorldMap>(File.ReadAllText(Path.Combine(locationPath, "map" + currentRelativeTile.ToString("00000") + ".json")));
                 dfRegion.Name = wMap.Name;
                 dfRegion.LocationCount = wMap.LocationCount;
                 dfRegion.MapNames = wMap.MapNames;
@@ -502,13 +502,15 @@ namespace DaggerfallConnect.Arena2
         {
             //System.Diagnostics.Stopwatch s = System.Diagnostics.Stopwatch.StartNew();
             //long startTime = s.ElapsedMilliseconds;
+            // if (!GameManager.Instance.IsReady)
+            //     return new Dictionary<ulong, MapSummary>();
 
             Dictionary<ulong, MapSummary> mapDictSwap = new Dictionary<ulong, MapSummary>();
             // locationIdToMapIdDict = new Dictionary<ulong, ulong>();
 
             for (int region = 0; region < 9; region++)
             {
-                DFRegion dfRegion = WorldMaps.ConvertWorldMapsToDFRegion(region);
+                DFRegion dfRegion = ConvertWorldMapsToDFRegion(region);
                 for (int location = 0; location < dfRegion.LocationCount; location++)
                 {
                     MapSummary summary = new MapSummary();
@@ -1149,7 +1151,7 @@ namespace DaggerfallConnect.Arena2
             // while (!GameManager.Instance.IsReady)
             //     return;
 
-            WorldSetting = JsonConvert.DeserializeObject<WorldSettings>(File.ReadAllText(Path.Combine(WorldMaps.mapPath, "WorldData.json")));
+            WorldSetting = JsonConvert.DeserializeObject<WorldSettings>(File.ReadAllText(Path.Combine(DaggerfallUnity.Instance.MapsPath, "WorldData.json")));
         }
     }
 
@@ -1186,7 +1188,7 @@ namespace DaggerfallConnect.Arena2
             // while (!DaggerfallUnity.Instance.IsReady)
             //     return;
 
-            FactionDictionary = JsonConvert.DeserializeObject<Dictionary<int, FactionFile.FactionData>>(File.ReadAllText(Path.Combine(WorldMaps.mapPath, "Faction.json")));
+            FactionDictionary = JsonConvert.DeserializeObject<Dictionary<int, FactionFile.FactionData>>(File.ReadAllText(Path.Combine(DaggerfallUnity.Instance.MapsPath, "Faction.json")));
 
             foreach (KeyValuePair<int, FactionFile.FactionData> faction in FactionDictionary)
             {
