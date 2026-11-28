@@ -347,7 +347,7 @@ namespace DaggerfallWorkshop.Utility
                         textureFile = new TextureFile(Path.Combine(DaggerfallUnity.Instance.TexturePath, filename), FileUsage.UseMemory, true, true);
                         if (!textureFile.LoadPalette(Path.Combine(dfUnity.Arena2Path, textureFile.PaletteName)))
                             Debug.Log("GetImageData -> loading palette at " + Path.Combine(dfUnity.Arena2Path, textureFile.PaletteName) + " for " + textureNumber + "." + record + " wasn't successful!");
-                        dfBitmap = textureFile.GetCustomDFBitmap(textureNumber, record, frame, TextureReader.MapsPath);
+                        dfBitmap = textureFile.GetCustomDFBitmap(textureNumber, record, frame, TextureReader.TexturePath);
                     }
 
                     int frameCount = textureFile.GetFrameCount(record);
@@ -358,7 +358,7 @@ namespace DaggerfallWorkshop.Utility
                         {
                             if (textureNumber < 1000)
                                 dfBitmapAllFrames[i] = textureFile.GetDFBitmap(record, i);
-                            else dfBitmapAllFrames[i] = textureFile.GetCustomDFBitmap(textureNumber, record, i, TextureReader.MapsPath);
+                            else dfBitmapAllFrames[i] = textureFile.GetCustomDFBitmap(textureNumber, record, i, TextureReader.TexturePath);
                         }
                     }
                     imageData.offset = textureFile.GetOffset(record, textureNumber);

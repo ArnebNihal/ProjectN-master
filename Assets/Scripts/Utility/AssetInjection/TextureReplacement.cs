@@ -98,7 +98,7 @@ namespace DaggerfallWorkshop.Utility.AssetInjection
         #region Fields
 
         const string extension = ".png";
-        static int[] defaultFrames = {4,4,4,4,4,5,5,5,5,5,1,1,1,1,1,1,1,1,1,1,1};
+        static int[] defaultFrames = { 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
 
         // Paths
         static readonly string texturesPath = Path.Combine(Application.streamingAssetsPath, "Textures");
@@ -254,6 +254,19 @@ namespace DaggerfallWorkshop.Utility.AssetInjection
             return TryImportCustomTexture(Path.Combine(DaggerfallUnity.Instance.TexturePath, archive.ToString()), fileName, false, textureMap, out tex, out dfBitmap);
         }
 
+        public static bool TryImportCustomTexture(int archive, int record, int frame, DyeColors dye, TextureMap textureMap, out Texture2D tex)
+        {
+            string mask = string.Empty;
+            if (textureMap == TextureMap.Mask)
+            {
+                mask = "_Mask";
+                if (record < 12)
+                    record = 0;
+            }
+            string fileName = archive.ToString("0000000") + "_" + record.ToString() + "-" + frame.ToString() + mask + ".png";
+            return TryImportCustomTexture(Path.Combine(DaggerfallUnity.Instance.TexturePath, archive.ToString()), fileName, false, textureMap, out tex);
+        }
+
         /// <summary>
         /// Seek texture from modding locations.
         /// </summary>
@@ -358,7 +371,7 @@ namespace DaggerfallWorkshop.Utility.AssetInjection
         /// <param name="tex">Imported texture.</param>
         /// <returns>True if texture imported.</returns>
         public static bool TryImportTextureFromLooseFiles(int archive, int record, int frame, TextureMap textureMap, bool readOnly, out Texture2D tex)
-        { 
+        {
             if (DaggerfallUnity.Settings.AssetInjection)
             {
                 string path = Path.Combine(texturesPath, GetName(archive, record, frame, textureMap));
@@ -366,7 +379,7 @@ namespace DaggerfallWorkshop.Utility.AssetInjection
             }
 
             tex = null;
-            return false;           
+            return false;
         }
 
         /// <summary>
@@ -568,7 +581,7 @@ namespace DaggerfallWorkshop.Utility.AssetInjection
 
             if (archive >= 50000)
                 archive = archive / 100 * 100;
-                
+
 
             Texture2D tex, emission;
             if (importedTextures.HasImportedTextures = LoadFromCacheOrImport(archive, 0, 0, true, true, out tex, out emission))
@@ -670,73 +683,73 @@ namespace DaggerfallWorkshop.Utility.AssetInjection
             bool isMobileNPC = archive >= 100000;
             // if (importedTextures.HasImportedTextures = LoadFromCacheOrImport(archive, 0, 0, true, true, out tex, out emission))
             // {
-                string renderMode = null;
+            string renderMode = null;
 
-                // Read xml configuration
-                // XMLManager xml;
-                // if (XMLManager.TryReadXml(ImagesPath, string.Format("{0:000}", archive), out xml))
-                // {
-                //     xml.TryGetString("renderMode", out renderMode);
-                //     importedTextures.IsEmissive = xml.GetBool("emission");
-                // }
+            // Read xml configuration
+            // XMLManager xml;
+            // if (XMLManager.TryReadXml(ImagesPath, string.Format("{0:000}", archive), out xml))
+            // {
+            //     xml.TryGetString("renderMode", out renderMode);
+            //     importedTextures.IsEmissive = xml.GetBool("emission");
+            // }
 
-                // Make material
-                Material material = MakeBillboardMaterial(renderMode);
+            // Make material
+            Material material = MakeBillboardMaterial(renderMode);
 
-                string fileName = TextureFile.IndexToFileName(archive);
-                LoadCustomMobileTexture(Path.Combine(WorldMaps.texturePath, fileName), out CustomMobileTextures textureFile);
-                List<Texture2D[]> allAlbedo = new List<Texture2D[]>();
-                List<Texture2D[]> allEmission = new List<Texture2D[]>();
-                
-                // Enable emission
-                ToggleEmission(material, textureFile.isEmissive);
+            string fileName = TextureFile.IndexToFileName(archive);
+            LoadCustomMobileTexture(Path.Combine(WorldMaps.texturePath, fileName), out CustomMobileTextures textureFile);
+            List<Texture2D[]> allAlbedo = new List<Texture2D[]>();
+            List<Texture2D[]> allEmission = new List<Texture2D[]>();
 
-                int archiveFolder = archive;
-                if (isMobileNPC) archiveFolder = archive / 100 * 100;
-                for (int rec = 0; rec < textureFile.Records; rec++)
+            // Enable emission
+            ToggleEmission(material, textureFile.isEmissive);
+
+            int archiveFolder = archive;
+            if (isMobileNPC) archiveFolder = archive / 100 * 100;
+            for (int rec = 0; rec < textureFile.Records; rec++)
+            {
+                Texture2D[] currentAlbedo = new Texture2D[textureFile.Frames[rec]];
+                Texture2D[] currentEmissiveAlbedo = new Texture2D[textureFile.Frames[rec]];
+
+                for (int frame = 0; frame < textureFile.Frames[rec]; frame++)
                 {
-                    Texture2D[] currentAlbedo = new Texture2D[textureFile.Frames[rec]];
-                    Texture2D[] currentEmissiveAlbedo = new Texture2D[textureFile.Frames[rec]];
-
-                    for (int frame = 0; frame < textureFile.Frames[rec]; frame++)
-                    {
-                        byte[] fileBytes;
-                        if (isMobileNPC && rec != 0 && rec != 5) fileBytes = File.ReadAllBytes(Path.Combine(WorldMaps.texturePath, archiveFolder.ToString(), archiveFolder.ToString("0000000") + "_" + rec + "-" + frame + ".png"));
-                        else fileBytes = File.ReadAllBytes(Path.Combine(WorldMaps.texturePath, archiveFolder.ToString(), archive.ToString("0000000") + "_" + rec + "-" + frame + ".png"));
-                        currentAlbedo[frame] = new Texture2D(1, 1);
-                        ImageConversion.LoadImage(currentAlbedo[frame], fileBytes);
-                        currentAlbedo[frame].filterMode = FilterMode.Point;
-                        if (textureFile.isEmissive)
-                        {
-                            byte[] emissiveFileBytes = File.ReadAllBytes(Path.Combine(WorldMaps.texturePath, archiveFolder.ToString(), archive.ToString("0000000") + "_" + rec + "-" + frame + "_Emission.png"));
-                            currentEmissiveAlbedo[frame] = new Texture2D(1, 1);
-                            ImageConversion.LoadImage(currentEmissiveAlbedo[frame], fileBytes);
-                            currentEmissiveAlbedo[frame].filterMode = FilterMode.Point;
-                        }
-                    }
-                    allAlbedo.Add(currentAlbedo);
+                    byte[] fileBytes;
+                    if (isMobileNPC && rec != 0 && rec != 5) fileBytes = File.ReadAllBytes(Path.Combine(WorldMaps.texturePath, archiveFolder.ToString(), archiveFolder.ToString("0000000") + "_" + rec + "-" + frame + ".png"));
+                    else fileBytes = File.ReadAllBytes(Path.Combine(WorldMaps.texturePath, archiveFolder.ToString(), archive.ToString("0000000") + "_" + rec + "-" + frame + ".png"));
+                    currentAlbedo[frame] = new Texture2D(1, 1);
+                    ImageConversion.LoadImage(currentAlbedo[frame], fileBytes);
+                    currentAlbedo[frame].filterMode = FilterMode.Point;
                     if (textureFile.isEmissive)
-                        allEmission.Add(currentEmissiveAlbedo);
-
-                    // if (importedTextures.IsEmissive)
-                    // {
-                    //     if (TryImportTexture(texturesPath, frame => GetName(archive, record, frame, TextureMap.Emission), out Texture2D[] currentEmissive))
-                    //     {
-                    //         allEmission.Add(currentEmissive);
-                    //     }
-                    //     else
-                    //     {
-                    //         allEmission.Add(currentAlbedo);
-                    //     }
-                    // }
+                    {
+                        byte[] emissiveFileBytes = File.ReadAllBytes(Path.Combine(WorldMaps.texturePath, archiveFolder.ToString(), archive.ToString("0000000") + "_" + rec + "-" + frame + "_Emission.png"));
+                        currentEmissiveAlbedo[frame] = new Texture2D(1, 1);
+                        ImageConversion.LoadImage(currentEmissiveAlbedo[frame], fileBytes);
+                        currentEmissiveAlbedo[frame].filterMode = FilterMode.Point;
+                    }
                 }
-                importedTextures.HasImportedTextures = true;
-                importedTextures.Albedo = allAlbedo.ToArray();
+                allAlbedo.Add(currentAlbedo);
                 if (textureFile.isEmissive)
-                {
-                    importedTextures.IsEmissive = true;
-                    importedTextures.EmissionMaps = allEmission.ToArray();
-                }
+                    allEmission.Add(currentEmissiveAlbedo);
+
+                // if (importedTextures.IsEmissive)
+                // {
+                //     if (TryImportTexture(texturesPath, frame => GetName(archive, record, frame, TextureMap.Emission), out Texture2D[] currentEmissive))
+                //     {
+                //         allEmission.Add(currentEmissive);
+                //     }
+                //     else
+                //     {
+                //         allEmission.Add(currentAlbedo);
+                //     }
+                // }
+            }
+            importedTextures.HasImportedTextures = true;
+            importedTextures.Albedo = allAlbedo.ToArray();
+            if (textureFile.isEmissive)
+            {
+                importedTextures.IsEmissive = true;
+                importedTextures.EmissionMaps = allEmission.ToArray();
+            }
             // }
             return material;
         }
@@ -755,7 +768,7 @@ namespace DaggerfallWorkshop.Utility.AssetInjection
             {
                 int[] swap = (int[])textureData.Size.Clone();
                 textureData.Size = new int[textureData.Records * 2];
-                
+
                 for (int i = 0; i < textureData.Records; i++)
                 {
                     textureData.Size[i * 2] = swap[0];
@@ -766,7 +779,7 @@ namespace DaggerfallWorkshop.Utility.AssetInjection
             {
                 float[] swap = (float[])textureData.Scale.Clone();
                 textureData.Scale = new float[textureData.Records * 2];
-                
+
                 for (int i = 0; i < textureData.Records; i++)
                 {
                     textureData.Scale[i * 2] = swap[0];
@@ -906,7 +919,7 @@ namespace DaggerfallWorkshop.Utility.AssetInjection
         /// <param name="filename">Name of CIF/RCI file.</param>
         /// <param name="record">Record index.</param>
         /// <param name="frame">Frame index. It's different than zero only for animations.</param>
-        static public string GetNameCifRci (string filename, int record, int frame = 0)
+        static public string GetNameCifRci(string filename, int record, int frame = 0)
         {
             return string.Format("{0}_{1}-{2}", filename, record, frame);
         }
@@ -1154,6 +1167,29 @@ namespace DaggerfallWorkshop.Utility.AssetInjection
             return false;
         }
 
+        private static bool TryImportCustomTexture(string path, string name, bool readOnly, TextureMap? textureMap, out Texture2D tex)
+        {
+            bool isLinear = textureMap != null && IsLinearTextureMap(textureMap.Value);
+            if (DaggerfallUnity.Settings.AssetInjection)
+            {
+                // Seek from loose files
+                if (TryImportCustomTextureFromDisk(Path.Combine(path, name), false, isLinear, readOnly, out tex))
+                    return true;
+
+                // Seek from mods
+                if (ModManager.Instance && ModManager.Instance.TryGetAsset(name, null, out tex))
+                {
+                    if (!readOnly && !tex.isReadable)
+                        Debug.LogWarning($"Texture {name} is not readable.");
+
+                    return true;
+                }
+            }
+
+            tex = null;
+            return false;
+        }
+
         /// <summary>
         /// Seek animated texture from modding locations with all frames.
         /// </summary>
@@ -1227,6 +1263,8 @@ namespace DaggerfallWorkshop.Utility.AssetInjection
             if (!path.EndsWith(extension))
                 path += extension;
 
+            dfBitmap = Array.Empty<byte>();
+
             if (File.Exists(path))
             {
                 byte[] bytes = File.ReadAllBytes(path);
@@ -1244,11 +1282,40 @@ namespace DaggerfallWorkshop.Utility.AssetInjection
 #endif
                 Debug.Log("Trying to convert png " + path + " to byte array...");
                 dfBitmap = ConvertPNGToDFBitmap(bytes, tex.width, tex.height);
+
                 tex.filterMode = (FilterMode)DaggerfallUnity.Settings.MainFilterMode;
                 return true;
             }
+            tex = null;
+            return false;
+        }
 
-            dfBitmap = Array.Empty<byte>();
+        private static bool TryImportCustomTextureFromDisk(string path, bool mipMaps, bool isLinear, bool readOnly, out Texture2D tex)
+        {
+            const int retroThreshold = 256; // Imported textures with a width or height below this threshold will never be compressed to preserve retro appearance
+
+            if (!path.EndsWith(extension))
+                path += extension;
+
+            if (File.Exists(path))
+            {
+                byte[] bytes = File.ReadAllBytes(path);
+                // string fileDataPath = Path.Combine(WorldMaps.texturePath, "test.json");
+                // File.WriteAllBytes(fileDataPath, bytes);
+                Vector2Int resolution = FindPngResolution(bytes) ?? throw new Exception($"Failed to find PNG resolution for {path}");
+                TextureFormat textureFormat = resolution.x < retroThreshold && resolution.y < retroThreshold ? TextureFormat.ARGB32 : TextureFormat;
+
+                tex = new Texture2D(4, 4, textureFormat, mipMaps, isLinear);
+                if (!tex.LoadImage(bytes, readOnly))
+                    Debug.LogError($"Failed to import texture data at {path}");
+
+#if DEBUG_TEXTURE_FORMAT
+                Debug.LogFormat("{0}: format: {1}, mipmaps: {2}, mipmaps count: {3}", Path.GetFileName(path), tex.format, mipMaps, tex.mipmapCount);
+#endif
+
+                tex.filterMode = (FilterMode)DaggerfallUnity.Settings.MainFilterMode;
+                return true;
+            }
             tex = null;
             return false;
         }
@@ -1518,7 +1585,8 @@ namespace DaggerfallWorkshop.Utility.AssetInjection
 
             Debug.Log("first IDAT char: " + IDAT[0] + ", pngBytes first char: " + pngBytes[0]);
 
-            do{
+            do
+            {
                 int indFound = Array.IndexOf(pngBytes, IDAT[charIndex], startIndex);
                 if (pngBytes[++indFound].Equals(IDAT[++charIndex]))
                     if (pngBytes[++indFound].Equals(IDAT[++charIndex]))
@@ -1530,7 +1598,8 @@ namespace DaggerfallWorkshop.Utility.AssetInjection
                         }
                 if (IDATfound)
                 {
-                    do{
+                    do
+                    {
                         ++indFound;
                     }
                     while (!pngBytes[indFound].Equals(0));
@@ -1565,11 +1634,10 @@ namespace DaggerfallWorkshop.Utility.AssetInjection
                 Debug.Log("Trying to convert substring " + hexString.Substring(i * 2, 2));
                 byteResult[i] = Convert.ToByte(hexString.Substring(i * 2, 2), 16);
             }
-                
+
             return byteResult;
         }
 
         #endregion
     }
 }
- 

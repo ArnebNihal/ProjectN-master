@@ -526,7 +526,7 @@ namespace DaggerfallWorkshop
             Debug.Log("Step1 -> raceClimateIndex: " + raceClimateIndex + ", faceRecord: " + faceRecord);
             int variantMod = 0;
             if ((raceClimateIndex >= 510 && raceClimateIndex <= 512) ||
-                (raceClimateIndex >= 530 && raceClimateIndex >= 530))
+                (raceClimateIndex >= 530 && raceClimateIndex <= 532))
             {
                 int result = CombineComplexFaceBodyCouple(faceRecord, raceClimateIndex);
                 if (textureRecordIndex.Contains(result % 1000 / 100 * 100))

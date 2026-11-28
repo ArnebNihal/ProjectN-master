@@ -618,13 +618,13 @@ namespace DaggerfallConnect.Arena2
             int fakeArchive = archive;
             if (archive >= 100000) fakeArchive = archive / 100 * 100;
             string recordName = archive.ToString("0000000") + "_" + record.ToString() + "-" + frame.ToString() + ".png";
-            if (!File.Exists(Path.Combine(path, "Textures", fakeArchive.ToString(), recordName)))
+            if (!File.Exists(Path.Combine(path, fakeArchive.ToString(), recordName)))
             {
                 recordName = fakeArchive.ToString("0000000") + "_" + record.ToString() + "-" + frame.ToString() + ".png";
             }
-            byte[] fileBytes = File.ReadAllBytes(Path.Combine(path, "Textures", fakeArchive.ToString(), recordName));
+            byte[] fileBytes = File.ReadAllBytes(Path.Combine(path, fakeArchive.ToString(), recordName));
 
-            fakeReader = JsonConvert.DeserializeObject<FakeHeader>(File.ReadAllText(Path.Combine(TextureReader.MapsPath, "Textures", "TEXTURE." + fakeArchive.ToString("0000000"))));
+            fakeReader = JsonConvert.DeserializeObject<FakeHeader>(File.ReadAllText(Path.Combine(TextureReader.TexturePath, "TEXTURE." + fakeArchive.ToString("0000000"))));
             ReadFakeHeader();
 
             // Debug.Log("archive: " + archive + ", fakeReader.record.Length: " + fakeReader.record.Length + ", record: " + record);
@@ -692,9 +692,9 @@ namespace DaggerfallConnect.Arena2
             else if (archive >= 10000)
             {
                 recordName = "TEXTURE." + archive.ToString();
-                if (!File.Exists(Path.Combine(TextureReader.MapsPath, "Textures", "TEXTURE." + archive.ToString())))
+                if (!File.Exists(Path.Combine(TextureReader.TexturePath, "TEXTURE." + archive.ToString())))
                     recordName = "TEXTURE." + archive.ToString("0000000");
-                fakeReader = JsonConvert.DeserializeObject<FakeHeader>(File.ReadAllText(Path.Combine(TextureReader.MapsPath, "Textures", recordName)));
+                fakeReader = JsonConvert.DeserializeObject<FakeHeader>(File.ReadAllText(Path.Combine(TextureReader.TexturePath, recordName)));
                 ReadFakeHeader();
             }
             else try

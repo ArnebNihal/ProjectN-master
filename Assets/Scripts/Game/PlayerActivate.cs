@@ -755,6 +755,8 @@ namespace DaggerfallWorkshop.Game
             switch (currentMode)
             {
                 case PlayerActivateModes.Info:
+                    PresentNPCInfo(mobileNpc);
+                    break;
                 case PlayerActivateModes.Grab:
                 case PlayerActivateModes.Talk:
                     if (hit.distance > MobileNPCActivationDistance)
@@ -1635,6 +1637,23 @@ namespace DaggerfallWorkshop.Game
                     DaggerfallUI.AddHUDText(debugInfo);
                 }
             }
+        }
+
+        private void PresentNPCInfo(MobilePersonNPC npc)
+        {
+            DaggerfallUI.AddHUDText(TextManager.Instance.GetLocalizedText("youSee").Replace("%s", npc.NameNPC));
+
+            // Add debug info
+            // if (DaggerfallUI.Instance.DaggerfallHUD.QuestDebugger.State != HUDQuestDebugger.DisplayState.Nothing)
+            // {
+            //     // Get faction info of this NPC
+            //     FactionFile.FactionData factionData;
+            //     if (GameManager.Instance.PlayerEntity.FactionData.GetFactionData(npc.Data.factionID, out factionData))
+            //     {
+            //         string debugInfo = string.Format("Debugger: Your reputation with this NPC is {0}.", factionData.rep);
+            //         DaggerfallUI.AddHUDText(debugInfo);
+            //     }
+            // }
         }
 
         // Player has clicked a GameObject with a QuestResourceBehaviour attached

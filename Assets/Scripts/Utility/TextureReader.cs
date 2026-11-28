@@ -36,7 +36,7 @@ namespace DaggerfallWorkshop.Utility
         public const int LightsTextureArchive = 210;
         public const int FixedTreasureFlatsArchive = 216;
         public const int FireWallsArchive = 356;
-        public static string MapsPath = DaggerfallUnity.Instance.TexturePath;
+        public static string TexturePath = DaggerfallUnity.Instance.TexturePath;
         //public int[] MiscFlatsTextureArchives = new int[] { 97, 205, 211, 212, 213, 301 };
 
         /// <summary>
@@ -220,7 +220,7 @@ namespace DaggerfallWorkshop.Utility
                 if (settings.archive < 1000)
                     hasReferenceTexture = textureFile.Load(Path.Combine(Arena2Path, TextureFile.IndexToFileName(settings.archive)), FileUsage.UseMemory, true);
                 else
-                    hasReferenceTexture = textureFile.Load(Path.Combine(MapsPath, "Textures", TextureFile.IndexToFileName(settings.archive)), FileUsage.UseMemory, true);
+                    hasReferenceTexture = textureFile.Load(Path.Combine(TexturePath, TextureFile.IndexToFileName(settings.archive)), FileUsage.UseMemory, true);
             }
             else
             {
@@ -235,7 +235,7 @@ namespace DaggerfallWorkshop.Utility
                 srcBitmap = hasReferenceTexture ? textureFile.GetDFBitmap(settings.record, settings.frame) : null;
             else
             {
-                srcBitmap = textureFile.GetCustomDFBitmap(settings.archive, settings.record, settings.frame, MapsPath);
+                srcBitmap = textureFile.GetCustomDFBitmap(settings.archive, settings.record, settings.frame, TexturePath);
             }
 
             // Get albedo Color32 array
@@ -469,12 +469,12 @@ namespace DaggerfallWorkshop.Utility
                 }
                 else if (settings.archive < 100000)
                 {
-                    textureFile = new TextureFile(Path.Combine(MapsPath, "Textures", TextureFile.IndexToFileName(settings.archive)), FileUsage.UseMemory, true, true);
+                    textureFile = new TextureFile(Path.Combine(TexturePath, TextureFile.IndexToFileName(settings.archive)), FileUsage.UseMemory, true, true);
                     settings.textureFile = textureFile;
                 }
                 else
                 {
-                    textureFile = new TextureFile(Path.Combine(MapsPath, "Textures", TextureFile.IndexToFileName(settings.archive / 100 * 100)), FileUsage.UseMemory, true, true);
+                    textureFile = new TextureFile(Path.Combine(TexturePath, TextureFile.IndexToFileName(settings.archive / 100 * 100)), FileUsage.UseMemory, true, true);
                     settings.textureFile = textureFile;
                 }
             }

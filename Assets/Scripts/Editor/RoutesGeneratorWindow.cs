@@ -568,6 +568,7 @@ namespace MapEditor
 
             foreach ((int, int) trailTile in trailTilesList)
             {
+                Debug.Log("Working on trailTile (" + trailTile.Item1 + ", " + trailTile.Item2 + ")");
                 tile = GenerateTile(trailTile, trailMap);
 
                 tile = RefineTileBorder(tile);
@@ -593,6 +594,8 @@ namespace MapEditor
                     int y = (int)(roadsignKey / MapsFile.WorldWidth);
                     string tileDataPath = Path.Combine(MapEditor.arena2Path, "Maps", "Tiles", "trailExp_" + (x / MapsFile.TileDim) + "_" + (y / MapsFile.TileDim) + ".png");
                     Texture2D tex = new Texture2D(1, 1);
+                    if (!File.Exists(tileDataPath))
+                        continue;
                     ImageConversion.LoadImage(tex, File.ReadAllBytes(tileDataPath));
                     int[,] tileToPrint = MapEditor.ConvertToMatrixExp(tex);
                     long crossroadIndex = 0;
@@ -680,7 +683,7 @@ namespace MapEditor
                 default:
                     return 8 - govType;
             }
-            return -1;
+            // return -1;
         }
 
         public static byte[] ConvertToGrayscale(long[,] map)
